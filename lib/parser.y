@@ -43,17 +43,17 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 
 %%
 
-exp: NUMBER             { bytecode_add(b, PUSH_N); bytecode_addf64(b, $1); }
-   | BOOLEAN            { bytecode_add(b, $1 ? PUSH_Bt : PUSH_Bf); }
-   | NIL                { bytecode_add(b, PUSH_Nil); }
-   | exp '+' exp        { bytecode_add(b, ADD); }
-   | exp '-' exp        { bytecode_add(b, SUB); }
-   | exp '*' exp        { bytecode_add(b, MUL); }
-   | exp '/' exp        { bytecode_add(b, DIV); }
-   | exp _IDIV exp      { bytecode_add(b, IDIV); }
-   | exp '%' exp        { bytecode_add(b, MOD); }
-   | '-' exp %prec _NEG { bytecode_add(b, NEG); }
-   | exp _POW exp       { bytecode_add(b, POW); }
+exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
+   | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
+   | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | exp '+' exp        { bytecode_addcode(b, ADD); }
+   | exp '-' exp        { bytecode_addcode(b, SUB); }
+   | exp '*' exp        { bytecode_addcode(b, MUL); }
+   | exp '/' exp        { bytecode_addcode(b, DIV); }
+   | exp _IDIV exp      { bytecode_addcode(b, IDIV); }
+   | exp '%' exp        { bytecode_addcode(b, MOD); }
+   | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
+   | exp _POW exp       { bytecode_addcode(b, POW); }
    | '(' exp ')'
    ;
 

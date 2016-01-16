@@ -71,27 +71,53 @@ static char* test_zoe_stack(void)
 
 // {{{ BYTECODE
 
-static char* test_bytecode(void) 
+static uint8_t expected[] = {
+    0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
+    0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
+    0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_pos
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_sz
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
+    PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
+};
+
+static char* test_bytecode_gen(void) 
 {
     Bytecode* bc = bytecode_new(&default_userfunctions);
 
-    mu_assert("size == 0", bytecode_data(bc, NULL) == 0);
+    bytecode_addcode(bc, PUSH_N);
+    bytecode_addcodef64(bc, 3.1416);
 
-    bytecode_add(bc, 0x80);
+    uint8_t* found;
+    size_t sz = bytecode_generatezb(bc, &found);
 
-    uint8_t* buf;
-    mu_assert("size == 1", bytecode_copy_data(bc, &buf) == 1);
-    mu_assert("[0] = 0x80", buf[0] == 0x80);
-    free(buf);
-
-    bytecode_addf64(bc, 3.1416);
-
-    mu_assert("size == 9", bytecode_copy_data(bc, &buf) == 9);
-    mu_assert("[1] = 0xA7", buf[1] == 0xA7);
-    mu_assert("[8] = 0x40", buf[8] == 0x40);
-    free(buf);
+    mu_assert("BZ size", sz == sizeof expected);
+    for(size_t i=0; i<sz; ++i) {
+        static char buf[100];
+        sprintf(buf, "%zuth byte", i);
+        mu_assert(buf, expected[i] == found[i]);
+    }
+    free(found);
 
     bytecode_free(bc);
+    
+    return 0;
+}
+
+
+static char* test_bytecode_import(void)
+{
+    Bytecode* bc = bytecode_newfromzb(&default_userfunctions, expected, sizeof expected);
+
+    mu_assert("version minor", bc->version_minor == 0x1);
+    mu_assert("code_sz", bc->code_sz == 9);
+    mu_assert("code[0]", bc->code[0] == PUSH_N);
+    mu_assert("code[1]", bc->code[1] == 0xA7);
+    mu_assert("code[8]", bc->code[8] == 0x40);
+
+    bytecode_free(bc);
+
     return 0;
 }
 
@@ -100,12 +126,18 @@ static char* test_bytecode_simplecode(void)
 {
     Bytecode* bc = bytecode_newfromcode(&default_userfunctions, "3.1416");
 
-    uint8_t* buf;
-    mu_assert("size == 9", bytecode_copy_data(bc, &buf) == 9);
-    mu_assert("[0] = 0x03", buf[0] == PUSH_N);
-    mu_assert("[1] = 0xA7", buf[1] == 0xA7);
-    mu_assert("[8] = 0x40", buf[8] == 0x40);
-    free(buf);
+    uint8_t* found;
+    size_t sz = bytecode_generatezb(bc, &found);
+
+    mu_assert("BZ size", sz == sizeof expected);
+    for(size_t i=0; i<sz; ++i) {
+        static char buf[100];
+        sprintf(buf, "%zuth byte", i);
+        mu_assert(buf, expected[i] == found[i]);
+    }
+    free(found);
+
+    bytecode_free(bc);
 
     return 0;
 }
@@ -116,7 +148,8 @@ static char* all_tests(void)
 {
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
-    mu_run_test(test_bytecode);
+    mu_run_test(test_bytecode_gen);
+    mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
     return 0;
 }

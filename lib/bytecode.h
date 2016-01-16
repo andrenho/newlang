@@ -7,40 +7,38 @@
 
 #include "userfunctions.h"
 
-typedef struct {
-    uint8_t  magic[3];
-    uint8_t  zb_version;
-    uint64_t code_pos;
-    uint64_t const_pos;
-    uint64_t debug_pos;
-    uint8_t  data[];
-} ZoeBinary;
+#define ZB_VERSION_MINOR 1
+#define ZB_VERSION_MAJOR 0
 
-typedef struct Bytecode Bytecode;
+struct B_Priv;
+
+typedef struct Bytecode {
+    uint8_t        version_minor;
+    uint8_t        version_major;
+    uint8_t*       code;
+    size_t         code_sz;
+    struct B_Priv* _;
+} Bytecode;
+
 
 // 
 // CONSTRUCTOR/DESTRUCTOR
 //
 Bytecode* bytecode_new(UserFunctions *uf);
-Bytecode* bytecode_newfromcode(UserFunctions *uf, const char* code);
+Bytecode* bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz);
+Bytecode* bytecode_newfromcode(UserFunctions *uf, const char* code);   // here is where the magic happens
 void      bytecode_free(Bytecode* bc);
 
 //
-// ADD DATA
+// ADD CODE
 //
-void      bytecode_add(Bytecode* bc, uint8_t data);
-void      bytecode_addf64(Bytecode* bc, double data);
+void      bytecode_addcode(Bytecode* bc, uint8_t code);
+void      bytecode_addcodef64(Bytecode* bc, double code);
 
 // 
-// READ DATA
+// GENERATE ZB FILE
 //
-size_t    bytecode_data(Bytecode* bc, uint8_t** data);       // DO NOT FREE the resulting data
-size_t    bytecode_copy_data(Bytecode* bc, uint8_t** data);  // DO FREE the resulting data
-
-// 
-// DEBUGGING
-//
-void      bytecode_disassemble(FILE* f, uint8_t* data, size_t sz);
+size_t    bytecode_generatezb(Bytecode* bc, uint8_t** data);
 
 #endif
 
