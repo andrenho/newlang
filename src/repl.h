@@ -1,7 +1,7 @@
 #ifndef SRC_REPL_H_
 #define SRC_REPL_H_
 
-#include "options.h"
+#include "src/options.h"
 
 void repl_execute(Options* opt);
 

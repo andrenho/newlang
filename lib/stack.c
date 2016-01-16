@@ -33,14 +33,14 @@ void stack_free(Stack* st)
 
 // {{{ STACK INFORMATION
 
-STPOS  
+STPOS
 stack_abs(Stack* st, STPOS pos)
 {
     return (pos >= 0) ? pos : (st->sz + pos);
 }
 
 
-ZValue 
+ZValue
 stack_peek(Stack* st, STPOS pos)
 {
     if(pos >= st->sz) {
@@ -52,7 +52,7 @@ stack_peek(Stack* st, STPOS pos)
 }
 
 
-uint8_t 
+uint8_t
 stack_size(Stack* st)
 {
     return st->sz;
@@ -62,7 +62,7 @@ stack_size(Stack* st)
 
 // {{{ STACK CHANGES
 
-void 
+void
 stack_push(Stack* st, ZValue zvalue)
 {
     if(st->sz == (STACK_MAX-1)) {
@@ -76,7 +76,7 @@ stack_push(Stack* st, ZValue zvalue)
 }
 
 
-void 
+void
 stack_pop(Stack* st)
 {
     if(st->sz == 0) {

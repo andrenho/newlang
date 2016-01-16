@@ -1,7 +1,7 @@
-#include "options.h"
-#include "repl.h"
-
 #include <stdlib.h>
+
+#include "src/options.h"
+#include "src/repl.h"
 
 int main(int argc, char* argv[])
 {

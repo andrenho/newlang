@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "opcode.h"
+#include "lib/opcode.h"
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
@@ -12,7 +12,7 @@ struct B_Priv {
     size_t code_alloc;
 };
 
-Bytecode* 
+Bytecode*
 bytecode_new(UserFunctions *uf)
 {
     Bytecode* bc = uf->realloc(NULL, sizeof(Bytecode));
@@ -26,7 +26,7 @@ bytecode_new(UserFunctions *uf)
 
 extern int parse(Bytecode* b, const char* code);  // defined in parser.y
 
-Bytecode* 
+Bytecode*
 bytecode_newfromcode(UserFunctions *uf, const char* code)
 {
     Bytecode* bc = bytecode_new(uf);
@@ -35,7 +35,7 @@ bytecode_newfromcode(UserFunctions *uf, const char* code)
 }
 
 
-Bytecode* 
+Bytecode*
 bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz)
 {
     // validate magic code
@@ -58,7 +58,7 @@ bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz)
     memcpy(&bc->code_sz, &data[0x10], 8);
     bc->code = uf->realloc(NULL, bc->code_sz);
     memcpy(bc->code, &data[0x38], bc->code_sz);
-    
+
     // load private fields
     bc->_->code_alloc = bc->code_sz;
 
@@ -100,7 +100,7 @@ bytecode_addcodef64(Bytecode* bc, double code)
         double a;
         uint8_t b[8];
     } c = { .a = code };
-    
+
     for(int i=0; i<8; ++i) {
         bytecode_addcode(bc, c.b[i]);
     }
@@ -117,7 +117,7 @@ bytecode_generatezb(Bytecode* bc, uint8_t** data)
     *data = bc->_->uf->realloc(NULL, sz);
 
     // headers
-    static uint8_t header[] = { 
+    static uint8_t header[] = {
         0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, ZB_VERSION_MINOR, ZB_VERSION_MAJOR,
     };
     memcpy(*data, &header, sizeof header);

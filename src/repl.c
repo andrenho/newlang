@@ -40,13 +40,12 @@ void repl_execute(Options* opt)
         zoe_call(Z, 0);
 
         // display result
-        /*
         zoe_inspect(Z);
         char* result = zoe_popstring(Z);
         printf("%s\n", result);
         free(result);
-        */
 
+        // pop the result
         zoe_pop(Z, 1);
 
         free(buf);

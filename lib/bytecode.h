@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "userfunctions.h"
+#include "lib/userfunctions.h"
 
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
@@ -21,7 +21,7 @@ typedef struct Bytecode {
 } Bytecode;
 
 
-// 
+//
 // CONSTRUCTOR/DESTRUCTOR
 //
 Bytecode* bytecode_new(UserFunctions *uf);
@@ -35,7 +35,7 @@ void      bytecode_free(Bytecode* bc);
 void      bytecode_addcode(Bytecode* bc, uint8_t code);
 void      bytecode_addcodef64(Bytecode* bc, double code);
 
-// 
+//
 // GENERATE ZB FILE
 //
 size_t    bytecode_generatezb(Bytecode* bc, uint8_t** data);

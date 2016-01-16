@@ -16,7 +16,7 @@ typedef struct Zoe Zoe;
 Zoe* zoe_createvm(UserFunctions* uf);
 void zoe_free(Zoe* Z);
 
-// 
+//
 // HIGH LEVEL STACK ACCESS
 //
 STPOS       zoe_stacksize(Zoe* Z);
@@ -48,9 +48,9 @@ char*       zoe_popstring(Zoe* Z);
 //
 void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 
-// 
+//
 // INFORMATION
-// 
+//
 char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 
 //
@@ -59,10 +59,11 @@ char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 void zoe_eval(Zoe* Z, const char* code);
 void zoe_call(Zoe* Z, int n_args);
 
-// 
+//
 // DEBUGGING
 //
 void zoe_disassemble(Zoe* Z);
+void zoe_inspect(Zoe* Z);
 
 #endif
 

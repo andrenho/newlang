@@ -16,7 +16,7 @@ typedef struct Zoe {
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
-Zoe* 
+Zoe*
 zoe_createvm(UserFunctions* uf)
 {
     if(!uf) {
@@ -30,7 +30,7 @@ zoe_createvm(UserFunctions* uf)
 }
 
 
-void 
+void
 zoe_free(Zoe* Z)
 {
     stack_free(Z->stack);
@@ -41,35 +41,35 @@ zoe_free(Zoe* Z)
 
 // {{{ HIGH LEVEL STACK ACCESS
 
-STPOS 
+STPOS
 zoe_stacksize(Zoe* Z)
 {
     return stack_size(Z->stack);
 }
 
 
-void 
+void
 zoe_pushnil(Zoe* Z)
 {
     stack_push(Z->stack, (ZValue){ .type=NIL });
 }
 
 
-void 
+void
 zoe_pushboolean(Zoe* Z, bool b)
 {
     stack_push(Z->stack, (ZValue){ .type=BOOLEAN, .boolean=b });
 }
 
 
-void 
+void
 zoe_pushnumber(Zoe* Z, double n)
 {
     stack_push(Z->stack, (ZValue){ .type=NUMBER, .number=n });
 }
 
 
-void 
+void
 zoe_pushfunction(Zoe* Z, ZFunction f)
 {
     stack_push(Z->stack, (ZValue){ .type=FUNCTION, .function=f });
@@ -83,7 +83,7 @@ zoe_pushstring(Zoe* Z, char* s)
 }
 
 
-void 
+void
 zoe_pop(Zoe* Z, int count)
 {
     for(int i=0; i<count; ++i) {
@@ -110,28 +110,28 @@ zoe_checktype(Zoe* Z, ZType type_expected)
 }
 
 
-void      
+void
 zoe_peeknil(Zoe* Z)
 {
     zoe_checktype(Z, NIL);
 }
 
 
-bool      
+bool
 zoe_peekboolean(Zoe* Z)
 {
     return zoe_checktype(Z, BOOLEAN).boolean;
 }
 
 
-double    
+double
 zoe_peeknumber(Zoe* Z)
 {
     return zoe_checktype(Z, NUMBER).number;
 }
 
 
-ZFunction 
+ZFunction
 zoe_peekfunction(Zoe* Z)
 {
     return zoe_checktype(Z, FUNCTION).function;
@@ -145,7 +145,7 @@ zoe_peekstring(Zoe* Z)
 }
 
 
-void      
+void
 zoe_popnil(Zoe* Z)
 {
     zoe_checktype(Z, NIL);
@@ -263,7 +263,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     memcpy(&n, &bc->code[p+1], 8);
                     zoe_pushnumber(Z, n);
                     p += 9;
-                } 
+                }
                 break;
             case ADD: zoe_pushnumber(Z, zoe_popnumber(Z) + zoe_popnumber(Z)); ++p; break;
             case SUB: zoe_pushnumber(Z, -zoe_popnumber(Z) + zoe_popnumber(Z)); ++p; break;
@@ -416,6 +416,64 @@ void zoe_disassemble(Zoe* Z)
     }
     free(buf);
 }
+
+
+static char* zoe_escapestring(Zoe* Z, const char* s)
+{
+    char* buf = Z->uf->realloc(NULL, strlen(s));
+    int a = 0, b = 0;
+    while(s[a]) {
+        if(s[a] == 13) {
+            buf[b++] = '\\';
+            buf[b++] = 'n';
+            continue;
+        } else if(s[a] == '\\' || s[a] == '\'') {
+            buf[b++] = '\\';
+        }
+
+        buf[b++] = s[a++];
+    }
+    return buf;
+}
+
+
+void zoe_inspect(Zoe* Z)
+{
+    switch(zoe_peektype(Z)) {
+        case INVALID:
+            zoe_pushstring(Z, "invalid");
+            break;
+        case NIL:
+            zoe_pushstring(Z, "nil");
+            break;
+        case BOOLEAN: {
+                bool b = zoe_peekboolean(Z);
+                zoe_pushstring(Z, b ? "true" : "false");
+            }
+            break;
+        case NUMBER: {
+                double n = zoe_peeknumber(Z);
+                char buf[128];
+                snprintf(buf, sizeof buf, "%g", n);  // TODO
+                zoe_pushstring(Z, buf);
+            }
+            break;
+        case FUNCTION:
+            zoe_pushstring(Z, "function");
+            break;
+        case STRING: {
+                const char* s = zoe_peekstring(Z);
+                char* buf = zoe_escapestring(Z, s);
+                zoe_pushstring(Z, buf);
+                Z->uf->free(buf);
+            }
+            break;
+        default: {
+            zoe_error(Z, "Invalid type (code %d) in the stack.", zoe_peektype(Z));
+        }
+    }
+}
+
 
 // }}}
 

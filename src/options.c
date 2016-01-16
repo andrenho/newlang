@@ -6,11 +6,11 @@
 
 static void options_printhelp(FILE* f, int exit_status);
 
-Options* 
+Options*
 options_parse(int argc, char* argv[])
 {
     Options* opt = calloc(sizeof(Options), 1);
-    
+
     while(1) {
         static struct option long_options[] = {
             { "repl-disassemble", no_argument, NULL, 'D' },
@@ -62,7 +62,7 @@ options_free(Options* opt)
 }
 
 
-static void 
+static void
 options_printhelp(FILE* f, int exit_status)
 {
     fprintf(f, "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n");

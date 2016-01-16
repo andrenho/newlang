@@ -7,6 +7,8 @@
 #include "lib/stack.h"
 #include "lib/zoe.h"
 
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+
 int error = 0;
 static void my_error(const char* s) {
     (void) s;
@@ -205,6 +207,21 @@ static char* test_execution(void)
     return 0;
 }
 
+static char* test_inspect(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, "42");
+    zoe_call(Z, 0);
+    zoe_inspect(Z);
+
+    char* r = zoe_popstring(Z);
+    mu_assert("-> 42", strcmp(r, "42") == 0);
+
+    zoe_free(Z);
+    return 0;
+}
+
 // }}}
 
 static char* all_tests(void)
@@ -217,6 +234,7 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_execution);
+    mu_run_test(test_inspect);
     return 0;
 }
 

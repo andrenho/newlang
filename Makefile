@@ -42,6 +42,9 @@ endif
 # libraries
 LDFLAGS+=-fuse-ld=gold -lm
 
+# cpplint filters
+CPPLINT_FILTERS=-legal/copyright,-whitespace/parens,-whitespace/operators,-whitespace/braces,-build/header_guard,-readability/todo
+
 #
 # ALL 
 #
@@ -159,7 +162,11 @@ runtests: ${OBJ_LIB} ${OBJ_TST}
 check: runtests
 	./runtests
 
-lint: 
+lint:
+	${MAKE} maintainer-clean
+	cpplint --filter=${CPPLINT_FILTERS} --linelength=120 lib/*.h lib/*.c src/*.h src/*.c
+
+splint: 
 	${MAKE} maintainer-clean
 	splint -badflag ${CPPFLAGS} lib/*.h lib/*.c src/*.h src/*.c
 
