@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "tests/minunit.h"
 
 #include "lib/bytecode.h"
@@ -66,6 +67,44 @@ static char* test_zoe_stack(void)
     zoe_free(Z);
     return 0;
 }
+
+
+static char* test_zoe_stack_order(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_pushnumber(Z, 1);
+    zoe_pushnumber(Z, 2);
+    zoe_pushnumber(Z, 3);
+    mu_assert("stack size == 3", zoe_stacksize(Z) == 3);
+    mu_assert("pop == 3", zoe_popnumber(Z) == 3);
+    mu_assert("pop == 3", zoe_popnumber(Z) == 2);
+    mu_assert("pop == 3", zoe_popnumber(Z) == 1);
+    mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
+
+    zoe_free(Z);
+    return 0;
+}
+
+
+static char* test_zoe_string(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+    
+    zoe_pushstring(Z, "hello world");
+    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("peek", strcmp(zoe_peekstring(Z), "hello world") == 0);
+
+    char* buf = zoe_popstring(Z);
+    mu_assert("pop", strcmp(buf, "hello world") == 0);
+    free(buf);
+
+    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+    zoe_free(Z);
+
+    return 0;
+}
+
 
 // }}}
 
@@ -144,13 +183,40 @@ static char* test_bytecode_simplecode(void)
 
 // }}}
 
+// {{{ ZOE EXECUTION
+
+static char* test_execution(void) 
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    // load code
+    zoe_eval(Z, "42");
+    mu_assert("eval pushed into stack", zoe_stacksize(Z) == 1);
+    mu_assert("type == function", zoe_peektype(Z) == FUNCTION);
+
+    // execute code
+    zoe_call(Z, 0);
+    mu_assert("result pushed into stack", zoe_stacksize(Z) == 1);
+    mu_assert("type == function", zoe_peektype(Z) == NUMBER);
+    mu_assert("return 42", zoe_popnumber(Z) == 42);
+
+    zoe_free(Z);
+
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
+    mu_run_test(test_zoe_stack_order);
+    mu_run_test(test_zoe_string);
     mu_run_test(test_bytecode_gen);
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
+    mu_run_test(test_execution);
     return 0;
 }
 

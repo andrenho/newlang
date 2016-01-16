@@ -19,34 +19,50 @@ void zoe_free(Zoe* Z);
 // 
 // HIGH LEVEL STACK ACCESS
 //
-STPOS     zoe_stacksize(Zoe* Z);
+STPOS       zoe_stacksize(Zoe* Z);
 
-void      zoe_pushnil(Zoe* Z);
-void      zoe_pushboolean(Zoe* Z, bool b);
-void      zoe_pushnumber(Zoe* Z, double n);
-void      zoe_pushfunction(Zoe* Z, ZFunction f);
+void        zoe_pushnil(Zoe* Z);
+void        zoe_pushboolean(Zoe* Z, bool b);
+void        zoe_pushnumber(Zoe* Z, double n);
+void        zoe_pushfunction(Zoe* Z, ZFunction f);
+void        zoe_pushstring(Zoe* Z, char* s);
 
-void      zoe_pop(Zoe* Z, int count);
+void        zoe_pop(Zoe* Z, int count);
 
-void      zoe_peeknil(Zoe* Z);
-bool      zoe_peekboolean(Zoe* Z);
-double    zoe_peeknumber(Zoe* Z);
-ZFunction zoe_peekfunction(Zoe* Z);
+ZType       zoe_peektype(Zoe* Z);
 
-void      zoe_popnil(Zoe* Z);
-bool      zoe_popboolean(Zoe* Z);
-double    zoe_popnumber(Zoe* Z);
-ZFunction zoe_popfunction(Zoe* Z);
+void        zoe_peeknil(Zoe* Z);
+bool        zoe_peekboolean(Zoe* Z);
+double      zoe_peeknumber(Zoe* Z);
+ZFunction   zoe_peekfunction(Zoe* Z);
+char const* zoe_peekstring(Zoe* Z);
+
+void        zoe_popnil(Zoe* Z);
+bool        zoe_popboolean(Zoe* Z);
+double      zoe_popnumber(Zoe* Z);
+ZFunction   zoe_popfunction(Zoe* Z);
+char*       zoe_popstring(Zoe* Z);
 
 //
 // ERROR MANAGEMENT
 //
-void zoe_error(Zoe* Z, char* fmt, ...);
+void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 
 // 
 // INFORMATION
 // 
 char* zoe_typename(ZType type);  // DO NOT FREE the returning string
+
+//
+// CODE EXECUTION
+//
+void zoe_eval(Zoe* Z, const char* code);
+void zoe_call(Zoe* Z, int n_args);
+
+// 
+// DEBUGGING
+//
+void zoe_disassemble(Zoe* Z);
 
 #endif
 

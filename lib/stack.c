@@ -99,9 +99,11 @@ void stack_popfree(Stack* st)
     STPOS p = stack_abs(st, -1);
     if(st->items[p].type == FUNCTION) {
         if(st->items[p].function.type == BYTECODE) {
-            assert(st->items[p].function.bytecode);
-            st->uf->free(st->items[p].function.bytecode);
+            assert(st->items[p].function.bfunction.bytecode);
+            st->uf->free(st->items[p].function.bfunction.bytecode);
         }
+    } else if(st->items[p].type == STRING) {
+        free(st->items[p].string);
     }
 
     --st->sz;

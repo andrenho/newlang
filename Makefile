@@ -40,7 +40,7 @@ else
 endif
 
 # libraries
-LDFLAGS+=-fuse-ld=gold
+LDFLAGS+=-fuse-ld=gold -lm
 
 #
 # ALL 

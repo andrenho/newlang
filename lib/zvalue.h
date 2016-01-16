@@ -3,16 +3,22 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION } ZType;
+typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION, STRING } ZType;
 
 typedef enum { BYTECODE=1 } ZFunctionType;
+
+typedef struct {
+    uint8_t* bytecode;
+    size_t   sz;
+} ZBytecodeFunction;
 
 typedef struct {
     ZFunctionType type;
     int8_t n_args;
     union {
-        uint8_t* bytecode;
+        ZBytecodeFunction bfunction;
     };
 } ZFunction;
 
@@ -22,6 +28,7 @@ typedef struct {
         bool        boolean;
         double      number;
         ZFunction   function;
+        char*       string;
     };
 } ZValue;
 

@@ -28,17 +28,26 @@ void repl_execute(Options* opt)
         }
 
         // run code
-        /* TODO
-        zoe.LoadCode(buf);
-        if(opt.repl_options.disassemble) {
-            Bytecode::Disassemble(stderr, zoe.Dump(0));
+        zoe_eval(Z, buf);
+        if(opt->repl_options.disassemble) {
+            zoe_disassemble(Z);
+            printf("\033[1;30m");  // gray font
+            char* txt = zoe_popstring(Z);
+            printf("%s", txt);
+            free(txt);
+            printf("\033[0m");  // TTY normal
         }
-        zoe.Call(0);
+        zoe_call(Z, 0);
 
-        // inspect
-        cout << zoe.Inspect() << endl;
-        zoe.Pop();
+        // display result
+        /*
+        zoe_inspect(Z);
+        char* result = zoe_popstring(Z);
+        printf("%s\n", result);
+        free(result);
         */
+
+        zoe_pop(Z, 1);
 
         free(buf);
     }
