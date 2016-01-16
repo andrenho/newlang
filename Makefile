@@ -12,7 +12,7 @@ SRC_LIB=lib/zoe.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c
 
-SRC_EXE=src/main.c	#	\
+SRC_EXE=src/main.c		\
 	src/options.c		\
 	src/repl.c
 

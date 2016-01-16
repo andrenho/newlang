@@ -185,6 +185,6 @@ char* zoe_typename(ZType type)
     }
 }
 
-//}}
-//
+// }}}
+
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

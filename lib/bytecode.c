@@ -74,7 +74,7 @@ bytecode_addf64(Bytecode* bc, double data)
 
 // }}}
 
-// {{{ READ DATA
+// {{{ GENERATE DATA
 
 size_t
 bytecode_data(Bytecode* bc, uint8_t** data)

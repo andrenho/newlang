@@ -7,6 +7,15 @@
 
 #include "userfunctions.h"
 
+typedef struct {
+    uint8_t  magic[3];
+    uint8_t  zb_version;
+    uint64_t code_pos;
+    uint64_t const_pos;
+    uint64_t debug_pos;
+    uint8_t  data[];
+} ZoeBinary;
+
 typedef struct Bytecode Bytecode;
 
 // 
