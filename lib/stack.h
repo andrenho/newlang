@@ -3,7 +3,6 @@
 
 #include "lib/zvalue.h"
 #include "lib/userfunctions.h"
-#include "lib/global.h"
 
 #define STACK_MAX 20
 

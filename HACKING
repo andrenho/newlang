@@ -12,28 +12,28 @@ tests/       Unit tests
 The files are:
 
 /
-  COPYING         The GPLv3 license
-  HACKING         This file
-  INSTALL         Installation instructions
-  Makefile        Build instructions for make
-  README.md       Markdown README file (for github)
-  zoe.1           Manual page
+  COPYING            The GPLv3 license
+  HACKING            This file
+  INSTALL            Installation instructions
+  Makefile           Build instructions for make
+  README.md          Markdown README file (for github)
+  zoe.1              Manual page
 build/
-  config.mk       User-configurable options for make
-  version.mk      Contains the version number
-  WARNINGS        A list of warnings issued by gcc when building
-  zoe.supp        Suppression file for valgrind
+  config.mk          User-configurable options for make
+  version.mk         Contains the version number
+  WARNINGS           A list of warnings issued by gcc when building
+  zoe.supp           Suppression file for valgrind
 lib/
-  zvalue.h        Union containing all types acceptable by Zoe
-  stack.c         Low-level stack management for ZoeVM
-  userfunctions.c Structure to interact with the user environment
-  zoe.c           ZoeVM (only the bare bones)
-  zoeext.c        ZoeVM extension functions
-  bytecode.c      Bytecode management (the parser is called from here)
-  lexer.l         The lexer
-  parser.y        The parser
+  bytecode.c         Bytecode management (the parser is called from here)
+  lexer.l            The lexer
+  parser.y           The parser
+  opcode.h           List of VM opcodes
+  stack.c            Low-level stack management for ZoeVM
+  userfunctions.c|h  Structure to interact with the user environment
+  zoe.c|h            ZoeVM
+  zvalue.h           Union containing all types acceptable by Zoe
 tests/
-  tests.c         Unit tests
+  tests.c            Unit tests
 
 
 MEMORY MANAGEMENT
