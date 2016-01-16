@@ -225,6 +225,32 @@ char* zoe_typename(ZType type)
 
 // {{{ CODE EXECUTION
 
+
+void zoe_oper(Zoe* Z, Operator oper)
+{
+    if(oper == ZOE_NEG) {
+        zoe_pushnumber(Z, -zoe_popnumber(Z));
+    } else {
+        double b = zoe_popnumber(Z), 
+               a = zoe_popnumber(Z);
+        double c = 0.0;
+        switch(oper) {
+            case ZOE_ADD: c = a + b; break;
+            case ZOE_SUB: c = a - b; break;
+            case ZOE_MUL: c = a * b; break;
+            case ZOE_DIV: c = a / b; break;
+            case ZOE_IDIV: c = floor(a / b); break;
+            case ZOE_MOD: c = fmod(a, b); break;
+            case ZOE_POW: c = pow(a, b); break;
+            default:
+                zoe_error(Z, "Invalid operator (code %d)", oper);
+                return;
+        }
+        zoe_pushnumber(Z, c);
+    }
+}
+
+
 void zoe_eval(Zoe* Z, const char* code)
 {
     Bytecode* bc = bytecode_newfromcode(Z->uf, code);
@@ -255,6 +281,9 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
     while(p < bc->code_sz) {
         Opcode op = bc->code[p];
         switch(op) {
+            // 
+            // push 
+            //
             case PUSH_Nil: zoe_pushnil(Z); ++p; break;
             case PUSH_Bt: zoe_pushboolean(Z, true); ++p; break;
             case PUSH_Bf: zoe_pushboolean(Z, false); ++p; break;
@@ -265,23 +294,17 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     p += 9;
                 }
                 break;
-            case ADD: zoe_pushnumber(Z, zoe_popnumber(Z) + zoe_popnumber(Z)); ++p; break;
-            case SUB: zoe_pushnumber(Z, -zoe_popnumber(Z) + zoe_popnumber(Z)); ++p; break;
-            case MUL: zoe_pushnumber(Z, zoe_popnumber(Z) * zoe_popnumber(Z)); ++p; break;
-            case DIV: zoe_pushnumber(Z, (1.0 / zoe_popnumber(Z)) * zoe_popnumber(Z)); ++p; break;
-            case IDIV: zoe_pushnumber(Z, floor((1.0 / zoe_popnumber(Z)) * zoe_popnumber(Z))); ++p; break;
-            case MOD: {
-                    double b = zoe_popnumber(Z), a = zoe_popnumber(Z);
-                    zoe_pushnumber(Z, fmod(a, b));
-                    ++p;
-                } break;
-            case POW: {
-                    double b = zoe_popnumber(Z), a = zoe_popnumber(Z);
-                    zoe_pushnumber(Z, pow(a, b));
-                    ++p;
-                }
-                break;
-            case NEG: zoe_pushnumber(Z, -zoe_popnumber(Z)); ++p; break;
+            //
+            // oper
+            //
+            case ADD:  zoe_oper(Z, ZOE_ADD); ++p; break;
+            case SUB:  zoe_oper(Z, ZOE_SUB); ++p; break;
+            case MUL:  zoe_oper(Z, ZOE_MUL); ++p; break;
+            case DIV:  zoe_oper(Z, ZOE_DIV); ++p; break;
+            case IDIV: zoe_oper(Z, ZOE_IDIV); ++p; break;
+            case MOD:  zoe_oper(Z, ZOE_MOD); ++p; break;
+            case POW:  zoe_oper(Z, ZOE_POW); ++p; break;
+            case NEG:  zoe_oper(Z, ZOE_NEG); ++p; break;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }

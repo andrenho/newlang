@@ -56,6 +56,10 @@ char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 //
 // CODE EXECUTION
 //
+typedef enum {
+    ZOE_ADD, ZOE_SUB, ZOE_MUL, ZOE_DIV, ZOE_IDIV, ZOE_MOD, ZOE_POW, ZOE_NEG,   // arithmetic
+} Operator;
+void zoe_oper(Zoe* Z, Operator oper);
 void zoe_eval(Zoe* Z, const char* code);
 void zoe_call(Zoe* Z, int n_args);
 
