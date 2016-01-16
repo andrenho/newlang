@@ -128,7 +128,7 @@ install-strip:
 #
 
 clean:
-	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} unittests **/*.o
+	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} runtests **/*.o
 
 distclean:
 	${MAKE} clean
