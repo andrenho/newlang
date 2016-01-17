@@ -1,8 +1,11 @@
 Next steps:
 
  - arithmetic
-   - logical operators
+   - logical operators (ok)
+   - NOT for boolean (ok)
  - relational operators
+   - <> (ok)
+   - equality
  - dealing with booleans
    - (labels in VM?)
    - short-circuit operators

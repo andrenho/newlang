@@ -231,9 +231,16 @@ void zoe_oper(Zoe* Z, Operator oper)
     if(oper == ZOE_NEG) {
         zoe_pushnumber(Z, -zoe_popnumber(Z));
     } else if(oper == ZOE_NOT) {
-        double d = zoe_popnumber(Z);
-        int64_t c = (int64_t)d;
-        zoe_pushnumber(Z, ~c);
+        ZType t = zoe_peektype(Z);
+        if(t == NUMBER) {
+            double d = zoe_popnumber(Z);
+            int64_t c = (int64_t)d;
+            zoe_pushnumber(Z, ~c);
+        } else if(t == BOOLEAN) {
+            zoe_pushboolean(Z, !zoe_popboolean(Z));
+        } else {
+            zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
+        }
     } else {
         double b = zoe_popnumber(Z), 
                a = zoe_popnumber(Z);
@@ -254,6 +261,12 @@ void zoe_oper(Zoe* Z, Operator oper)
             case ZOE_OR:   c = (int64_t)a | (int64_t)b; break;
             case ZOE_SHL:  c = (int64_t)a << (int64_t)b; break;
             case ZOE_SHR:  c = (int64_t)a >> (int64_t)b; break;
+            
+            case ZOE_LT:  zoe_pushboolean(Z, a < b);  return;
+            case ZOE_LTE: zoe_pushboolean(Z, a <= b); return;
+            case ZOE_GT:  zoe_pushboolean(Z, a > b);  return;
+            case ZOE_GTE: zoe_pushboolean(Z, a >= b); return;
+
             case ZOE_NEG:  // pleases gcc
             case ZOE_NOT:
             default:
@@ -325,6 +338,10 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case SHL:  zoe_oper(Z, ZOE_SHL);  ++p; break;
             case SHR:  zoe_oper(Z, ZOE_SHR);  ++p; break;
             case NOT:  zoe_oper(Z, ZOE_NOT);  ++p; break;
+            case LT:   zoe_oper(Z, ZOE_LT);   ++p; break;
+            case LTE:  zoe_oper(Z, ZOE_LTE);  ++p; break;
+            case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
+            case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }
@@ -415,12 +432,9 @@ void zoe_disassemble(Zoe* Z)
         aprintf(Z, &buf, "%08" PRIx64 ":\t", p);
         Opcode op = (Opcode)bc->code[p];
         switch(op) {
-            case PUSH_Nil:
-                ns = aprintf(Z, &buf, "PUSH_Nil") - 1; next(1); break;
-            case PUSH_Bt:
-                ns = aprintf(Z, &buf, "PUSH_Bt") - 1; next(1); break;
-            case PUSH_Bf:
-                ns = aprintf(Z, &buf, "PUSH_Bf") - 1; next(1); break;
+            case PUSH_Nil: ns = aprintf(Z, &buf, "PUSH_Nil") - 1; next(1); break;
+            case PUSH_Bt:  ns = aprintf(Z, &buf, "PUSH_Bt") - 1; next(1); break;
+            case PUSH_Bf:  ns = aprintf(Z, &buf, "PUSH_Bf") - 1; next(1); break;
             case PUSH_N: {
                     ns = aprintf(Z, &buf, "PUSH_N\t");
                     double v;
@@ -429,34 +443,24 @@ void zoe_disassemble(Zoe* Z)
                     next(9);
                 }
                 break;
-            case ADD:
-                ns = aprintf(Z, &buf, "ADD") - 1; next(1); break;
-            case SUB:
-                ns = aprintf(Z, &buf, "SUB") - 1; next(1); break;
-            case MUL:
-                ns = aprintf(Z, &buf, "MUL") - 1; next(1); break;
-            case DIV:
-                ns = aprintf(Z, &buf, "DIV") - 1; next(1); break;
-            case IDIV:
-                ns = aprintf(Z, &buf, "IDIV") - 1; next(1); break;
-            case MOD:
-                ns = aprintf(Z, &buf, "MOD") - 1; next(1); break;
-            case POW:
-                ns = aprintf(Z, &buf, "POW") - 1; next(1); break;
-            case NEG:
-                ns = aprintf(Z, &buf, "NEG") - 1; next(1); break;
-            case AND:
-                ns = aprintf(Z, &buf, "AND") - 1; next(1); break;
-            case XOR:
-                ns = aprintf(Z, &buf, "XOR") - 1; next(1); break;
-            case OR:
-                ns = aprintf(Z, &buf, "OR") - 1; next(1); break;
-            case SHL:
-                ns = aprintf(Z, &buf, "SHL") - 1; next(1); break;
-            case SHR:
-                ns = aprintf(Z, &buf, "SHR") - 1; next(1); break;
-            case NOT:
-                ns = aprintf(Z, &buf, "NOT") - 1; next(1); break;
+            case ADD:  ns = aprintf(Z, &buf, "ADD") - 1;  next(1); break;
+            case SUB:  ns = aprintf(Z, &buf, "SUB") - 1;  next(1); break;
+            case MUL:  ns = aprintf(Z, &buf, "MUL") - 1;  next(1); break;
+            case DIV:  ns = aprintf(Z, &buf, "DIV") - 1;  next(1); break;
+            case IDIV: ns = aprintf(Z, &buf, "IDIV") - 1; next(1); break;
+            case MOD:  ns = aprintf(Z, &buf, "MOD") - 1;  next(1); break;
+            case POW:  ns = aprintf(Z, &buf, "POW") - 1;  next(1); break;
+            case NEG:  ns = aprintf(Z, &buf, "NEG") - 1;  next(1); break;
+            case AND:  ns = aprintf(Z, &buf, "AND") - 1;  next(1); break;
+            case XOR:  ns = aprintf(Z, &buf, "XOR") - 1;  next(1); break;
+            case OR:   ns = aprintf(Z, &buf, "OR")  - 1;  next(1); break;
+            case SHL:  ns = aprintf(Z, &buf, "SHL") - 1;  next(1); break;
+            case SHR:  ns = aprintf(Z, &buf, "SHR") - 1;  next(1); break;
+            case NOT:  ns = aprintf(Z, &buf, "NOT") - 1;  next(1); break;
+            case LT:   ns = aprintf(Z, &buf, "LT")  - 1;  next(1); break;
+            case LTE:  ns = aprintf(Z, &buf, "LTE") - 1;  next(1); break;
+            case GT:   ns = aprintf(Z, &buf, "GT")  - 1;  next(1); break;
+            case GTE:  ns = aprintf(Z, &buf, "GTE") - 1;  next(1); break;
             default:
                 aprintf(Z, &buf, "Invalid opcode %02X\n", (uint8_t)op); ++p;
         }
