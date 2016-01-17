@@ -36,24 +36,33 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <string>  STRING
 %token NIL
 
+%left '&' '^' '|'
+%left _SHL _SHR
 %left '+' '-'
 %left '*' '/' _IDIV '%'
-%precedence _NEG
 %right _POW
+%precedence _NOT
+%precedence _NEG
 
 %%
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | exp '&' exp        { bytecode_addcode(b, AND); }
+   | exp '^' exp        { bytecode_addcode(b, XOR); }
+   | exp '|' exp        { bytecode_addcode(b, OR); }
+   | exp _SHL exp       { bytecode_addcode(b, SHL); }
+   | exp _SHR exp       { bytecode_addcode(b, SHR); }
    | exp '+' exp        { bytecode_addcode(b, ADD); }
    | exp '-' exp        { bytecode_addcode(b, SUB); }
    | exp '*' exp        { bytecode_addcode(b, MUL); }
    | exp '/' exp        { bytecode_addcode(b, DIV); }
    | exp _IDIV exp      { bytecode_addcode(b, IDIV); }
    | exp '%' exp        { bytecode_addcode(b, MOD); }
-   | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
    | exp _POW exp       { bytecode_addcode(b, POW); }
+   | '~' exp %prec _NOT { bytecode_addcode(b, NOT); }
+   | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
    | '(' exp ')'
    ;
 

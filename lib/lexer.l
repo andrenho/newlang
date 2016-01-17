@@ -26,7 +26,7 @@ FLOAT       [0-9][0-9_]*\.[0-9_]+
 
 STRING      '(\\.|[^'])*\'
 
-OPERANDS    [\+\-\*\/%\(\)]
+OPERANDS    [\+\-\*\/%\(\)\^\~\&\|]
 
 %%
 
@@ -47,6 +47,8 @@ nil             { return NIL; }
 {OPERANDS}      { return yytext[0]; }
 \/\/            { return _IDIV; }
 \*\*            { return _POW; }
+\<\<            { return _SHL; }
+\>\>            { return _SHR; }
 
 .               return 1;
 

@@ -1,7 +1,8 @@
 Next steps:
 
- - dealing with booleans
+ - arithmetic
    - logical operators
+ - dealing with booleans
    - (labels in VM?)
    - short-circuit operators
    - ternary operator

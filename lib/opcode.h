@@ -15,6 +15,12 @@ typedef enum Opcode {
     MOD      = 0x15,
     POW      = 0x16,
     NEG      = 0x17,
+    AND      = 0x18,
+    XOR      = 0x19,
+    OR       = 0x1F,
+    SHL      = 0x20,
+    SHR      = 0x21,
+    NOT      = 0x22,
 } Opcode;
 
 #endif
