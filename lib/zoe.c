@@ -509,7 +509,12 @@ void zoe_inspect(Zoe* Z)
         case NUMBER: {
                 double n = zoe_peeknumber(Z);
                 char buf[128];
-                snprintf(buf, sizeof buf, "%g", n);  // TODO
+                snprintf(buf, sizeof buf, "%0.14f", n);
+                // remove zeroes at the and
+                int lg;
+                while(lg = strlen(buf)-1, buf[lg] == '0' || buf[lg] == '.') {
+                    buf[lg] = '\0';
+                }
                 zoe_pushstring(Z, buf);
             }
             break;
