@@ -24,7 +24,7 @@ OBJ_LIB=${SRC_LIB:.c=.o}
 OBJ_EXE=${SRC_EXE:.c=.o}
 OBJ_TST=${SRC_TST:.c=.o}
 
-HEADERS=$(filter-out src/main.h,${SRC_EXE:.c=.h}) ${SRC_LIB:.c=.h}
+HEADERS=$(filter-out src/main.h,${SRC_EXE:.c=.h}) ${SRC_LIB:.c=.h} lib/zvalue.h tests/minunit.h
 
 DIST=COPYING INSTALL README.md Makefile build/config.mk \
      build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)

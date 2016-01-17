@@ -1,0 +1,13 @@
+Next steps:
+
+ - dealing with booleans
+   - logical operators
+   - (labels in VM?)
+   - short-circuit operators
+   - ternary operator
+ - strings
+   - concatenation
+   - special chars
+   - multiline strings
+   - embedded code
+ - arrays
