@@ -233,6 +233,8 @@ char* zoe_typename(ZType type)
 
 // {{{ CODE EXECUTION
 
+// {{{ MATH OPERATIONS
+
 static void zoe_eq(Zoe* Z)
 {
     ZType tb = zoe_gettype(Z, -1),
@@ -331,6 +333,7 @@ void zoe_oper(Zoe* Z, Operator oper)
     }
 }
 
+// }}}
 
 void zoe_eval(Zoe* Z, const char* code)
 {
@@ -397,6 +400,25 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
+
+            //
+            // branches
+            //
+            case Bfalse: {
+                    uint8_t n;
+                    memcpy(&n, &bc->code[p+1], 8);
+                    if(!zoe_popboolean(Z)) {
+                        p = n;
+                    } else {
+                        p += 9;
+                    }
+                }
+                break;
+
+            //
+            // others
+            //
+            case END: return;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }
@@ -442,6 +464,8 @@ void zoe_call(Zoe* Z, int n_args)
 
 // {{{ DEBUGGING
 
+// {{{ FORMATTING
+
 static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...) __attribute__ ((format (printf, 3, 4)));
 static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
 {
@@ -460,6 +484,29 @@ static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
     return r;
 }
 
+static int sprint_dbl(char* buf, size_t nbuf, uint8_t* array, size_t pos)
+{
+    double d;
+    memcpy(&d, &array[pos], __SIZEOF_DOUBLE__);
+    int r = snprintf(buf, nbuf, "%0.14f", d);
+    int lg;
+    while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
+        buf[lg] = '\0';
+        --r;
+    }
+    return r;
+}
+
+static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
+{
+    uint64_t n;
+    memcpy(&n, &array[pos], 8);
+    return snprintf(buf, nbuf, "0x%08" PRIx64, n);
+}
+
+
+// }}}
+
 void zoe_disassemble(Zoe* Z)
 {
     char* buf = NULL;
@@ -472,6 +519,7 @@ void zoe_disassemble(Zoe* Z)
     uint64_t p = 0;
     int ns;
 
+    // {{{ next
 #define next(sz) {                                \
     aprintf(Z, &buf, "%*s", 28-ns, " ");          \
     for(uint8_t i=0; i<sz; ++i) {                 \
@@ -480,6 +528,7 @@ void zoe_disassemble(Zoe* Z)
     aprintf(Z, &buf, "\n");                       \
     p += sz;                                      \
 }
+    // }}}
 
     Bytecode* bc = bytecode_newfromzb(Z->uf, f.bfunction.bytecode, f.bfunction.sz);
 
@@ -492,16 +541,7 @@ void zoe_disassemble(Zoe* Z)
             case PUSH_Bf:  ns = aprintf(Z, &buf, "PUSH_Bf") - 1; next(1); break;
             case PUSH_N: {
                     ns = aprintf(Z, &buf, "PUSH_N\t");
-                    double v;
-                    memcpy(&v, &bc->code[p+1], 8);
-
-                    char nbuf[128];
-                    snprintf(nbuf, sizeof nbuf, "%0.14f", v);
-                    int lg;
-                    while(lg = strlen(nbuf)-1, (nbuf[lg] == '0' || nbuf[lg] == '.') && lg > 0) {
-                        nbuf[lg] = '\0';
-                    }
-
+                    char nbuf[128]; sprint_dbl(nbuf, sizeof nbuf, bc->code, p+1);
                     ns += aprintf(Z, &buf, "%s", nbuf);
                     next(9);
                 }
@@ -525,6 +565,14 @@ void zoe_disassemble(Zoe* Z)
             case GT:   ns = aprintf(Z, &buf, "GT")  - 1;  next(1); break;
             case GTE:  ns = aprintf(Z, &buf, "GTE") - 1;  next(1); break;
             case EQ:   ns = aprintf(Z, &buf, "EQ")  - 1;  next(1); break;
+            case Bfalse: {
+                    ns = aprintf(Z, &buf, "Bfalse\t");
+                    char nbuf[128]; sprint_uint64(nbuf, sizeof nbuf, bc->code, p+1);
+                    ns += aprintf(Z, &buf, "%s", nbuf);
+                    next(9);
+                }
+                break;
+            case END:  ns = aprintf(Z, &buf, "END") - 1;  next(1); break;
             default:
                 aprintf(Z, &buf, "Invalid opcode %02X\n", (uint8_t)op); ++p;
         }

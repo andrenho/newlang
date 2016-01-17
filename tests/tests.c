@@ -224,6 +224,8 @@ static char* test_inspect(void)
 
 // }}}
 
+// {{{ ZOE EXPRESSIONS
+
 static double number_expr(char* expr)
 {
     Zoe* Z = zoe_createvm(NULL);
@@ -254,7 +256,7 @@ static bool boolean_expr(char* expr)
 #define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
 
 
-static char* test_expressions(void)
+static char* test_math_expressions(void)
 {
     mu_assert_nexpr("2 + 3", 5);
     mu_assert_nexpr("2 * 3", 6);
@@ -280,6 +282,19 @@ static char* test_expressions(void)
     return 0;
 }
 
+
+static char* test_shortcircuit_expressions(void)
+{
+    mu_assert_bexpr("true && true", true);
+    mu_assert_bexpr("true && false", false);
+    mu_assert_bexpr("false && true", false);
+    mu_assert_bexpr("false && false", false);
+
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
@@ -291,7 +306,8 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
-    mu_run_test(test_expressions);
+    mu_run_test(test_math_expressions);
+    mu_run_test(test_shortcircuit_expressions);
     return 0;
 }
 

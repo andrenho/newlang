@@ -34,7 +34,10 @@ typedef enum Opcode {
     EQ       = 0x27,
 
     // branches
-    BEQ      = 0x30,
+    Bfalse   = 0x30,
+
+    // others
+    END      = 0xFF,
 
 } Opcode;
 

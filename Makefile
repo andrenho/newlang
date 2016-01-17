@@ -34,6 +34,7 @@ CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c11 -march=native -fPI
 ifdef DEBUG
   CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG
   LDFLAGS+=-g
+  BISON_FLAGS+=--debug
 else
   CPPFLAGS+=-Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
   LDFLAGS+=-flto
@@ -66,7 +67,7 @@ lib/lex.yy.c: lib/lexer.l
 	flex --header-file=lib/lex.yy.h -o $@ $<
 
 lib/parser.tab.c: lib/parser.y
-	bison -Wall -d -o $@ $<
+	bison -Wall -d ${BISON_FLAGS} -o $@ $<
 
 lib/lex.yy.h:
 

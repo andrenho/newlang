@@ -19,10 +19,8 @@ void repl_execute(Options* opt)
         if(r == -1) {
             free(buf);
             break;
-        } else {
-            buf[strlen(buf)-1] = 0;  // remove enter
         }
-        if(strcmp(buf, ".q") == 0) {
+        if(strcmp(buf, ".q\n") == 0) {
             free(buf);
             break;
         }

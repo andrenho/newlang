@@ -1,6 +1,14 @@
 #ifndef ZOE_BYTECODE_H_
 #define ZOE_BYTECODE_H_
 
+// TODO - move these tests somewhere else
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error Sorry, Zoe is not yet implemented for big endian machines.
+#endif
+#if __SIZEOF_DOUBLE__ != 8
+#error Sorry, Zoe is not yet implemented for machines where sizeof(double) != 8.
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,7 +28,7 @@ typedef struct Bytecode {
     struct B_Priv* _;
 } Bytecode;
 
-typedef int Label;  // TODO
+typedef size_t Label;  // TODO
 
 //
 // CONSTRUCTOR/DESTRUCTOR

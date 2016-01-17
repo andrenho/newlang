@@ -28,6 +28,8 @@ STRING      '(\\.|[^'])*\'
 
 OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>]
 
+SEPARATOR   [\n\;]+
+
 SPACES      [ \t]+
 
 %%
@@ -60,6 +62,8 @@ nil             { return NIL; }
 \!\=            { return _NEQ; }
 
 \&\&            { return CCAND; }
+
+{SEPARATOR}     { return SEP; }
 
 {SPACES}        ;
 .               return 1;

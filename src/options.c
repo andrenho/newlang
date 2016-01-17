@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+extern int yydebug;
+
 static void options_printhelp(FILE* f, int exit_status);
 
 Options*
@@ -14,16 +16,29 @@ options_parse(int argc, char* argv[])
     while(1) {
         static struct option long_options[] = {
             { "repl-disassemble", no_argument, NULL, 'D' },
+#ifdef DEBUG
+            { "debug-bison",      no_argument, NULL, 'B' },
+#endif
             { "help",             no_argument, NULL, 'h' },
             { "version",          no_argument, NULL, 'v' },
             { NULL, 0, NULL, 0 },
         };
 
         int opt_idx = 0;
-        switch(getopt_long(argc, argv, "Dhv", long_options, &opt_idx)) {
+        static const char* opts = "Dhv"
+#ifdef DEBUG
+            "B"
+#endif
+        ;
+        switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
             case 'D':
                 opt->repl_options.disassemble = true;
                 break;
+#ifdef DEBUG
+            case 'B':
+                yydebug = 1;
+                break;
+#endif
 
             case 'v':
                 printf("zoe " VERSION " - a programming language.\n");

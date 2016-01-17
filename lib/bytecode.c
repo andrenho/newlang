@@ -5,12 +5,22 @@
 
 #include "lib/opcode.h"
 
-// {{{ CONSTRUCTOR/DESTRUCTOR
+#define NO_ADDRESS ((uint64_t)(~0))
+
+typedef struct LabelRef {
+    uint64_t address;
+    size_t n_refs;
+    uint64_t* refs;
+} LabelRef;
 
 struct B_Priv {
     UserFunctions *uf;
     size_t code_alloc;
+    LabelRef* labels;
+    size_t labels_sz;
 };
+
+// {{{ CONSTRUCTOR/DESTRUCTOR
 
 Bytecode*
 bytecode_new(UserFunctions *uf)
@@ -20,6 +30,8 @@ bytecode_new(UserFunctions *uf)
     bc->_ = uf->realloc(NULL, sizeof(struct B_Priv));
     bc->_->uf = uf;
     bc->_->code_alloc = 0;
+    bc->_->labels = NULL;
+    bc->_->labels_sz = 0;
     return bc;
 }
 
@@ -109,26 +121,43 @@ bytecode_addcodef64(Bytecode* bc, double code)
 // }}}
 
 // {{{ LABELS
-int counter;
+
 Label
 bytecode_createlabel(Bytecode* bc)
 {
-    // TODO
-    return ++counter;
-}
+    bc->_->labels = bc->_->uf->realloc(bc->_->labels, (bc->_->labels_sz+1) * sizeof(LabelRef));
+    bc->_->labels[bc->_->labels_sz] = (LabelRef) {
+        .address = NO_ADDRESS,
+        .n_refs = 0,
+        .refs = NULL,
+    };
 
-
-void
-bytecode_setlabel(Bytecode* bc, Label lbl)
-{
-    // TODO
+    ++bc->_->labels_sz;
+    return bc->_->labels_sz - 1;
 }
 
 
 void
 bytecode_addcodelabel(Bytecode* bc, Label lbl)
 {
-    printf("[[%d]]\n", lbl);
+    LabelRef* lb = &bc->_->labels[lbl];
+
+    // add reference to label
+    lb->refs = bc->_->uf->realloc(lb->refs, lb->n_refs + 1);
+    lb->refs[lb->n_refs] = bc->code_sz;
+    ++lb->n_refs;
+
+    // add filler bytes, that will later be replaced by the address
+    for(int i=0; i<8; ++i) {
+        bytecode_addcode(bc, 0);
+    }
+}
+
+
+void
+bytecode_setlabel(Bytecode* bc, Label lbl)
+{
+    bc->_->labels[lbl].address = bc->code_sz;
 }
 
 
@@ -136,11 +165,32 @@ bytecode_addcodelabel(Bytecode* bc, Label lbl)
 
 // {{{ GENERATE ZB FILE
 
+static void
+bytecode_adjust_labels(Bytecode* bc)
+{
+    LabelRef* lbs = bc->_->labels;
+    for(size_t i=0; i < bc->_->labels_sz; ++i) {
+        for(size_t j=0; j < lbs[i].n_refs; ++j) {
+            if(lbs[i].address == NO_ADDRESS) {
+                bc->_->uf->error("Label without a corresponding address.");
+            }
+            if(lbs[i].address > bc->code_sz+8) {
+                bc->_->uf->error("Label beyond code size.");
+            }
+            memcpy(&bc->code[lbs[i].refs[j]], &lbs[i].address, __SIZEOF_DOUBLE__);
+        }
+    }
+}
+
+
 size_t
 bytecode_generatezb(Bytecode* bc, uint8_t** data)
 {
     size_t sz = 0x38 + bc->code_sz;  // TODO
     *data = bc->_->uf->realloc(NULL, sz);
+
+    // adjust labels
+    bytecode_adjust_labels(bc);
 
     // headers
     static uint8_t header[] = {

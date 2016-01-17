@@ -35,7 +35,7 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <string>  STRING
-%token NIL
+%token NIL SEP
 
 %left CCAND
 %nonassoc _LTE _GTE '<' '>' _EQ _NEQ
@@ -47,16 +47,30 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %precedence _NOT
 %precedence _NEG
 
+%error-verbose
+%start code
+
 %%
+
+code: exps             { bytecode_addcode(b, END); }
+    ;
+
+exps: %empty
+    | exps expr
+    ;
+
+expr: exp SEP
+    | SEP               { bytecode_addcode(b, PUSH_Nil); }
+    ;
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
    | exp CCAND { 
          $<label>2 = bytecode_createlabel(b);
-         bytecode_addcode(b, BEQ); 
+         bytecode_addcode(b, Bfalse); 
          bytecode_addcodelabel(b, $<label>2);
-     }[ccand] exp {
+     } exp {
          bytecode_setlabel(b, $<label>2); 
      }
    | exp _EQ exp        { bytecode_addcode(b, EQ); }
@@ -81,6 +95,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
    | '(' exp ')'
    ;
+
 
 %%
 
