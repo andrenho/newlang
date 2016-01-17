@@ -31,6 +31,8 @@ typedef enum Opcode {
     LTE      = 0x24,
     GT       = 0x25,
     GTE      = 0x26,
+    EQ       = 0x27,
+
 } Opcode;
 
 #endif

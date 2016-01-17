@@ -225,6 +225,11 @@ char* zoe_typename(ZType type)
 
 // {{{ CODE EXECUTION
 
+static void zoe_eq(Zoe* Z)
+{
+    zoe_pop(Z, 2); // TODO
+}
+
 
 void zoe_oper(Zoe* Z, Operator oper)
 {
@@ -241,6 +246,8 @@ void zoe_oper(Zoe* Z, Operator oper)
         } else {
             zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
         }
+    } else if(oper == ZOE_EQ) {
+        zoe_eq(Z);
     } else {
         double b = zoe_popnumber(Z), 
                a = zoe_popnumber(Z);
@@ -269,6 +276,7 @@ void zoe_oper(Zoe* Z, Operator oper)
 
             case ZOE_NEG:  // pleases gcc
             case ZOE_NOT:
+            case ZOE_EQ:
             default:
                 zoe_error(Z, "Invalid operator (code %d)", oper);
                 return;
@@ -342,6 +350,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case LTE:  zoe_oper(Z, ZOE_LTE);  ++p; break;
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
+            case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }
@@ -461,6 +470,7 @@ void zoe_disassemble(Zoe* Z)
             case LTE:  ns = aprintf(Z, &buf, "LTE") - 1;  next(1); break;
             case GT:   ns = aprintf(Z, &buf, "GT")  - 1;  next(1); break;
             case GTE:  ns = aprintf(Z, &buf, "GTE") - 1;  next(1); break;
+            case EQ:   ns = aprintf(Z, &buf, "EQ")  - 1;  next(1); break;
             default:
                 aprintf(Z, &buf, "Invalid opcode %02X\n", (uint8_t)op); ++p;
         }

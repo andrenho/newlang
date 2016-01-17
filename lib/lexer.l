@@ -56,6 +56,9 @@ nil             { return NIL; }
 \>\=            { return _GTE; }
 \<\=            { return _LTE; }
 
+\=\=            { return _EQ; }
+\!\=            { return _NEQ; }
+
 {SPACES}        ;
 .               return 1;
 

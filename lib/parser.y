@@ -36,7 +36,7 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <string>  STRING
 %token NIL
 
-%nonassoc _LTE _GTE '<' '>'
+%nonassoc _LTE _GTE '<' '>' _EQ _NEQ
 %left '&' '^' '|'
 %left _SHL _SHR
 %left '+' '-'
@@ -50,6 +50,8 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | exp _EQ exp        { bytecode_addcode(b, EQ); }
+   | exp _NEQ exp       { bytecode_addcode(b, EQ); bytecode_addcode(b, NOT); }
    | exp _LTE exp       { bytecode_addcode(b, LTE); }
    | exp '<' exp        { bytecode_addcode(b, LT); }
    | exp _GTE exp       { bytecode_addcode(b, GTE); }
