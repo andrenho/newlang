@@ -2,6 +2,7 @@ Next steps:
 
  - arithmetic
    - logical operators
+ - relational operators
  - dealing with booleans
    - (labels in VM?)
    - short-circuit operators

@@ -230,18 +230,32 @@ void zoe_oper(Zoe* Z, Operator oper)
 {
     if(oper == ZOE_NEG) {
         zoe_pushnumber(Z, -zoe_popnumber(Z));
+    } else if(oper == ZOE_NOT) {
+        double d = zoe_popnumber(Z);
+        int64_t c = (int64_t)d;
+        zoe_pushnumber(Z, ~c);
     } else {
         double b = zoe_popnumber(Z), 
                a = zoe_popnumber(Z);
         double c = 0.0;
+
+        // TODO - should we block bitwise operations on non-integers?
+
         switch(oper) {
-            case ZOE_ADD: c = a + b; break;
-            case ZOE_SUB: c = a - b; break;
-            case ZOE_MUL: c = a * b; break;
-            case ZOE_DIV: c = a / b; break;
+            case ZOE_ADD:  c = a + b; break;
+            case ZOE_SUB:  c = a - b; break;
+            case ZOE_MUL:  c = a * b; break;
+            case ZOE_DIV:  c = a / b; break;
             case ZOE_IDIV: c = floor(a / b); break;
-            case ZOE_MOD: c = fmod(a, b); break;
-            case ZOE_POW: c = pow(a, b); break;
+            case ZOE_MOD:  c = fmod(a, b); break;
+            case ZOE_POW:  c = pow(a, b); break;
+            case ZOE_AND:  c = (int64_t)a & (int64_t)b; break;
+            case ZOE_XOR:  c = (int64_t)a ^ (int64_t)b; break;
+            case ZOE_OR:   c = (int64_t)a | (int64_t)b; break;
+            case ZOE_SHL:  c = (int64_t)a << (int64_t)b; break;
+            case ZOE_SHR:  c = (int64_t)a >> (int64_t)b; break;
+            case ZOE_NEG:  // pleases gcc
+            case ZOE_NOT:
             default:
                 zoe_error(Z, "Invalid operator (code %d)", oper);
                 return;
@@ -297,14 +311,20 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // oper
             //
-            case ADD:  zoe_oper(Z, ZOE_ADD); ++p; break;
-            case SUB:  zoe_oper(Z, ZOE_SUB); ++p; break;
-            case MUL:  zoe_oper(Z, ZOE_MUL); ++p; break;
-            case DIV:  zoe_oper(Z, ZOE_DIV); ++p; break;
+            case ADD:  zoe_oper(Z, ZOE_ADD);  ++p; break;
+            case SUB:  zoe_oper(Z, ZOE_SUB);  ++p; break;
+            case MUL:  zoe_oper(Z, ZOE_MUL);  ++p; break;
+            case DIV:  zoe_oper(Z, ZOE_DIV);  ++p; break;
             case IDIV: zoe_oper(Z, ZOE_IDIV); ++p; break;
-            case MOD:  zoe_oper(Z, ZOE_MOD); ++p; break;
-            case POW:  zoe_oper(Z, ZOE_POW); ++p; break;
-            case NEG:  zoe_oper(Z, ZOE_NEG); ++p; break;
+            case MOD:  zoe_oper(Z, ZOE_MOD);  ++p; break;
+            case POW:  zoe_oper(Z, ZOE_POW);  ++p; break;
+            case NEG:  zoe_oper(Z, ZOE_NEG);  ++p; break;
+            case AND:  zoe_oper(Z, ZOE_AND);  ++p; break;
+            case OR:   zoe_oper(Z, ZOE_OR);   ++p; break;
+            case XOR:  zoe_oper(Z, ZOE_XOR);  ++p; break;
+            case SHL:  zoe_oper(Z, ZOE_SHL);  ++p; break;
+            case SHR:  zoe_oper(Z, ZOE_SHR);  ++p; break;
+            case NOT:  zoe_oper(Z, ZOE_NOT);  ++p; break;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }
@@ -425,6 +445,18 @@ void zoe_disassemble(Zoe* Z)
                 ns = aprintf(Z, &buf, "POW") - 1; next(1); break;
             case NEG:
                 ns = aprintf(Z, &buf, "NEG") - 1; next(1); break;
+            case AND:
+                ns = aprintf(Z, &buf, "AND") - 1; next(1); break;
+            case XOR:
+                ns = aprintf(Z, &buf, "XOR") - 1; next(1); break;
+            case OR:
+                ns = aprintf(Z, &buf, "OR") - 1; next(1); break;
+            case SHL:
+                ns = aprintf(Z, &buf, "SHL") - 1; next(1); break;
+            case SHR:
+                ns = aprintf(Z, &buf, "SHR") - 1; next(1); break;
+            case NOT:
+                ns = aprintf(Z, &buf, "NOT") - 1; next(1); break;
             default:
                 aprintf(Z, &buf, "Invalid opcode %02X\n", (uint8_t)op); ++p;
         }
