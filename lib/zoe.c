@@ -366,7 +366,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
         Opcode op = bc->code[p];
         switch(op) {
             // 
-            // push 
+            // stack
             //
             case PUSH_Nil: zoe_pushnil(Z); ++p; break;
             case PUSH_Bt: zoe_pushboolean(Z, true); ++p; break;
@@ -378,6 +378,8 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     p += 9;
                 }
                 break;
+            case POP: zoe_pop(Z, 1); ++p; break;
+
             //
             // oper
             //
@@ -404,6 +406,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // branches
             //
+            case JMP: memcpy(&p, &bc->code[p+1], 8); p += 9; break;
             case Bfalse: {
                     uint8_t n;
                     memcpy(&n, &bc->code[p+1], 8);
@@ -546,6 +549,7 @@ void zoe_disassemble(Zoe* Z)
                     next(9);
                 }
                 break;
+            case POP:  ns = aprintf(Z, &buf, "POP") - 1;  next(1); break;
             case ADD:  ns = aprintf(Z, &buf, "ADD") - 1;  next(1); break;
             case SUB:  ns = aprintf(Z, &buf, "SUB") - 1;  next(1); break;
             case MUL:  ns = aprintf(Z, &buf, "MUL") - 1;  next(1); break;
@@ -565,6 +569,13 @@ void zoe_disassemble(Zoe* Z)
             case GT:   ns = aprintf(Z, &buf, "GT")  - 1;  next(1); break;
             case GTE:  ns = aprintf(Z, &buf, "GTE") - 1;  next(1); break;
             case EQ:   ns = aprintf(Z, &buf, "EQ")  - 1;  next(1); break;
+            case JMP: {
+                    ns = aprintf(Z, &buf, "JMP\t");
+                    char nbuf[128]; sprint_uint64(nbuf, sizeof nbuf, bc->code, p+1);
+                    ns += aprintf(Z, &buf, "%s", nbuf);
+                    next(9);
+                }
+                break;
             case Bfalse: {
                     ns = aprintf(Z, &buf, "Bfalse\t");
                     char nbuf[128]; sprint_uint64(nbuf, sizeof nbuf, bc->code, p+1);

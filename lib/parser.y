@@ -64,13 +64,7 @@ exps: %empty
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | exp CCAND { 
-         $<label>2 = bytecode_createlabel(b);
-         bytecode_addcode(b, Bfalse); 
-         bytecode_addcodelabel(b, $<label>2);
-     } exp {
-         bytecode_setlabel(b, $<label>2); 
-     }
+   | ccand
    | exp _EQ exp        { bytecode_addcode(b, EQ); }
    | exp _NEQ exp       { bytecode_addcode(b, EQ); bytecode_addcode(b, NOT); }
    | exp _LTE exp       { bytecode_addcode(b, LTE); }
@@ -94,7 +88,33 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '(' exp ')'
    ;
 
+// short-circuit AND
+ccand: exp CCAND { 
+             /* Code:
+                        [exp1]
+                        Bfalse is_false
+                        [exp2]
+                        Bfalse is_false
+                        PUSH_Bt
+                        JMP is_true
+             is_false:	PUSH_Bf
+             is_true:   ...
+            */
+             $<label>2 = bytecode_createlabel(b);
+             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
+         } exp {
+             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
+             bytecode_addcode(b, PUSH_Bt);
 
+             Label is_true = bytecode_createlabel(b);
+             bytecode_addcode(b, JMP); bytecode_addcodelabel(b, is_true);
+
+             bytecode_setlabel(b, $<label>2); 
+             bytecode_addcode(b, PUSH_Bf);
+
+             bytecode_setlabel(b, is_true); 
+         }
+     ;
 %%
 
 

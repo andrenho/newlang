@@ -2,11 +2,12 @@
 #define ZOE_OPCODE_H_
 
 typedef enum Opcode {
-    // push
+    // stack
     PUSH_Nil = 0x01,
     PUSH_Bt  = 0x02,
     PUSH_Bf  = 0x03,
     PUSH_N   = 0x04,
+    POP      = 0x0F,
 
     // arithmetic
     ADD      = 0x10,
@@ -34,7 +35,8 @@ typedef enum Opcode {
     EQ       = 0x27,
 
     // branches
-    Bfalse   = 0x30,
+    JMP      = 0x30,
+    Bfalse   = 0x31,
 
     // others
     END      = 0xFF,
