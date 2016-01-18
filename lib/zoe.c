@@ -766,7 +766,7 @@ static void zoe_dbgstack(Zoe* Z)
 
 void zoe_inspect(Zoe* Z, int i)
 {
-    switch(zoe_peektype(Z)) {
+    switch(zoe_gettype(Z, i)) {
         case INVALID:
             zoe_pushstring(Z, "invalid");
             break;

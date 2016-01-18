@@ -74,10 +74,7 @@ exps: %empty
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | STRING             { bytecode_addcode(b, PUSH_S); 
-                          bytecode_addcodestr(b, $1.str); 
-                          free($1.str); 
-                        }
+   | string
    | ternary
    | ccand
    | ccor
@@ -104,6 +101,17 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | exp CONCAT exp     { bytecode_addcode(b, CAT); }
    | '(' exp ')'
    ;
+
+str: STRING { 
+            bytecode_addcode(b, PUSH_S); 
+            bytecode_addcodestr(b, $1.str); 
+            free($1.str); 
+        }
+   ;
+
+string: str
+      | str exp { bytecode_addcode(b, CAT); } str { bytecode_addcode(b, CAT); }
+      ;
 
 // short-circuit AND
 ccand: exp CCAND { 

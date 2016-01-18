@@ -1,5 +1,7 @@
 %{
 
+#define YY_HEADER_EXPORT_START_CONDITIONS
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +11,6 @@
 
 static void str_addstr(String* str, char* s);
 static char* remove_undersc(char* t);
-static char* parse_string(char* t);
 
 %}
 
@@ -17,6 +18,7 @@ static char* parse_string(char* t);
 %option reentrant
 %option bison-bridge
 %option extra-type="Bytecode*"
+%option stack
 
 INTEGER     [0-9][0-9_]*
 BINARY      0[Bb][01_]+
@@ -26,8 +28,6 @@ OCTAL       0[Oo][0-7_]+
 
 FLOAT       [0-9][0-9_]*\.[0-9_]+
 
-STRING      '(\\.|[^'])*\'
-
 OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?]
 
 SEPARATOR   [\n\;]+
@@ -35,6 +35,7 @@ SEPARATOR   [\n\;]+
 SPACES      [ \t]+
 
 %x STR
+%s SB
 
 %%
 
@@ -48,14 +49,17 @@ SPACES      [ \t]+
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 
-'               { BEGIN(STR); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
-<STR>\\n        { str_addstr(&yylval->_string, "\n"); }
-<STR>\\r        { str_addstr(&yylval->_string, "\r"); }
-<STR>\\\\       { str_addstr(&yylval->_string, "\\"); }
+'                     { yy_push_state(STR, yyscanner); printf("[STR1]"); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
+<STR>\\n              { str_addstr(&yylval->_string, "\n"); }
+<STR>\\r              { str_addstr(&yylval->_string, "\r"); }
+<STR>\\\\             { str_addstr(&yylval->_string, "\\"); }
 <STR>\\x{HEXDIGIT}{2} { str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); }
-<STR>\\         { str_addstr(&yylval->_string, "\\"); }
-<STR>[^'\\]*    { str_addstr(&yylval->_string, yytext); }
-<STR>'          { BEGIN(0); return STRING; }
+<STR>\\               { str_addstr(&yylval->_string, "\\"); }
+<STR>[^'\\\$]*        { str_addstr(&yylval->_string, yytext); }
+<STR>\$\{             { yy_push_state(SB, yyscanner); printf("[SB]"); return STRING; }
+<STR>'                { yy_pop_state(yyscanner); printf("[INI]"); return STRING; }
+
+<SB>\}                {  yy_pop_state(yyscanner); printf("[STR2]"); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
 
 nil             { return NIL; }
 
@@ -110,47 +114,5 @@ static char* remove_undersc(char* t)
     return t;
 }
 
-
-static char* parse_string(char* t)
-{
-    // transform escapes
-    int c = 0;
-    while(t[c]) {
-        if(t[c] == '\\') {
-            switch(t[c+1]) {
-                case '\'':  // single quotes
-                case '\\':  // reverse slash
-                    memmove(t+c, t+c+1, strlen(t)-c);  // just remove the slash
-                    continue;
-                case 'n':  // 'n' (char 13)
-                    memmove(t+c, t+c+1, strlen(t)-c);
-                    t[c] = 10;
-                    continue;
-                case 'r':  // 'n' (char 10)
-                    memmove(t+c, t+c+1, strlen(t)-c);
-                    t[c] = 13;
-                    continue;
-                case 'x': { // 'x' (hexadecimal follows)
-                    char hex[3] = {0,0,0};
-                    memcpy(hex, &t[c+2], 2);
-                    char *endptr = &hex[2], *orig = &hex[2];
-                    uint8_t ch = (uint8_t)strtol(hex, &endptr, 16);
-                    if(endptr != orig) {
-                        // TODO - what is the better way to fire this error?
-                        fprintf(stderr, "Hexadecimal digit expected.\n");
-                        yyterminate();
-                    }
-                    memmove(t+c, t+c+3, strlen(t)-c);
-                    t[c] = ch;
-                    continue;
-                }
-                // TODO - unicode - how?
-            }
-        }
-        ++c;
-    }
-
-    return t;
-}
 
 // vim: ts=4:sw=4:sts=4:expandtab
