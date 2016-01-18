@@ -32,6 +32,8 @@ SEPARATOR   [\n\;]+
 
 SPACES      [ \t]+
 
+%x STR
+
 %%
 
 {INTEGER}       { yylval->number = (double)(strtoll(remove_undersc(yytext), NULL, 10)); return NUMBER; }
@@ -41,10 +43,12 @@ SPACES      [ \t]+
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
-{STRING}        { yylval->_string = strdup(parse_string(yytext)); return STRING; }
-
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
+
+'               BEGIN(STR);
+<STR>[^']*    { yylval->_string = strdup(parse_string(yytext)); return STRING; }
+<STR>'          BEGIN(0);
 
 nil             { return NIL; }
 
@@ -72,6 +76,8 @@ nil             { return NIL; }
 .               return 1;
 
 %%
+//{STRING}        { yylval->_string = strdup(parse_string(yytext)); return STRING; }
+
 
 static char* remove_undersc(char* t)
 {
@@ -89,11 +95,6 @@ static char* remove_undersc(char* t)
 
 static char* parse_string(char* t)
 {
-    // removes quotes
-    int len = strlen(t)-2;
-    memmove(t, &t[1], strlen(t)-2);
-    t[strlen(t)-2] = '\0';
-
     // transform escapes
     int c = 0;
     while(t[c]) {
