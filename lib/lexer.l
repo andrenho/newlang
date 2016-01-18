@@ -41,7 +41,7 @@ SPACES      [ \t]+
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
-{STRING}        { strcpy(yylval->_string, parse_string(yytext)); return STRING; }
+{STRING}        { yylval->_string = strdup(parse_string(yytext)); return STRING; }
 
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }

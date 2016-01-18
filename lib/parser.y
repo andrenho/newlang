@@ -66,7 +66,7 @@ exps: %empty
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | STRING             { bytecode_addcode(b, PUSH_S); bytecode_addcodestr(b, $1); }
+   | STRING             { bytecode_addcode(b, PUSH_S); bytecode_addcodestr(b, $1); free($1); }
    | ternary
    | ccand
    | ccor

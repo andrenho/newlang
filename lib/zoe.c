@@ -610,7 +610,6 @@ static char* zoe_escapestring(Zoe* Z, const char* s)
     return buf;
 }
 
-
 // }}}
 
 // {{{ OPCODE DISASSEMBLY
@@ -629,6 +628,7 @@ static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p
         case PUSH_S: {
                 char* sbuf = zoe_escapestring(Z, (char*)&code[p+1]);
                 snprintf(buf, nbuf, "PUSH_S  %s", sbuf);
+                free(sbuf);
                 return 2 + strlen((char*)&code[p+1]);
             }
         case POP:  snprintf(buf, nbuf, "POP");  return 1;
