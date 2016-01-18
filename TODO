@@ -6,11 +6,11 @@ Next steps:
  - relational operators
    - <> (ok)
    - equality (ok)
-   - test for the operators
+   - test for the operators (ok)
  - dealing with booleans
-   - (labels in VM?)
-   - short-circuit operators
-   - ternary operator
+   - (labels in VM?) (ok)
+   - short-circuit operators (ok)
+   - ternary operator (ok)
  - strings
    - concatenation
    - special chars
