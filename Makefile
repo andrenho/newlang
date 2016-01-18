@@ -67,7 +67,7 @@ lib/lex.yy.c: lib/lexer.l
 	flex --header-file=lib/lex.yy.h -o $@ $<
 
 lib/parser.tab.c: lib/parser.y
-	bison -Wall -d ${BISON_FLAGS} -o $@ $<
+	bison -v -Wall -d ${BISON_FLAGS} -o $@ $<
 
 lib/lex.yy.h:
 

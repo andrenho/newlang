@@ -37,6 +37,8 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <string>  STRING
 %token NIL SEP
 
+%precedence '?'
+%precedence ':'
 %left CCAND CCOR
 %nonassoc _LTE _GTE '<' '>' _EQ _NEQ
 %left '&' '^' '|'
@@ -64,6 +66,7 @@ exps: %empty
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | ternary
    | ccand
    | ccor
    | exp _EQ exp        { bytecode_addcode(b, EQ); }
@@ -144,6 +147,28 @@ ccor: exp CCOR {
              bytecode_setlabel(b, is_false); 
          }
     ;
+
+// ternary operator
+ternary: exp '?' {
+             /* Code:
+                        [exp1]
+                        Bfalse  is_false
+                        [exp2]
+                        JMP     done
+             is_false:  [exp3]
+                 done:  ...
+             */
+             $<label>2 = bytecode_createlabel(b);
+             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
+         } exp ':' {
+             $<label>4 = bytecode_createlabel(b);
+             bytecode_addcode(b, JMP); bytecode_addcodelabel(b, $<label>4);
+             
+             bytecode_setlabel(b, $<label>2); 
+         } exp {
+             bytecode_setlabel(b, $<label>4); 
+         }
+       ;
 
 %%
 

@@ -305,6 +305,10 @@ static char* test_shortcircuit_expressions(void)
     mu_assert_bexpr("true || true || false", true);
     mu_assert_bexpr("false || false || false", false);
 
+    // ternary
+    mu_assert_nexpr("2 < 3 ? 4 : 5", 4);
+    mu_assert_nexpr("2 >= 3 ? 4 : 5", 5);
+
     return 0;
 }
 

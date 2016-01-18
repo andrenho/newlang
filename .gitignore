@@ -36,6 +36,7 @@ depend
 zoe
 lib/lex.yy.*
 lib/parser.tab.*
+lib/parser.output
 libzoe.so.*
 runtests
 
