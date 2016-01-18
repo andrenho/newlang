@@ -47,7 +47,7 @@ true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 
 '               BEGIN(STR);
-<STR>[^']*    { yylval->_string = strdup(parse_string(yytext)); return STRING; }
+<STR>[^']*      { yylval->_string = strdup(parse_string(yytext)); return STRING; }
 <STR>'          BEGIN(0);
 
 nil             { return NIL; }
