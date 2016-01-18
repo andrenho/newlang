@@ -1,21 +1,73 @@
 #include <stdio.h>
 #include <string.h>
-#include "tests/minunit.h"
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
 #include "lib/stack.h"
 #include "lib/zoe.h"
 
+// {{{ TEST FRAMEWORK
+
+#define mu_assert(message, test) do { if (!(test)) return message; } while (0)
+#define mu_run_test(test) printf("\033[1;34m[%s]\033[0m\n", #test); \
+    do { char *message = test(); tests_run++; \
+    if (message) return message; } while (0)
+extern int tests_run;
+
+static double number_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    double r = zoe_popnumber(Z);
+
+    zoe_free(Z);
+
+    return r;
+}
+
+static bool boolean_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    bool r = zoe_popboolean(Z);
+
+    zoe_free(Z);
+
+    return r;
+}
+
+static char* string_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    char* s = zoe_popstring(Z);
+
+    zoe_free(Z);
+
+    return s;
+}
+
+#define mu_assert_nexpr(expr, r) mu_assert(expr, number_expr(expr) == r);
+#define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
+#define mu_assert_sexpr(expr, r) { char* s = string_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
+
 #pragma GCC diagnostic ignored "-Wfloat-equal"
+
+// }}}
+
+// {{{ LOW-LEVEL STACK
 
 int error = 0;
 static void my_error(const char* s) {
     (void) s;
     error = 1;
 }
-
-// {{{ LOW-LEVEL STACK
 
 static char* test_stack(void) 
 {
@@ -229,36 +281,6 @@ static char* test_inspect(void)
 
 // {{{ ZOE EXPRESSIONS
 
-static double number_expr(char* expr)
-{
-    Zoe* Z = zoe_createvm(NULL);
-
-    zoe_eval(Z, expr);
-    zoe_call(Z, 0);
-    double r = zoe_popnumber(Z);
-
-    zoe_free(Z);
-
-    return r;
-}
-
-static bool boolean_expr(char* expr)
-{
-    Zoe* Z = zoe_createvm(NULL);
-
-    zoe_eval(Z, expr);
-    zoe_call(Z, 0);
-    bool r = zoe_popboolean(Z);
-
-    zoe_free(Z);
-
-    return r;
-}
-
-#define mu_assert_nexpr(expr, r) mu_assert(expr, number_expr(expr) == r);
-#define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
-
-
 static char* test_math_expressions(void)
 {
     mu_assert_nexpr("2 + 3", 5);
@@ -314,6 +336,23 @@ static char* test_shortcircuit_expressions(void)
 
 // }}}
 
+// {{{ ZOE STRINGS
+
+static char* test_strings(void)
+{
+    mu_assert_sexpr("'abc'", "abc");
+    mu_assert_sexpr("'a\\nb'", "a\nb");
+    mu_assert_sexpr("'a\\x41b'", "aAb");
+    mu_assert_sexpr("'a\\x41b'", "aAb");
+    mu_assert_sexpr("'ab'..'cd'", "abcd");
+    mu_assert_sexpr("'ab'..'cd'..'ef'", "abcdef");
+    mu_assert_sexpr("'a\nf'", "a\nf");
+    mu_assert_sexpr("'ab${'cd'}ef'", "abcdef");
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
@@ -327,6 +366,7 @@ static char* all_tests(void)
     mu_run_test(test_inspect);
     mu_run_test(test_math_expressions);
     mu_run_test(test_shortcircuit_expressions);
+    mu_run_test(test_strings);
     return 0;
 }
 
