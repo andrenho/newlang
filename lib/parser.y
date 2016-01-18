@@ -39,15 +39,16 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 
 %precedence '?'
 %precedence ':'
-%left CCAND CCOR
-%nonassoc _LTE _GTE '<' '>' _EQ _NEQ
-%left '&' '^' '|'
-%left _SHL _SHR
-%left '+' '-'
-%left '*' '/' _IDIV '%'
-%right _POW
+%left       CCAND CCOR
+%nonassoc   _LTE _GTE '<' '>' _EQ _NEQ
+%left       '&' '^' '|'
+%left       _SHL _SHR
+%left       '+' '-'
+%left       '*' '/' _IDIV '%'
+%right      _POW
 %precedence _NOT
 %precedence _NEG
+%left       CONCAT
 
 %error-verbose
 %start code
@@ -90,6 +91,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | exp _POW exp       { bytecode_addcode(b, POW); }
    | '~' exp %prec _NOT { bytecode_addcode(b, NOT); }
    | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
+   | exp CONCAT exp     { bytecode_addcode(b, CAT); }
    | '(' exp ')'
    ;
 

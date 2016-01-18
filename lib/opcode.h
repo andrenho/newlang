@@ -35,6 +35,9 @@ typedef enum Opcode {
     GTE      = 0x26,
     EQ       = 0x27,
 
+    // string
+    CAT      = 0x28,
+
     // branches
     JMP      = 0x30,
     Bfalse   = 0x31,

@@ -337,12 +337,18 @@ void zoe_oper(Zoe* Z, Operator oper)
         }
     } else if(oper == ZOE_EQ) {
         zoe_eq(Z);
+    } else if(oper == ZOE_CAT) {
+        char *b = zoe_popstring(Z),
+             *a = zoe_popstring(Z);
+        a = Z->uf->realloc(a, strlen(a) + strlen(b) + 1);
+        strcat(a, b);
+        zoe_pushstring(Z, a);
+        free(b);
+        free(a);
     } else {
         double b = zoe_popnumber(Z), 
                a = zoe_popnumber(Z);
         double c = 0.0;
-
-        // TODO - should we block bitwise operations on non-integers?
 
         switch(oper) {
             case ZOE_ADD:  c = a + b; break;
@@ -366,6 +372,7 @@ void zoe_oper(Zoe* Z, Operator oper)
             case ZOE_NEG:  // pleases gcc
             case ZOE_NOT:
             case ZOE_EQ:
+            case ZOE_CAT:
             default:
                 zoe_error(Z, "Invalid operator (code %d)", oper);
                 return;
@@ -457,6 +464,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
+            case CAT: zoe_oper(Z, ZOE_CAT); ++p; break;
 
             //
             // branches
@@ -651,6 +659,7 @@ static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p
         case GT:   snprintf(buf, nbuf, "GT");   return 1;
         case GTE:  snprintf(buf, nbuf, "GTE");  return 1;
         case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
+        case CAT: snprintf(buf, nbuf, "CAT"); return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "JMP     %s", xbuf);

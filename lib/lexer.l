@@ -64,6 +64,8 @@ nil             { return NIL; }
 \&\&            { return CCAND; }
 \|\|            { return CCOR; }
 
+\.\.            { return CONCAT; }
+
 {SEPARATOR}     { return SEP; }
 
 {SPACES}        ;

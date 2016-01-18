@@ -12,8 +12,8 @@ Next steps:
    - short-circuit operators (ok)
    - ternary operator (ok)
  - strings
-   - special chars = '\nrtx
-   - concatenation
+   - special chars = '\nrtx (ok)
+   - concatenation (ok)
    - multiline strings
    - embedded code
  - arrays
