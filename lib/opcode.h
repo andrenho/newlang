@@ -37,6 +37,7 @@ typedef enum Opcode {
     // branches
     JMP      = 0x30,
     Bfalse   = 0x31,
+    Btrue    = 0x32,
 
     // others
     END      = 0xFF,

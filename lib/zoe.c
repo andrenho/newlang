@@ -468,6 +468,16 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     }
                 }
                 break;
+            case Btrue: {
+                    uint8_t n;
+                    memcpy(&n, &bc->code[p+1], 8);
+                    if(zoe_popboolean(Z)) {
+                        p = n;
+                    } else {
+                        p += 9;
+                    }
+                }
+                break;
 
             //
             // others
@@ -609,6 +619,11 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case Bfalse: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "Bfalse  %s", xbuf);
+                return 9;
+            }
+        case Btrue: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "Btrue   %s", xbuf);
                 return 9;
             }
         case END:  snprintf(buf, nbuf, "END");  return 1;
