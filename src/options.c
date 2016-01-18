@@ -15,9 +15,10 @@ options_parse(int argc, char* argv[])
 
     while(1) {
         static struct option long_options[] = {
-            { "repl-disassemble", no_argument, NULL, 'D' },
 #ifdef DEBUG
+            { "repl-disassemble", no_argument, NULL, 'D' },
             { "debug-bison",      no_argument, NULL, 'B' },
+            { "debug-asm",        no_argument, NULL, 'A' },
 #endif
             { "help",             no_argument, NULL, 'h' },
             { "version",          no_argument, NULL, 'v' },
@@ -25,18 +26,21 @@ options_parse(int argc, char* argv[])
         };
 
         int opt_idx = 0;
-        static const char* opts = "Dhv"
+        static const char* opts = "hv"
 #ifdef DEBUG
-            "B"
+            "ABD"
 #endif
         ;
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
+#ifdef DEBUG
             case 'D':
                 opt->repl_options.disassemble = true;
                 break;
-#ifdef DEBUG
             case 'B':
                 yydebug = 1;
+                break;
+            case 'A':
+                opt->debug_asm = true;
                 break;
 #endif
 
@@ -82,7 +86,11 @@ options_printhelp(FILE* f, int exit_status)
 {
     fprintf(f, "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n");
     fprintf(f, "Avaliable options are:\n");
+#ifdef DEBUG
     fprintf(f, "   -D, --repl-disassemble    disassemble when using REPL\n");
+    fprintf(f, "   -A, --debug-asm           debug ASM code being debugger\n");
+    fprintf(f, "   -B, --debug-bison         activate BISON debugger\n");
+#endif
     fprintf(f, "   -h, --help                display this help and exit\n");
     fprintf(f, "   -v, --version             show version and exit\n");
     exit(exit_status);

@@ -13,6 +13,9 @@
 typedef struct Zoe {
     Stack*         stack;
     UserFunctions* uf;
+#ifdef DEBUG
+    bool           debug_asm;
+#endif
 } Zoe;
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -27,6 +30,9 @@ zoe_createvm(UserFunctions* uf)
     memset(Z, 0, sizeof(Zoe));
     Z->stack = stack_new(uf);
     Z->uf = uf;
+#ifdef DEBUG
+    Z->debug_asm = false;
+#endif
     return Z;
 }
 
@@ -108,9 +114,9 @@ zoe_gettype(Zoe* Z, int n)
 
 
 static ZValue
-zoe_checktype(Zoe* Z, ZType type_expected)
+zoe_checktype(Zoe* Z, ZType type_expected, int i)
 {
-    ZValue value = stack_peek(Z->stack, -1);
+    ZValue value = stack_peek(Z->stack, i);
     if(value.type != type_expected) {
         zoe_error(Z, "Expected %s, found %s\n", zoe_typename(type_expected), zoe_typename(value.type));
     }
@@ -121,42 +127,77 @@ zoe_checktype(Zoe* Z, ZType type_expected)
 void
 zoe_peeknil(Zoe* Z)
 {
-    zoe_checktype(Z, NIL);
+    zoe_checktype(Z, NIL, -1);
 }
 
 
 bool
 zoe_peekboolean(Zoe* Z)
 {
-    return zoe_checktype(Z, BOOLEAN).boolean;
+    return zoe_checktype(Z, BOOLEAN, -1).boolean;
 }
 
 
 double
 zoe_peeknumber(Zoe* Z)
 {
-    return zoe_checktype(Z, NUMBER).number;
+    return zoe_checktype(Z, NUMBER, -1).number;
 }
 
 
 ZFunction
 zoe_peekfunction(Zoe* Z)
 {
-    return zoe_checktype(Z, FUNCTION).function;
+    return zoe_checktype(Z, FUNCTION, -1).function;
 }
 
 
 const char*
 zoe_peekstring(Zoe* Z)
 {
-    return zoe_checktype(Z, STRING).string;
+    return zoe_checktype(Z, STRING, -1).string;
+}
+
+
+void
+zoe_getnil(Zoe* Z, int i)
+{
+    zoe_checktype(Z, NIL, i);
+}
+
+
+bool
+zoe_getboolean(Zoe* Z, int i)
+{
+    return zoe_checktype(Z, BOOLEAN, i).boolean;
+}
+
+
+double
+zoe_getnumber(Zoe* Z, int i)
+{
+    return zoe_checktype(Z, NUMBER, i).number;
+}
+
+
+ZFunction
+zoe_getfunction(Zoe* Z, int i)
+{
+    return zoe_checktype(Z, FUNCTION, i).function;
+}
+
+
+const char*
+zoe_getstring(Zoe* Z, int i)
+{
+    return zoe_checktype(Z, STRING, i).string;
 }
 
 
 void
 zoe_popnil(Zoe* Z)
 {
-    zoe_checktype(Z, NIL);
+    zoe_checktype(Z, NIL, -1);
     stack_pop(Z->stack);
 }
 
@@ -164,7 +205,7 @@ zoe_popnil(Zoe* Z)
 bool
 zoe_popboolean(Zoe* Z)
 {
-    bool b = zoe_checktype(Z, BOOLEAN).boolean;
+    bool b = zoe_checktype(Z, BOOLEAN, -1).boolean;
     stack_pop(Z->stack);
     return b;
 }
@@ -173,7 +214,7 @@ zoe_popboolean(Zoe* Z)
 double
 zoe_popnumber(Zoe* Z)
 {
-    double n = zoe_checktype(Z, NUMBER).number;
+    double n = zoe_checktype(Z, NUMBER, -1).number;
     stack_pop(Z->stack);
     return n;
 }
@@ -182,7 +223,7 @@ zoe_popnumber(Zoe* Z)
 ZFunction
 zoe_popfunction(Zoe* Z)
 {
-    ZFunction f = zoe_checktype(Z, FUNCTION).function;
+    ZFunction f = zoe_checktype(Z, FUNCTION, -1).function;
     stack_pop(Z->stack);
     return f;
 }
@@ -191,7 +232,7 @@ zoe_popfunction(Zoe* Z)
 char*
 zoe_popstring(Zoe* Z)
 {
-    char* s = zoe_checktype(Z, STRING).string;
+    char* s = zoe_checktype(Z, STRING, -1).string;
     stack_pop(Z->stack);
     return s;
 }
@@ -357,12 +398,22 @@ void zoe_eval(Zoe* Z, const char* code)
 }
 
 
+#ifdef DEBUG
+static void zoe_dbgopcode(uint8_t* code, uint64_t p);
+static void zoe_dbgstack(Zoe* Z);
+#endif
+
 static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 {
     Bytecode* bc = bytecode_newfromzb(Z->uf, data, sz);
     uint64_t p = 0;
 
     while(p < bc->code_sz) {
+#ifdef DEBUG
+        if(Z->debug_asm) {
+            zoe_dbgopcode(bc->code, p);
+        }
+#endif
         Opcode op = bc->code[p];
         switch(op) {
             // 
@@ -421,10 +472,15 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // others
             //
-            case END: return;
+            case END: p = bc->code_sz; break;
             default:
                 zoe_error(Z, "Invalid opcode 0x%02X.", op);
         }
+#ifdef DEBUG
+        if(Z->debug_asm) {
+            zoe_dbgstack(Z);
+        }
+#endif
     }
 
     bytecode_free(bc);
@@ -466,6 +522,8 @@ void zoe_call(Zoe* Z, int n_args)
 // }}}
 
 // {{{ DEBUGGING
+
+#ifdef DEBUG
 
 // {{{ FORMATTING
 
@@ -510,6 +568,56 @@ static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 
 // }}}
 
+// {{{ OPCODE DISASSEMBLY
+
+static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
+    Opcode op = (Opcode)code[p];
+    switch(op) {
+        case PUSH_Nil: snprintf(buf, nbuf, "PUSH_Nil"); return 1;
+        case PUSH_Bt:  snprintf(buf, nbuf, "PUSH_Bt"); return 1;
+        case PUSH_Bf:  snprintf(buf, nbuf, "PUSH_Bf"); return 1;
+        case PUSH_N: {
+                char xbuf[128]; sprint_dbl(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "PUSH_N %s", xbuf);
+                return 9;
+            }
+        case POP:  snprintf(buf, nbuf, "POP");  return 1;
+        case ADD:  snprintf(buf, nbuf, "ADD");  return 1;
+        case SUB:  snprintf(buf, nbuf, "SUB");  return 1;
+        case MUL:  snprintf(buf, nbuf, "MUL");  return 1;
+        case DIV:  snprintf(buf, nbuf, "DIV");  return 1;
+        case IDIV: snprintf(buf, nbuf, "IDIV"); return 1;
+        case MOD:  snprintf(buf, nbuf, "MOD");  return 1;
+        case POW:  snprintf(buf, nbuf, "POW");  return 1;
+        case NEG:  snprintf(buf, nbuf, "NEG");  return 1;
+        case AND:  snprintf(buf, nbuf, "AND");  return 1;
+        case XOR:  snprintf(buf, nbuf, "XOR");  return 1;
+        case OR:   snprintf(buf, nbuf, "OR") ;  return 1;
+        case SHL:  snprintf(buf, nbuf, "SHL");  return 1;
+        case SHR:  snprintf(buf, nbuf, "SHR");  return 1;
+        case NOT:  snprintf(buf, nbuf, "NOT");  return 1;
+        case LT:   snprintf(buf, nbuf, "LT");   return 1;
+        case LTE:  snprintf(buf, nbuf, "LTE");  return 1;
+        case GT:   snprintf(buf, nbuf, "GT");   return 1;
+        case GTE:  snprintf(buf, nbuf, "GTE");  return 1;
+        case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
+        case JMP: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "JMP %s", xbuf);
+                return 9;
+            }
+        case Bfalse: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "Bfalse %s", xbuf);
+                return 9;
+            }
+        case END:  snprintf(buf, nbuf, "END");  return 1;
+        default:
+            snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);
+    }
+    return 1;
+}
+
 void zoe_disassemble(Zoe* Z)
 {
     char* buf = NULL;
@@ -519,74 +627,25 @@ void zoe_disassemble(Zoe* Z)
         zoe_error(Z, "Only bytecode functions can be disassembled.");
     }
 
-    uint64_t p = 0;
-    int ns;
-
-    // {{{ next
-#define next(sz) {                                \
-    aprintf(Z, &buf, "%*s", 28-ns, " ");          \
-    for(uint8_t i=0; i<sz; ++i) {                 \
-        aprintf(Z, &buf, "%02X ", bc->code[p+i]); \
-    }                                             \
-    aprintf(Z, &buf, "\n");                       \
-    p += sz;                                      \
-}
-    // }}}
-
     Bytecode* bc = bytecode_newfromzb(Z->uf, f.bfunction.bytecode, f.bfunction.sz);
+    uint64_t p = 0;
 
     while(p < bc->code_sz) {
-        aprintf(Z, &buf, "%08" PRIx64 ":\t", p);
-        Opcode op = (Opcode)bc->code[p];
-        switch(op) {
-            case PUSH_Nil: ns = aprintf(Z, &buf, "PUSH_Nil") - 1; next(1); break;
-            case PUSH_Bt:  ns = aprintf(Z, &buf, "PUSH_Bt") - 1; next(1); break;
-            case PUSH_Bf:  ns = aprintf(Z, &buf, "PUSH_Bf") - 1; next(1); break;
-            case PUSH_N: {
-                    ns = aprintf(Z, &buf, "PUSH_N\t");
-                    char nbuf[128]; sprint_dbl(nbuf, sizeof nbuf, bc->code, p+1);
-                    ns += aprintf(Z, &buf, "%s", nbuf);
-                    next(9);
-                }
-                break;
-            case POP:  ns = aprintf(Z, &buf, "POP") - 1;  next(1); break;
-            case ADD:  ns = aprintf(Z, &buf, "ADD") - 1;  next(1); break;
-            case SUB:  ns = aprintf(Z, &buf, "SUB") - 1;  next(1); break;
-            case MUL:  ns = aprintf(Z, &buf, "MUL") - 1;  next(1); break;
-            case DIV:  ns = aprintf(Z, &buf, "DIV") - 1;  next(1); break;
-            case IDIV: ns = aprintf(Z, &buf, "IDIV") - 1; next(1); break;
-            case MOD:  ns = aprintf(Z, &buf, "MOD") - 1;  next(1); break;
-            case POW:  ns = aprintf(Z, &buf, "POW") - 1;  next(1); break;
-            case NEG:  ns = aprintf(Z, &buf, "NEG") - 1;  next(1); break;
-            case AND:  ns = aprintf(Z, &buf, "AND") - 1;  next(1); break;
-            case XOR:  ns = aprintf(Z, &buf, "XOR") - 1;  next(1); break;
-            case OR:   ns = aprintf(Z, &buf, "OR")  - 1;  next(1); break;
-            case SHL:  ns = aprintf(Z, &buf, "SHL") - 1;  next(1); break;
-            case SHR:  ns = aprintf(Z, &buf, "SHR") - 1;  next(1); break;
-            case NOT:  ns = aprintf(Z, &buf, "NOT") - 1;  next(1); break;
-            case LT:   ns = aprintf(Z, &buf, "LT")  - 1;  next(1); break;
-            case LTE:  ns = aprintf(Z, &buf, "LTE") - 1;  next(1); break;
-            case GT:   ns = aprintf(Z, &buf, "GT")  - 1;  next(1); break;
-            case GTE:  ns = aprintf(Z, &buf, "GTE") - 1;  next(1); break;
-            case EQ:   ns = aprintf(Z, &buf, "EQ")  - 1;  next(1); break;
-            case JMP: {
-                    ns = aprintf(Z, &buf, "JMP\t");
-                    char nbuf[128]; sprint_uint64(nbuf, sizeof nbuf, bc->code, p+1);
-                    ns += aprintf(Z, &buf, "%s", nbuf);
-                    next(9);
-                }
-                break;
-            case Bfalse: {
-                    ns = aprintf(Z, &buf, "Bfalse\t");
-                    char nbuf[128]; sprint_uint64(nbuf, sizeof nbuf, bc->code, p+1);
-                    ns += aprintf(Z, &buf, "%s", nbuf);
-                    next(9);
-                }
-                break;
-            case END:  ns = aprintf(Z, &buf, "END") - 1;  next(1); break;
-            default:
-                aprintf(Z, &buf, "Invalid opcode %02X\n", (uint8_t)op); ++p;
+        // address
+        int ns = aprintf(Z, &buf, "%08" PRIx64 ":\t", p);
+        // code
+        static char cbuf[128];
+        int n = sprint_code(cbuf, sizeof cbuf, bc->code, p);
+        ns += aprintf(Z, &buf, "%s", cbuf);
+        // spaces
+        aprintf(Z, &buf, "%*s", 32-ns, " ");
+        // hex code
+        for(uint8_t i=0; i<n; ++i) {
+            aprintf(Z, &buf, "%02X ", bc->code[p+i]);
         }
+        aprintf(Z, &buf, "\n");
+
+        p += n;
     }
 
     bytecode_free(bc);
@@ -599,6 +658,47 @@ void zoe_disassemble(Zoe* Z)
     free(buf);
 }
 
+// }}}
+
+// {{{ ASSEMBLY DEBUGGER
+
+void zoe_asmdebugger(Zoe* Z, bool value)
+{
+    Z->debug_asm = value;
+}
+
+
+static void zoe_dbgopcode(uint8_t* code, uint64_t p)
+{
+    int ns = printf("%08" PRIx64 ":\t", p);
+
+    char buf[128];
+    sprint_code(buf, sizeof buf, code, p);
+    ns += printf("%s", buf);
+    printf("%*s", 32-ns, " ");
+}
+
+
+static void zoe_dbgstack(Zoe* Z)
+{
+    printf("[");
+    for(int i=0; i<zoe_stacksize(Z); ++i) {
+        if(i != 0) {
+            printf(", ");
+        }
+        zoe_inspect(Z, 0-1-i);
+        char* buf = zoe_popstring(Z);
+        printf("%s", buf);
+        free(buf);
+    }
+    printf("]\n");
+}
+
+// }}}
+
+#endif
+
+// {{{ INSPECTION
 
 static char* zoe_escapestring(Zoe* Z, const char* s)
 {
@@ -619,7 +719,7 @@ static char* zoe_escapestring(Zoe* Z, const char* s)
 }
 
 
-void zoe_inspect(Zoe* Z)
+void zoe_inspect(Zoe* Z, int i)
 {
     switch(zoe_peektype(Z)) {
         case INVALID:
@@ -629,12 +729,12 @@ void zoe_inspect(Zoe* Z)
             zoe_pushstring(Z, "nil");
             break;
         case BOOLEAN: {
-                bool b = zoe_peekboolean(Z);
+                bool b = zoe_getboolean(Z, i);
                 zoe_pushstring(Z, b ? "true" : "false");
             }
             break;
         case NUMBER: {
-                double n = zoe_peeknumber(Z);
+                double n = zoe_getnumber(Z, i);
                 char buf[128];
                 snprintf(buf, sizeof buf, "%0.14f", n);
                 // remove zeroes at the and
@@ -649,7 +749,7 @@ void zoe_inspect(Zoe* Z)
             zoe_pushstring(Z, "function");
             break;
         case STRING: {
-                const char* s = zoe_peekstring(Z);
+                const char* s = zoe_getstring(Z, i);
                 char* buf = zoe_escapestring(Z, s);
                 zoe_pushstring(Z, buf);
                 Z->uf->free(buf);
@@ -661,6 +761,7 @@ void zoe_inspect(Zoe* Z)
     }
 }
 
+// }}}
 
 // }}}
 

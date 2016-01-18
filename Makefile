@@ -86,7 +86,7 @@ zoe: depend ${OBJ_EXE} ${OBJ_LIB}
 	${CC} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS}
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
-	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS}
+	${CC} -shared -fPIC -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS}
 
 depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies

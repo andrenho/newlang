@@ -8,6 +8,11 @@
 void repl_execute(Options* opt)
 {
     Zoe* Z = zoe_createvm(NULL);
+#ifdef DEBUG
+    if(opt->debug_asm) {
+        zoe_asmdebugger(Z, true);
+    }
+#endif
 
     while(1) {
         char* buf = NULL;
@@ -27,6 +32,7 @@ void repl_execute(Options* opt)
 
         // run code
         zoe_eval(Z, buf);
+#ifdef DEBUG
         if(opt->repl_options.disassemble) {
             zoe_disassemble(Z);
             printf("\033[1;30m");  // gray font
@@ -35,10 +41,11 @@ void repl_execute(Options* opt)
             free(txt);
             printf("\033[0m");  // TTY normal
         }
+#endif
         zoe_call(Z, 0);
 
         // display result
-        zoe_inspect(Z);
+        zoe_inspect(Z, -1);
         char* result = zoe_popstring(Z);
         printf("%s\n", result);
         free(result);
