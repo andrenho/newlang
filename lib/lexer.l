@@ -62,6 +62,7 @@ nil             { return NIL; }
 \!\=            { return _NEQ; }
 
 \&\&            { return CCAND; }
+\|\|            { return CCOR; }
 
 {SEPARATOR}     { return SEP; }
 

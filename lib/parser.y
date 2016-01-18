@@ -37,7 +37,7 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <string>  STRING
 %token NIL SEP
 
-%left CCAND
+%left CCAND CCOR
 %nonassoc _LTE _GTE '<' '>' _EQ _NEQ
 %left '&' '^' '|'
 %left _SHL _SHR

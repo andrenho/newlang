@@ -562,7 +562,7 @@ static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 {
     uint64_t n;
     memcpy(&n, &array[pos], 8);
-    return snprintf(buf, nbuf, "0x%08" PRIx64, n);
+    return snprintf(buf, nbuf, "0x%" PRIx64, n);
 }
 
 
@@ -578,7 +578,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case PUSH_Bf:  snprintf(buf, nbuf, "PUSH_Bf"); return 1;
         case PUSH_N: {
                 char xbuf[128]; sprint_dbl(xbuf, sizeof xbuf, code, p+1);
-                snprintf(buf, nbuf, "PUSH_N %s", xbuf);
+                snprintf(buf, nbuf, "PUSH_N  %s", xbuf);
                 return 9;
             }
         case POP:  snprintf(buf, nbuf, "POP");  return 1;
@@ -603,12 +603,12 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
-                snprintf(buf, nbuf, "JMP %s", xbuf);
+                snprintf(buf, nbuf, "JMP     %s", xbuf);
                 return 9;
             }
         case Bfalse: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
-                snprintf(buf, nbuf, "Bfalse %s", xbuf);
+                snprintf(buf, nbuf, "Bfalse  %s", xbuf);
                 return 9;
             }
         case END:  snprintf(buf, nbuf, "END");  return 1;

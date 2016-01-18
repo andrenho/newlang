@@ -297,12 +297,10 @@ static char* test_shortcircuit_expressions(void)
     mu_assert_bexpr("true && true && false", false);
 
     // ||
-    /*
     mu_assert_bexpr("true || true", true);
     mu_assert_bexpr("true || false", true);
     mu_assert_bexpr("false || true", true);
     mu_assert_bexpr("false || false", false);
-    */
 
     return 0;
 }
