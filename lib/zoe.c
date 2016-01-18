@@ -599,7 +599,7 @@ static char* zoe_escapestring(Zoe* Z, const char* s)
         if(s[a] == 10) {
             buf[b++] = '\\'; buf[b++] = 'n';
             ++a;
-        } else if(s[a] == 10) {
+        } else if(s[a] == 13) {
             buf[b++] = '\\'; buf[b++] = 'r';
             ++a;
         } else if(s[a] == '\\' || s[a] == '\'') {

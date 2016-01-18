@@ -7,6 +7,7 @@
 #include "bytecode.h"
 #include "parser.tab.h"
 
+static void str_addstr(String* str, char* s);
 static char* remove_undersc(char* t);
 static char* parse_string(char* t);
 
@@ -19,7 +20,8 @@ static char* parse_string(char* t);
 
 INTEGER     [0-9][0-9_]*
 BINARY      0[Bb][01_]+
-HEX         0[Xx][0-9A-Fa-f_]+
+HEXDIGIT    [0-9A-Fa-f_]
+HEX         0[Xx]{HEXDIGIT}+
 OCTAL       0[Oo][0-7_]+
 
 FLOAT       [0-9][0-9_]*\.[0-9_]+
@@ -46,9 +48,14 @@ SPACES      [ \t]+
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 
-'               BEGIN(STR);
-<STR>[^']*      { yylval->_string = strdup(parse_string(yytext)); return STRING; }
-<STR>'          BEGIN(0);
+'               { BEGIN(STR); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
+<STR>\\n        { str_addstr(&yylval->_string, "\n"); }
+<STR>\\r        { str_addstr(&yylval->_string, "\r"); }
+<STR>\\\\       { str_addstr(&yylval->_string, "\\"); }
+<STR>\\x{HEXDIGIT}{2} { str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); }
+<STR>\\         { str_addstr(&yylval->_string, "\\"); }
+<STR>[^'\\]*    { str_addstr(&yylval->_string, yytext); }
+<STR>'          { BEGIN(0); return STRING; }
 
 nil             { return NIL; }
 
@@ -76,7 +83,18 @@ nil             { return NIL; }
 .               return 1;
 
 %%
-//{STRING}        { yylval->_string = strdup(parse_string(yytext)); return STRING; }
+
+
+static void str_addstr(String* str, char* s)
+{
+    size_t len = strlen(s);
+    size_t new_size = str->sz + len + 1;
+    if(new_size > str->alloc) {
+        size_t new_alloc = (new_size > str->alloc * 2) ? new_size : str->alloc * 2;
+        str->str = realloc(str->str, new_alloc);
+    }
+    strcat(str->str, s);
+}
 
 
 static char* remove_undersc(char* t)
