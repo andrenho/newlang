@@ -81,13 +81,19 @@ bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz)
 void
 bytecode_free(Bytecode* bc)
 {
+    void (*my_free)(void*) = bc->_->uf->free;
+
     if(bc->code) {
-        free(bc->code);
+        my_free(bc->code);
     }
+    for(size_t i=0; i<bc->_->labels_sz; ++i) {
+        my_free(bc->_->labels[i].refs);
+    }
+    my_free(bc->_->labels);
     if(bc->_) {
-        free(bc->_);
+        my_free(bc->_);
     }
-    free(bc);
+    my_free(bc);
 }
 
 // }}}
@@ -143,7 +149,7 @@ bytecode_addcodelabel(Bytecode* bc, Label lbl)
     LabelRef* lb = &bc->_->labels[lbl];
 
     // add reference to label
-    lb->refs = bc->_->uf->realloc(lb->refs, lb->n_refs + 1);
+    lb->refs = bc->_->uf->realloc(lb->refs, (lb->n_refs+1) * sizeof(uint64_t));
     lb->refs[lb->n_refs] = bc->code_sz;
     ++lb->n_refs;
 

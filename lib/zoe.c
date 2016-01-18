@@ -457,7 +457,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // branches
             //
-            case JMP: memcpy(&p, &bc->code[p+1], 8); p += 9; break;
+            case JMP: memcpy(&p, &bc->code[p+1], 8); break;
             case Bfalse: {
                     uint8_t n;
                     memcpy(&n, &bc->code[p+1], 8);
