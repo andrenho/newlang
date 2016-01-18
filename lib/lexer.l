@@ -8,7 +8,7 @@
 #include "parser.tab.h"
 
 static char* remove_undersc(char* t);
-static char* remove_quotes(char* t);
+static char* parse_string(char* t);
 
 %}
 
@@ -41,7 +41,7 @@ SPACES      [ \t]+
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
-{STRING}        { strcpy(yylval->_string, remove_quotes(yytext)); return STRING; }
+{STRING}        { strcpy(yylval->_string, parse_string(yytext)); return STRING; }
 
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
@@ -85,18 +85,38 @@ static char* remove_undersc(char* t)
 }
 
 
-static char* remove_quotes(char* t)
+static char* parse_string(char* t)
 {
+    // removes quotes
     int len = strlen(t)-2;
     memmove(t, &t[1], strlen(t)-2);
     t[strlen(t)-2] = '\0';
 
+    // transform escapes
     int c = 0;
     while(t[c]) {
-        if(t[c] == '\\' && t[c+1] == '\'') {
-            memmove(t+c, t+c+1, strlen(t)-c);
-            --len;
-            continue;
+        if(t[c] == '\\') {
+            switch(t[c+1]) {
+                case '\'':  // single quotes
+                case '\\':  // reverse slash
+                    memmove(t+c, t+c+1, strlen(t)-c);  // just remove the slash
+                    --len;
+                    continue;
+                case 'n':  // 'n' (char 13)
+                    memmove(t+c, t+c+1, strlen(t)-c);
+                    t[c] = 13;
+                    --len;
+                    continue;
+                case 'r':  // 'n' (char 10)
+                    memmove(t+c, t+c+1, strlen(t)-c);
+                    t[c] = 10;
+                    --len;
+                    continue;
+                case 'x':  // 'x' (hexadecimal follows)
+                    // TODO - not implemented
+                    abort();
+                // TODO - unicode - how?
+            }
         }
         ++c;
     }

@@ -13,13 +13,15 @@ Next steps:
    - ternary operator (ok)
  - strings
    - concatenation
-   - special chars
+   - special chars = '\nrtx
    - multiline strings
    - embedded code
  - arrays
+ - tables
 
 
 FUTURE
 
  - two types of number - integer and double
  - two types of string - reference and string
+ - unicode support
