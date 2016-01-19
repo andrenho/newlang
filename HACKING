@@ -24,14 +24,18 @@ build/
   WARNINGS           A list of warnings issued by gcc when building
   zoe.supp           Suppression file for valgrind
 lib/
-  bytecode.c         Bytecode management (the parser is called from here)
   lexer.l            The lexer
   parser.y           The parser
+  bytecode.c         Bytecode management (the parser is called from here)
   opcode.h           List of VM opcodes
   stack.c            Low-level stack management for ZoeVM
-  userfunctions.c|h  Structure to interact with the user environment
-  zoe.c|h            ZoeVM
-  zvalue.h           Union containing all types acceptable by Zoe
+  userfunctions.c    Structure to interact with the user environment
+  zoe.c              Zoe virtual machine
+  zvalue.c           Union containing all types acceptable by Zoe
+src/
+  main.c             Entry procedure
+  options.c          Process commandline arguments
+  repl.c             REPL
 tests/
   tests.c            Unit tests
 
