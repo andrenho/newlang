@@ -368,6 +368,8 @@ static char* test_comments(void)
     mu_assert_nexpr("2 /* t\ne\nst */ + 3", 5);
     mu_assert_nexpr("// test\n2 + 3", 5);
     mu_assert_nexpr("2 + 3//test\n", 5);
+    mu_assert_nexpr("2 /* a /* b */ */", 2);  // nested comments
+    mu_assert_nexpr("2 /* /* / */ */", 2);  // nested comments
     return 0;
 }
 

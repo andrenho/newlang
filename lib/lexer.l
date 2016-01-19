@@ -35,10 +35,17 @@ SEPARATOR   [\n\;]+
 
 SPACES      [ \t]+
 
-%x STR COMMENT
+%x STR CMT
 %s SB
 
 %%
+
+<CMT,INITIAL>"/*"  { yy_push_state(CMT, yyscanner); }
+<CMT>[^\*\/]*      ;
+<CMT>"*"+[^\/]     ;
+<CMT>\/            ;
+<CMT>"*/"          { yy_pop_state(yyscanner); }
+"//"+.*\n          ;
 
 {INTEGER}       { yylval->number = (double)(strtoll(remove_undersc(yytext), NULL, 10)); return NUMBER; }
 {BINARY}        { yylval->number = (double)(strtoll(remove_undersc(&yytext[2]), NULL, 2)); return NUMBER; }
