@@ -121,7 +121,7 @@ strings: string
        ;
 
 // arrays
-array: '[' { bytecode_addcode(b, PUSHTBL); } array_items ']'
+array: '[' { bytecode_addcode(b, PUSHARY); } array_items ']'
      ;
 
 array_items: %empty

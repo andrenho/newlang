@@ -52,6 +52,12 @@ ZFunction   zoe_popfunction(Zoe* Z);
 char*       zoe_popstring(Zoe* Z);
 
 //
+// ARRAY MANAGEMENT
+// 
+void zoe_pusharray(Zoe* Z);
+void zoe_arrayappend(Zoe* Z);
+
+//
 // ERROR MANAGEMENT
 //
 void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));

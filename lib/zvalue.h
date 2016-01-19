@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION, STRING } ZType;
+typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION, STRING, ARRAY } ZType;
 
 typedef enum { BYTECODE=1 } ZFunctionType;
 

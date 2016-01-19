@@ -18,6 +18,7 @@ Next steps:
    - embedded code (ok)
  - comments (ok)
  - use readline (ok)
+ - remove reallocs
  - arrays
  - tables
 

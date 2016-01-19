@@ -239,6 +239,20 @@ zoe_popstring(Zoe* Z)
 
 // }}}
 
+// {{{ ARRAY MANAGEMENT
+
+void zoe_pusharray(Zoe* Z)
+{
+    stack_push(Z->stack, (ZValue){ .type=ARRAY, .array={ .n=0, .items=NULL }});
+}
+
+
+void zoe_arrayappend(Zoe* Z)
+{
+}
+
+// }}}
+
 // {{{ ERROR MANAGEMENT
 
 void zoe_error(Zoe* Z, char* fmt, ...)
@@ -266,6 +280,7 @@ char* zoe_typename(ZType type)
         case NUMBER:   return "number";
         case FUNCTION: return "function";
         case STRING:   return "string";
+        case ARRAY:    return "array";
         default:       return "undefined (?)";
     }
 }
@@ -464,7 +479,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
-            case CAT: zoe_oper(Z, ZOE_CAT); ++p; break;
+            case CAT:  zoe_oper(Z, ZOE_CAT);  ++p; break;
 
             //
             // branches
@@ -490,6 +505,12 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     }
                 }
                 break;
+
+            //
+            // array
+            //
+            case PUSHARY: zoe_pusharray(Z); ++p; break;
+            case APPEND:  zoe_arrayappend(Z); ++p; break;
 
             //
             // others
@@ -678,7 +699,7 @@ static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p
                 snprintf(buf, nbuf, "Btrue   %s", xbuf);
                 return 9;
             }
-        case PUSHTBL: snprintf(buf, nbuf, "PUSHTBL"); return 1;
+        case PUSHARY: snprintf(buf, nbuf, "PUSHARY"); return 1;
         case APPEND:  snprintf(buf, nbuf, "APPEND");  return 1;
         case END:     snprintf(buf, nbuf, "END");     return 1;
         default:
@@ -769,46 +790,46 @@ static void zoe_dbgstack(Zoe* Z)
 
 // {{{ INSPECTION
 
-void zoe_inspect(Zoe* Z, int i)
+
+static char* zvalue_inspect(Zoe* Z, ZValue value)
 {
-    switch(zoe_gettype(Z, i)) {
+    switch(value.type) {
         case INVALID:
-            zoe_pushstring(Z, "invalid");
-            break;
+            return strdup("invalid");
         case NIL:
-            zoe_pushstring(Z, "nil");
-            break;
+            return strdup("nil");
         case BOOLEAN: {
-                bool b = zoe_getboolean(Z, i);
-                zoe_pushstring(Z, b ? "true" : "false");
+                return strdup(value.boolean ? "true" : "false");
             }
-            break;
         case NUMBER: {
-                double n = zoe_getnumber(Z, i);
-                char buf[128];
-                snprintf(buf, sizeof buf, "%0.14f", n);
+                char* buf = Z->uf->realloc(NULL, 128);
+                snprintf(buf, 127, "%0.14f", value.number);
                 // remove zeroes at the and
                 int lg;
                 while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
                     buf[lg] = '\0';
                 }
-                zoe_pushstring(Z, buf);
+                return buf;
             }
-            break;
         case FUNCTION:
-            zoe_pushstring(Z, "function");
-            break;
+            return strdup("function");
         case STRING: {
-                const char* s = zoe_getstring(Z, i);
-                char* buf = zoe_escapestring(Z, s);
-                zoe_pushstring(Z, buf);
-                Z->uf->free(buf);
+                char* buf = zoe_escapestring(Z, value.string);
+                return buf;
             }
-            break;
         default: {
-            zoe_error(Z, "Invalid type (code %d) in the stack.", zoe_peektype(Z));
+            zoe_error(Z, "Invalid type (code %d) in the stack.", value.type);
+            return NULL;
         }
     }
+}
+
+
+void zoe_inspect(Zoe* Z, int i)
+{
+    char *buf = zvalue_inspect(Z, stack_peek(Z->stack, i));
+    zoe_pushstring(Z, buf);
+    free(buf);
 }
 
 // }}}
