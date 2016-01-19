@@ -20,6 +20,8 @@ Next steps:
  - use readline (ok)
  - remove reallocs
  - arrays
+   - len operator
+   - array access
  - tables
 
 

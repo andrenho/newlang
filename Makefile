@@ -6,6 +6,7 @@ include build/config.mk
 #
 
 SRC_LIB=lib/zoe.c		\
+	lib/zvalue.c		\
 	lib/userfunctions.c	\
 	lib/stack.c		\
 	lib/bytecode.c		\

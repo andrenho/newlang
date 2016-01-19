@@ -52,6 +52,17 @@ stack_peek(Stack* st, STPOS pos)
 }
 
 
+ZValue* 
+stack_peek_ptr(Stack* st, STPOS pos)
+{
+    if(pos >= st->sz) {
+        st->uf->error("__func__: accessing data out of stack\n");
+        return NULL;
+    }
+
+    return &st->items[stack_abs(st, pos)];
+}
+
 uint8_t
 stack_size(Stack* st)
 {
@@ -97,14 +108,7 @@ void stack_popfree(Stack* st)
     }
 
     STPOS p = stack_abs(st, -1);
-    if(st->items[p].type == FUNCTION) {
-        if(st->items[p].function.type == BYTECODE) {
-            assert(st->items[p].function.bfunction.bytecode);
-            st->uf->free(st->items[p].function.bfunction.bytecode);
-        }
-    } else if(st->items[p].type == STRING) {
-        free(st->items[p].string);
-    }
+    zvalue_free_data(st->uf, st->items[p]);
 
     --st->sz;
     assert(st->sz >= 0);

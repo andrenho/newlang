@@ -249,6 +249,22 @@ void zoe_pusharray(Zoe* Z)
 
 void zoe_arrayappend(Zoe* Z)
 {
+    // get array
+    ZValue* varray = stack_peek_ptr(Z->stack, -2);
+    if(varray->type != ARRAY) {
+        zoe_error(Z, "Only arrays can be appended.");
+        return;
+    }
+    ZArray* array = &varray->array;
+
+    // add item to array
+    ZValue value = stack_peek(Z->stack, -1);
+    ++array->n;
+    array->items = Z->uf->realloc(array->items, array->n * sizeof(ZValue));
+    array->items[array->n-1] = value;
+
+    // pop item out without freeing it
+    stack_pop(Z->stack);
 }
 
 // }}}
@@ -815,6 +831,22 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
             return strdup("function");
         case STRING: {
                 char* buf = zoe_escapestring(Z, value.string);
+                return buf;
+            }
+        case ARRAY: {
+                char* buf = strdup("[");
+                for(size_t i=0; i<value.array.n; ++i) {
+                    bool last = (i == (value.array.n-1));
+                    char* nbuf = zvalue_inspect(Z, value.array.items[i]);
+                    buf = Z->uf->realloc(buf, strlen(buf) + strlen(nbuf) + (last ? 1 : 3));
+                    strcat(buf, nbuf);
+                    if(!last) {
+                        strcat(buf, ", ");
+                    }
+                    free(nbuf);
+                }
+                buf = Z->uf->realloc(buf, strlen(buf)+2);
+                strcat(buf, "]");
                 return buf;
             }
         default: {

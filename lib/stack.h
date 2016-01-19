@@ -21,6 +21,7 @@ void stack_free(Stack* st);
 uint8_t stack_size(Stack* st);
 STPOS  stack_abs(Stack* st, STPOS pos);
 ZValue stack_peek(Stack* st, STPOS pos);
+ZValue* stack_peek_ptr(Stack* st, STPOS pos);
 
 //
 // STACK CHANGES
