@@ -14,8 +14,8 @@ Next steps:
  - strings
    - special chars = '\nrtx (ok)
    - concatenation (ok)
-   - multiline strings
-   - embedded code
+   - multiline strings (ok)
+   - embedded code (ok)
  - comments
  - arrays
  - tables

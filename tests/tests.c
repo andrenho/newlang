@@ -346,11 +346,28 @@ static char* test_strings(void)
     mu_assert_sexpr("'a\\x41b'", "aAb");
     mu_assert_sexpr("'ab'..'cd'", "abcd");
     mu_assert_sexpr("'ab'..'cd'..'ef'", "abcdef");
-    mu_assert_sexpr("'a\nf'", "a\nf");
+    mu_assert_sexpr("'a\nf'", "a\nf");  // multiline string
     mu_assert_sexpr("'a' 'b' 'cd'", "abcd");
+    mu_assert_sexpr("'ab$e'", "ab$e");
+    mu_assert_sexpr("'ab$'", "ab$");
     mu_assert_sexpr("'ab${'cd'}ef'", "abcdef");
     mu_assert_sexpr("'ab${'cd'}ef'\n", "abcdef");
     mu_assert_sexpr("'ab${'cd'..'xx'}ef'", "abcdxxef");
+    return 0;
+}
+
+// }}}
+
+// {{{ ZOE COMMENTS
+
+static char* test_comments(void)
+{
+    mu_assert_nexpr("2 + 3 /* test */", 5);
+    mu_assert_nexpr("/* test */ 2 + 3", 5);
+    mu_assert_nexpr("2 /* test */ + 3", 5);
+    mu_assert_nexpr("2 /* t\ne\nst */ + 3", 5);
+    mu_assert_nexpr("// test\n2 + 3", 5);
+    mu_assert_nexpr("2 + 3//test\n", 5);
     return 0;
 }
 
@@ -370,6 +387,7 @@ static char* all_tests(void)
     mu_run_test(test_math_expressions);
     mu_run_test(test_shortcircuit_expressions);
     mu_run_test(test_strings);
+    mu_run_test(test_comments);
     return 0;
 }
 
