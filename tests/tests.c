@@ -347,7 +347,10 @@ static char* test_strings(void)
     mu_assert_sexpr("'ab'..'cd'", "abcd");
     mu_assert_sexpr("'ab'..'cd'..'ef'", "abcdef");
     mu_assert_sexpr("'a\nf'", "a\nf");
+    mu_assert_sexpr("'a' 'b' 'cd'", "abcd");
     mu_assert_sexpr("'ab${'cd'}ef'", "abcdef");
+    mu_assert_sexpr("'ab${'cd'}ef'\n", "abcdef");
+    mu_assert_sexpr("'ab${'cd'..'xx'}ef'", "abcdxxef");
     return 0;
 }
 

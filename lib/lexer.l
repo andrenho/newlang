@@ -19,6 +19,7 @@ static char* remove_undersc(char* t);
 %option bison-bridge
 %option extra-type="Bytecode*"
 %option stack
+%option warn
 
 INTEGER     [0-9][0-9_]*
 BINARY      0[Bb][01_]+
@@ -49,17 +50,19 @@ SPACES      [ \t]+
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 
-'                     { yy_push_state(STR, yyscanner); printf("[STR1]"); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
+'                     { yy_push_state(STR, yyscanner);
+                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
 <STR>\\n              { str_addstr(&yylval->_string, "\n"); }
 <STR>\\r              { str_addstr(&yylval->_string, "\r"); }
 <STR>\\\\             { str_addstr(&yylval->_string, "\\"); }
 <STR>\\x{HEXDIGIT}{2} { str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); }
 <STR>\\               { str_addstr(&yylval->_string, "\\"); }
 <STR>[^'\\\$]*        { str_addstr(&yylval->_string, yytext); }
-<STR>\$\{             { yy_push_state(SB, yyscanner); printf("[SB]"); return STRING; }
-<STR>'                { yy_pop_state(yyscanner); printf("[INI]"); return STRING; }
+<STR>\$\{             { yy_push_state(SB, yyscanner); return STRING; }
+<STR>'                { yy_pop_state(yyscanner); return STRING; }
 
-<SB>\}                {  yy_pop_state(yyscanner); printf("[STR2]"); yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
+<SB>\}                { yy_pop_state(yyscanner);
+                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
 
 nil             { return NIL; }
 
@@ -94,10 +97,11 @@ static void str_addstr(String* str, char* s)
     size_t len = strlen(s);
     size_t new_size = str->sz + len + 1;
     if(new_size > str->alloc) {
-        size_t new_alloc = (new_size > str->alloc * 2) ? new_size : str->alloc * 2;
+        size_t new_alloc = (new_size > (str->alloc * 2)) ? new_size : (str->alloc * 2);
         str->str = realloc(str->str, new_alloc);
     }
-    strcat(str->str, s);
+    //strcat(str->str, s);
+    memcpy(&str->str[strlen(str->str)], s, len);
 }
 
 

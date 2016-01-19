@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern int yydebug;
+#ifdef DEBUG
+#include "lib/parser.tab.h"
+#include "lib/lex.yy.h"
+#endif
 
 static void options_printhelp(FILE* f, int exit_status);
 
@@ -16,9 +19,10 @@ options_parse(int argc, char* argv[])
     while(1) {
         static struct option long_options[] = {
 #ifdef DEBUG
-            { "repl-disassemble", no_argument, NULL, 'D' },
-            { "debug-bison",      no_argument, NULL, 'B' },
             { "debug-asm",        no_argument, NULL, 'A' },
+            { "debug-bison",      no_argument, NULL, 'B' },
+            { "repl-disassemble", no_argument, NULL, 'D' },
+            { "debug-flex",       no_argument, NULL, 'F' },
 #endif
             { "help",             no_argument, NULL, 'h' },
             { "version",          no_argument, NULL, 'v' },
@@ -28,19 +32,22 @@ options_parse(int argc, char* argv[])
         int opt_idx = 0;
         static const char* opts = "hv"
 #ifdef DEBUG
-            "ABD"
+            "ABDF"
 #endif
         ;
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
 #ifdef DEBUG
-            case 'D':
-                opt->repl_options.disassemble = true;
+            case 'A':
+                opt->debug_asm = true;
                 break;
             case 'B':
                 yydebug = 1;
                 break;
-            case 'A':
-                opt->debug_asm = true;
+            case 'F':
+                // yy_flex_debug = 1; TODO
+                break;
+            case 'D':
+                opt->repl_options.disassemble = true;
                 break;
 #endif
 
@@ -87,9 +94,10 @@ options_printhelp(FILE* f, int exit_status)
     fprintf(f, "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n");
     fprintf(f, "Avaliable options are:\n");
 #ifdef DEBUG
-    fprintf(f, "   -D, --repl-disassemble    disassemble when using REPL\n");
     fprintf(f, "   -A, --debug-asm           debug ASM code being debugger\n");
     fprintf(f, "   -B, --debug-bison         activate BISON debugger\n");
+    fprintf(f, "   -D, --repl-disassemble    disassemble when using REPL\n");
+    fprintf(f, "   -F, --debug-flex          activate FLEX debugger\n");
 #endif
     fprintf(f, "   -h, --help                display this help and exit\n");
     fprintf(f, "   -v, --version             show version and exit\n");

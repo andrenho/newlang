@@ -30,6 +30,11 @@ typedef struct String {
 %param { void* scanner }
 %parse-param { Bytecode* b }
 
+%verbose
+%printer { fprintf(yyoutput, "%f", $$); } NUMBER;
+%printer { fprintf(yyoutput, "%s", $$ ? "true" : "false"); } BOOLEAN;
+%printer { fprintf(yyoutput, "%s", $$.str); } STRING
+
 %defines "lib/parser.tab.h"
 
 %union {
@@ -74,7 +79,7 @@ exps: %empty
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | string
+   | strings
    | ternary
    | ccand
    | ccor
@@ -102,16 +107,17 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '(' exp ')'
    ;
 
-str: STRING { 
+// strings
+string: STRING { 
             bytecode_addcode(b, PUSH_S); 
             bytecode_addcodestr(b, $1.str); 
             free($1.str); 
         }
    ;
 
-string: str
-      | str exp { bytecode_addcode(b, CAT); } str { bytecode_addcode(b, CAT); }
-      ;
+strings: string
+       | string strings { bytecode_addcode(b, CAT); }
+       ;
 
 // short-circuit AND
 ccand: exp CCAND { 

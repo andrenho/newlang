@@ -16,9 +16,7 @@ SRC_EXE=src/main.c		\
 	src/options.c		\
 	src/repl.c
 
-SRC_TST=tests/tests.c	#	\
-	tests/zoe.c		\
-	tests/bytecode.c
+SRC_TST=tests/tests.c
 
 OBJ_LIB=${SRC_LIB:.c=.o}
 OBJ_EXE=${SRC_EXE:.c=.o}
@@ -35,6 +33,7 @@ ifdef DEBUG
   CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG
   LDFLAGS+=-g
   BISON_FLAGS+=--debug
+  FLEX_FLAGS+=--debug
 else
   CPPFLAGS+=-Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
   LDFLAGS+=-flto
@@ -64,7 +63,7 @@ lib/parser.tab.o: lib/parser.tab.c lib/lex.yy.c
 	${CC} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
 
 lib/lex.yy.c: lib/lexer.l
-	flex --header-file=lib/lex.yy.h -o $@ $<
+	flex --header-file=lib/lex.yy.h ${FLEX_FLAGS} -o $@ $<
 
 lib/parser.tab.c: lib/parser.y
 	bison -v -Wall -d ${BISON_FLAGS} -o $@ $<
