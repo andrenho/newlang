@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "lib/global.h"
 #include "lib/stack.h"
-#include "lib/userfunctions.h"
 #include "lib/zvalue.h"
 
 typedef struct Zoe Zoe;
@@ -13,7 +13,7 @@ typedef struct Zoe Zoe;
 //
 // CONSTRUCTOR/DESTRUCTOR
 //
-Zoe* zoe_createvm(UserFunctions* uf);
+Zoe* zoe_createvm(ERROR errorf);
 void zoe_free(Zoe* Z);
 
 //

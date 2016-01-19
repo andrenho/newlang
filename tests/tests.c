@@ -73,12 +73,7 @@ static char* test_stack(void)
 {
     error = 0;
 
-    UserFunctions uf = {
-        .realloc = realloc,
-        .free    = free,
-        .error   = my_error,
-    };
-    Stack* st = stack_new(&uf);
+    Stack* st = stack_new(my_error);
 
     mu_assert("stack size == 0", stack_size(st) == 0);
 
@@ -178,7 +173,7 @@ static uint8_t expected[] = {
 
 static char* test_bytecode_gen(void) 
 {
-    Bytecode* bc = bytecode_new(&default_userfunctions);
+    Bytecode* bc = bytecode_new(NULL);
 
     bytecode_addcode(bc, PUSH_N);
     bytecode_addcodef64(bc, 3.1416);
@@ -203,7 +198,7 @@ static char* test_bytecode_gen(void)
 
 static char* test_bytecode_import(void)
 {
-    Bytecode* bc = bytecode_newfromzb(&default_userfunctions, expected, sizeof expected);
+    Bytecode* bc = bytecode_newfromzb(expected, sizeof expected, NULL);
 
     mu_assert("version minor", bc->version_minor == 0x1);
     mu_assert("code_sz", bc->code_sz == 10);
@@ -219,7 +214,7 @@ static char* test_bytecode_import(void)
 
 static char* test_bytecode_simplecode(void)
 {
-    Bytecode* bc = bytecode_newfromcode(&default_userfunctions, "3.1416");
+    Bytecode* bc = bytecode_newfromcode("3.1416", NULL);
 
     uint8_t* found;
     size_t sz = bytecode_generatezb(bc, &found);

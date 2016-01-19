@@ -12,7 +12,7 @@
 
 typedef struct Zoe {
     Stack*         stack;
-    UserFunctions* uf;
+    ERROR          errorf;
 #ifdef DEBUG
     bool           debug_asm;
 #endif
@@ -20,16 +20,22 @@ typedef struct Zoe {
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
-Zoe*
-zoe_createvm(UserFunctions* uf)
+static void default_error(const char* msg)
 {
-    if(!uf) {
-        uf = &default_userfunctions;
+    fprintf(stderr, "zoe error: %s\n", msg);
+    abort();
+}
+
+
+Zoe*
+zoe_createvm(ERROR errorf)
+{
+    if(!errorf) {
+        errorf = default_error;
     }
-    Zoe* Z = uf->realloc(NULL, sizeof(Zoe));
-    memset(Z, 0, sizeof(Zoe));
-    Z->stack = stack_new(uf);
-    Z->uf = uf;
+    Zoe* Z = calloc(sizeof(Zoe), 1);
+    Z->stack = stack_new(errorf);
+    Z->errorf = errorf;
 #ifdef DEBUG
     Z->debug_asm = false;
 #endif
@@ -41,7 +47,7 @@ void
 zoe_free(Zoe* Z)
 {
     stack_free(Z->stack);
-    Z->uf->free(Z);
+    free(Z);
 }
 
 // }}}
@@ -260,7 +266,7 @@ void zoe_arrayappend(Zoe* Z)
     // add item to array
     ZValue value = stack_peek(Z->stack, -1);
     ++array->n;
-    array->items = Z->uf->realloc(array->items, array->n * sizeof(ZValue));
+    array->items = realloc(array->items, array->n * sizeof(ZValue));
     array->items[array->n-1] = value;
 
     // pop item out without freeing it
@@ -280,7 +286,7 @@ void zoe_error(Zoe* Z, char* fmt, ...)
     vsnprintf(buf, sizeof buf, fmt, a);
     va_end(a);
 
-    Z->uf->error(buf);
+    Z->errorf(buf);
 }
 
 // }}}
@@ -371,7 +377,7 @@ void zoe_oper(Zoe* Z, Operator oper)
     } else if(oper == ZOE_CAT) {
         char *b = zoe_popstring(Z),
              *a = zoe_popstring(Z);
-        a = Z->uf->realloc(a, strlen(a) + strlen(b) + 1);
+        a = realloc(a, strlen(a) + strlen(b) + 1);
         strcat(a, b);
         zoe_pushstring(Z, a);
         free(b);
@@ -416,7 +422,7 @@ void zoe_oper(Zoe* Z, Operator oper)
 
 void zoe_eval(Zoe* Z, const char* code)
 {
-    Bytecode* bc = bytecode_newfromcode(Z->uf, code);
+    Bytecode* bc = bytecode_newfromcode(code, Z->errorf);
 
     uint8_t* buffer;
     size_t sz = bytecode_generatezb(bc, &buffer);
@@ -437,19 +443,19 @@ void zoe_eval(Zoe* Z, const char* code)
 
 
 #ifdef DEBUG
-static void zoe_dbgopcode(Zoe* Z, uint8_t* code, uint64_t p);
+static void zoe_dbgopcode(uint8_t* code, uint64_t p);
 static void zoe_dbgstack(Zoe* Z);
 #endif
 
 static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 {
-    Bytecode* bc = bytecode_newfromzb(Z->uf, data, sz);
+    Bytecode* bc = bytecode_newfromzb(data, sz, Z->errorf);
     uint64_t p = 0;
 
     while(p < bc->code_sz) {
 #ifdef DEBUG
         if(Z->debug_asm) {
-            zoe_dbgopcode(Z, bc->code, p);
+            zoe_dbgopcode(bc->code, p);
         }
 #endif
         Opcode op = bc->code[p];
@@ -584,9 +590,9 @@ void zoe_call(Zoe* Z, int n_args)
 
 // {{{ STRING ESCAPING
 
-static char* zoe_escapestring(Zoe* Z, const char* s)
+static char* zoe_escapestring(const char* s)
 {
-    char* buf = Z->uf->realloc(NULL, (strlen(s) * 2) + 3);
+    char* buf = calloc((strlen(s) * 2) + 3, 1);
     int a = 0, b = 0;
     buf[b++] = '\'';
     while(s[a]) {
@@ -618,8 +624,8 @@ static char* zoe_escapestring(Zoe* Z, const char* s)
 
 // {{{ FORMATTING
 
-static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...) __attribute__ ((format (printf, 3, 4)));
-static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
+static int aprintf(char** ptr, const char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
+static int aprintf(char** ptr, const char* fmt, ...)
 {
     va_list ap;
 
@@ -628,7 +634,7 @@ static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
     va_start(ap, fmt);
     int new_sz = cur_sz + vsnprintf(NULL, 0, fmt, ap) + 1;
     va_end(ap);
-    *ptr = Z->uf->realloc(*ptr, new_sz);
+    *ptr = realloc(*ptr, new_sz);
     va_start(ap, fmt);
     int r = vsnprintf((*ptr) + cur_sz, new_sz, fmt, ap);
     va_end(ap);
@@ -662,7 +668,7 @@ static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 
 // {{{ OPCODE DISASSEMBLY
 
-static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
+static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
     Opcode op = (Opcode)code[p];
     switch(op) {
         case PUSH_Nil: snprintf(buf, nbuf, "PUSH_Nil"); return 1;
@@ -674,7 +680,7 @@ static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p
                 return 9;
             }
         case PUSH_S: {
-                char* sbuf = zoe_escapestring(Z, (char*)&code[p+1]);
+                char* sbuf = zoe_escapestring((char*)&code[p+1]);
                 snprintf(buf, nbuf, "PUSH_S  %s", sbuf);
                 free(sbuf);
                 return 2 + strlen((char*)&code[p+1]);
@@ -733,23 +739,23 @@ void zoe_disassemble(Zoe* Z)
         zoe_error(Z, "Only bytecode functions can be disassembled.");
     }
 
-    Bytecode* bc = bytecode_newfromzb(Z->uf, f.bfunction.bytecode, f.bfunction.sz);
+    Bytecode* bc = bytecode_newfromzb(f.bfunction.bytecode, f.bfunction.sz, Z->errorf);
     uint64_t p = 0;
 
     while(p < bc->code_sz) {
         // address
-        int ns = aprintf(Z, &buf, "%08" PRIx64 ":\t", p);
+        int ns = aprintf(&buf, "%08" PRIx64 ":\t", p);
         // code
         static char cbuf[128];
-        int n = sprint_code(Z, cbuf, sizeof cbuf, bc->code, p);
-        ns += aprintf(Z, &buf, "%s", cbuf);
+        int n = sprint_code(cbuf, sizeof cbuf, bc->code, p);
+        ns += aprintf(&buf, "%s", cbuf);
         // spaces
-        aprintf(Z, &buf, "%*s", 32-ns, " ");
+        aprintf(&buf, "%*s", 32-ns, " ");
         // hex code
         for(uint8_t i=0; i<n; ++i) {
-            aprintf(Z, &buf, "%02X ", bc->code[p+i]);
+            aprintf(&buf, "%02X ", bc->code[p+i]);
         }
-        aprintf(Z, &buf, "\n");
+        aprintf(&buf, "\n");
 
         p += n;
     }
@@ -774,12 +780,12 @@ void zoe_asmdebugger(Zoe* Z, bool value)
 }
 
 
-static void zoe_dbgopcode(Zoe* Z, uint8_t* code, uint64_t p)
+static void zoe_dbgopcode(uint8_t* code, uint64_t p)
 {
     int ns = printf("%08" PRIx64 ":\t", p);
 
     char buf[128];
-    sprint_code(Z, buf, sizeof buf, code, p);
+    sprint_code(buf, sizeof buf, code, p);
     ns += printf("%s", buf);
     printf("%*s", 32-ns, " ");
 }
@@ -818,7 +824,7 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
                 return strdup(value.boolean ? "true" : "false");
             }
         case NUMBER: {
-                char* buf = Z->uf->realloc(NULL, 128);
+                char* buf = calloc(128, 1);
                 snprintf(buf, 127, "%0.14f", value.number);
                 // remove zeroes at the and
                 int lg;
@@ -830,7 +836,7 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
         case FUNCTION:
             return strdup("function");
         case STRING: {
-                char* buf = zoe_escapestring(Z, value.string);
+                char* buf = zoe_escapestring(value.string);
                 return buf;
             }
         case ARRAY: {
@@ -838,14 +844,14 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
                 for(size_t i=0; i<value.array.n; ++i) {
                     bool last = (i == (value.array.n-1));
                     char* nbuf = zvalue_inspect(Z, value.array.items[i]);
-                    buf = Z->uf->realloc(buf, strlen(buf) + strlen(nbuf) + (last ? 1 : 3));
+                    buf = realloc(buf, strlen(buf) + strlen(nbuf) + (last ? 1 : 3));
                     strcat(buf, nbuf);
                     if(!last) {
                         strcat(buf, ", ");
                     }
                     free(nbuf);
                 }
-                buf = Z->uf->realloc(buf, strlen(buf)+2);
+                buf = realloc(buf, strlen(buf)+2);
                 strcat(buf, "]");
                 return buf;
             }

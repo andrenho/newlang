@@ -2,7 +2,7 @@
 #define ZOE_STACK_H_
 
 #include "lib/zvalue.h"
-#include "lib/userfunctions.h"
+#include "lib/global.h"
 
 #define STACK_MAX 20
 
@@ -12,7 +12,7 @@ typedef int8_t STPOS;
 //
 // CONSTRUCTOR/DESTRUCTOR
 //
-Stack* stack_new(UserFunctions* uf);
+Stack* stack_new(ERROR errorf);
 void stack_free(Stack* st);
 
 //

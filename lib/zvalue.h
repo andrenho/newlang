@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "userfunctions.h"
+#include "lib/global.h"
 
 typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION, STRING, ARRAY } ZType;
 
@@ -42,7 +42,7 @@ typedef struct ZValue {
     };
 } ZValue;
 
-void zvalue_free_data(UserFunctions* uf, ZValue v);
+void zvalue_free_data(ZValue v, ERROR errorf);
 
 #endif
 

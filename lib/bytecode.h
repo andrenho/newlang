@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "lib/userfunctions.h"
+#include "lib/global.h"
 
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
@@ -33,9 +33,9 @@ typedef size_t Label;  // TODO
 //
 // CONSTRUCTOR/DESTRUCTOR
 //
-Bytecode* bytecode_new(UserFunctions *uf);
-Bytecode* bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz);
-Bytecode* bytecode_newfromcode(UserFunctions *uf, const char* code);   // here is where the magic happens
+Bytecode* bytecode_new(ERROR errorf);
+Bytecode* bytecode_newfromzb(uint8_t* data, size_t sz, ERROR errorf);
+Bytecode* bytecode_newfromcode(const char* code, ERROR errorf);   // here is where the magic happens
 void      bytecode_free(Bytecode* bc);
 
 //

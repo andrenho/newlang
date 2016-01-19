@@ -29,7 +29,7 @@ lib/
   bytecode.c         Bytecode management (the parser is called from here)
   opcode.h           List of VM opcodes
   stack.c            Low-level stack management for ZoeVM
-  userfunctions.c    Structure to interact with the user environment
+  global.h           Global defines and typedefs
   zoe.c              Zoe virtual machine
   zvalue.c           Union containing all types acceptable by Zoe
 src/

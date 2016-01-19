@@ -8,16 +8,15 @@
 
 typedef struct Stack {
     int8_t sz;
-    ZValue  items[STACK_MAX];
-    UserFunctions*  uf;
+    ZValue items[STACK_MAX];
+    ERROR  errorf;
 } Stack;
 
 
-Stack* stack_new(UserFunctions* uf)
+Stack* stack_new(ERROR errorf)
 {
-    Stack* st = uf->realloc(NULL, sizeof(Stack));
-    memset(st, 0, sizeof(Stack));
-    st->uf = uf;
+    Stack* st = calloc(sizeof(Stack), 1);
+    st->errorf = errorf;
     return st;
 }
 
@@ -26,7 +25,7 @@ void stack_free(Stack* st)
     while(st->sz) {
         stack_popfree(st);
     }
-    st->uf->free(st);
+    free(st);
 }
 
 // }}}
@@ -44,7 +43,7 @@ ZValue
 stack_peek(Stack* st, STPOS pos)
 {
     if(pos >= st->sz) {
-        st->uf->error("__func__: accessing data out of stack\n");
+        st->errorf("__func__: accessing data out of stack\n");
         return (ZValue){0};
     }
 
@@ -56,7 +55,7 @@ ZValue*
 stack_peek_ptr(Stack* st, STPOS pos)
 {
     if(pos >= st->sz) {
-        st->uf->error("__func__: accessing data out of stack\n");
+        st->errorf("__func__: accessing data out of stack\n");
         return NULL;
     }
 
@@ -77,7 +76,7 @@ void
 stack_push(Stack* st, ZValue zvalue)
 {
     if(st->sz == (STACK_MAX-1)) {
-        st->uf->error("stack_push: stack overflow.");
+        st->errorf("stack_push: stack overflow.");
         return;
     }
 
@@ -91,7 +90,7 @@ void
 stack_pop(Stack* st)
 {
     if(st->sz == 0) {
-        st->uf->error("stack_pop: stack undeflow.");
+        st->errorf("stack_pop: stack undeflow.");
         return;
     }
 
@@ -103,12 +102,12 @@ stack_pop(Stack* st)
 void stack_popfree(Stack* st)
 {
     if(st->sz == 0) {
-        st->uf->error("stack_popfree: stack undeflow.");
+        st->errorf("stack_popfree: stack undeflow.");
         return;
     }
 
     STPOS p = stack_abs(st, -1);
-    zvalue_free_data(st->uf, st->items[p]);
+    zvalue_free_data(st->items[p], st->errorf);
 
     --st->sz;
     assert(st->sz >= 0);

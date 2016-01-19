@@ -3,26 +3,26 @@
 #include <assert.h>
 #include <stdlib.h>
 
-void zvalue_free_data(UserFunctions* uf, ZValue v)
+void zvalue_free_data(ZValue v, ERROR errorf)
 {
     switch(v.type) {
         case FUNCTION:
             if(v.function.type == BYTECODE) {
                 assert(v.function.bfunction.bytecode);
-                uf->free(v.function.bfunction.bytecode);
+                free(v.function.bfunction.bytecode);
             }
             break;
         case STRING:
-            uf->free(v.string);
+            free(v.string);
             break;
         case ARRAY:
             for(size_t i=0; i<v.array.n; ++i) {
-                zvalue_free_data(uf, v.array.items[i]);
+                zvalue_free_data(v.array.items[i], errorf);
             }
-            uf->free(v.array.items);
+            free(v.array.items);
             break;
         case INVALID:
-            uf->error("Invalid type.");
+            errorf("Invalid type.");
             break;
         case NIL:
         case BOOLEAN:
