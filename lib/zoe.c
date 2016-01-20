@@ -755,6 +755,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case CAT:  snprintf(buf, nbuf, "CAT");  return 1;
         case LEN:  snprintf(buf, nbuf, "LEN");  return 1;
         case LOOKUP: snprintf(buf, nbuf, "LOOKUP");  return 1;
+        case SLICE:  snprintf(buf, nbuf, "SLICE");   return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "JMP     %s", xbuf);

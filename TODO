@@ -22,7 +22,8 @@ Next steps:
  - arrays (ok)
    - equality (ok)
    - len operator (ok)
-   - array access
+   - array access (ok)
+   - slices
  - tables
 
 Other steps:
