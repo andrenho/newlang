@@ -331,6 +331,37 @@ void zoe_len(Zoe* Z)
 }
 
 
+void zoe_lookup(Zoe* Z)
+{
+    int64_t i = zoe_popnumber(Z);
+
+    ZType t = zoe_gettype(Z, -1);
+    if(t == STRING) {
+        char* str = zoe_popstring(Z);
+        uint64_t k = (i >= 0) ? (uint64_t)i : strlen(str) + i;
+        // TODO - raise error if number is higher than the number of characters in the string
+        zoe_pushstring(Z, (char[]) { str[k], 0 });
+        free(str);
+    } else if(t == ARRAY) {
+        // here, we free everything except the item looked up, which is inserted back
+        // in the array again
+        // TODO - this is too manual
+        ZArray array = stack_peek(Z->stack, -1).array;
+        uint64_t k = (i >= 0) ? (uint64_t)i : array.n + i;
+        for(size_t j=0; j < array.n; ++j) {
+            if(k != j) {
+                zvalue_free_data(array.items[j], Z->errorf);
+            }
+        }
+        stack_pop(Z->stack);
+        stack_push(Z->stack, array.items[k]);
+        free(array.items);
+    } else {
+        zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
+    }
+}
+
+
 static bool zoe_eq(Zoe* Z, ZValue a, ZValue b)
 {
     if(a.type != b.type) {
@@ -517,6 +548,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
             case CAT:  zoe_oper(Z, ZOE_CAT);  ++p; break;
             case LEN:  zoe_len(Z);            ++p; break;
+            case LOOKUP: zoe_lookup(Z);       ++p; break;
 
             //
             // branches
@@ -722,6 +754,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
         case CAT:  snprintf(buf, nbuf, "CAT");  return 1;
         case LEN:  snprintf(buf, nbuf, "LEN");  return 1;
+        case LOOKUP: snprintf(buf, nbuf, "LOOKUP");  return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "JMP     %s", xbuf);
@@ -811,8 +844,8 @@ static void zoe_dbgopcode(uint8_t* code, uint64_t p)
 static void zoe_dbgstack(Zoe* Z)
 {
     printf("< ");
-    for(int i=0; i<zoe_stacksize(Z); ++i) {
-        if(i != 0) {
+    for(int i=zoe_stacksize(Z)-1; i >= 0; --i) {
+        if(i != (zoe_stacksize(Z)-1)) {
             printf(", ");
         }
         zoe_inspect(Z, 0-1-i);

@@ -38,13 +38,14 @@ typedef enum Opcode {
     // string / array
     CAT      = 0x28,
     LEN      = 0x29,
+    LOOKUP   = 0x2F,
 
     // branches
     JMP      = 0x30,
     Bfalse   = 0x31,
     Btrue    = 0x32,
 
-    // tables
+    // arrays
     PUSHARY  = 0x40,
     APPEND   = 0x41,
 
