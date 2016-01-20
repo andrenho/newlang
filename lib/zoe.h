@@ -76,6 +76,7 @@ typedef enum {
     ZOE_LT, ZOE_LTE, ZOE_GT, ZOE_GTE, ZOE_EQ,                                   // relational
     ZOE_CAT,                                                                    // string
 } Operator;
+void zoe_len(Zoe* Z);
 void zoe_oper(Zoe* Z, Operator oper);
 void zoe_eval(Zoe* Z, const char* code);
 void zoe_call(Zoe* Z, int n_args);

@@ -18,16 +18,49 @@ Next steps:
    - embedded code (ok)
  - comments (ok)
  - use readline (ok)
- - remove reallocs
- - arrays
+ - remove reallocs (ok)
+ - arrays (ok)
    - equality
    - len operator
    - array access
  - tables
 
+Other steps:
+
+ - environments
+ - assingment + scope
+ - garbage collection
+ - control structures
+ - functions + closures + yields
+ - structured functions (metamethods, functions, visibility)
+ - const correctness
+ - error management
+ - match
+ - goto
+ - imports
+ - debugging
+ - documentation
+
+More steps:
+
+ - improve C interface
+ - improve REPL
+ - standard library
+   - string
+   - regular expressions
+   - I/O, files
+   - POSIX
+   - unit testing
+ - weak tables
+ - tail calls
+ - unsafe blocks
+ - threads
+ - unicode
+ - documentation generator
+ - JIT
+ - generate executable
 
 FUTURE
 
  - two types of number - integer and double
  - two types of string - reference and string
- - unicode support

@@ -43,7 +43,7 @@ endif
 LDFLAGS+=-fuse-ld=gold -lm
 
 # cpplint filters
-CPPLINT_FILTERS=-legal/copyright,-whitespace/parens,-whitespace/operators,-whitespace/braces,-build/header_guard,-readability/todo
+CPPLINT_FILTERS=-legal/copyright,-whitespace,-build/header_guard,-readability/todo,-runtime/printf,-readability/casting
 
 #
 # ALL 

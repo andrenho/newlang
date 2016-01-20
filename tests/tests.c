@@ -8,7 +8,16 @@
 
 // {{{ TEST FRAMEWORK
 
-#define mu_assert(message, test) do { if (!(test)) return message; } while (0)
+#define mu_assert(message, test) \
+{ \
+    bool _v = (test); \
+    do { \
+        printf("  \033[2;3%dm[%s]\033[0m %s\n", (!_v ? 1 : 2), (!_v ? "err" : "ok"), message); \
+        if(!_v) { \
+            return message; \
+        } \
+    } while (0); \
+}
 #define mu_run_test(test) printf("\033[1;34m[%s]\033[0m\n", #test); \
     do { char *message = test(); tests_run++; \
     if (message) return message; } while (0)
@@ -53,9 +62,23 @@ static char* string_expr(char* expr)
     return s;
 }
 
+static char* inspect_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    zoe_inspect(Z, -1);
+    char* s = zoe_popstring(Z);
+    
+    zoe_free(Z);
+    return s;
+}
+
 #define mu_assert_nexpr(expr, r) mu_assert(expr, number_expr(expr) == r);
 #define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
 #define mu_assert_sexpr(expr, r) { char* s = string_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
+#define mu_assert_inspect(expr, r) { char* s = inspect_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
@@ -348,6 +371,9 @@ static char* test_strings(void)
     mu_assert_sexpr("'ab${'cd'}ef'", "abcdef");
     mu_assert_sexpr("'ab${'cd'}ef'\n", "abcdef");
     mu_assert_sexpr("'ab${'cd'..'xx'}ef'", "abcdxxef");
+    mu_assert_nexpr("#'abcd'", 4);
+    mu_assert_nexpr("#''", 0);
+    mu_assert_nexpr("#'ab${'cd'..'xx'}ef'", 8);
     return 0;
 }
 
@@ -370,6 +396,71 @@ static char* test_comments(void)
 
 // }}}
 
+// {{{ ZOE ARRAYS
+
+static char* test_array(void)
+{
+    mu_assert_inspect("[]", "[]");
+    mu_assert_inspect("[2,3]", "[2, 3]");
+    mu_assert_inspect("[2,3,]", "[2, 3]");
+    mu_assert_inspect("[2, 3, []]", "[2, 3, []]");
+    mu_assert_inspect("[2, 3, ['abc', true, [nil]]]", "[2, 3, ['abc', true, [nil]]]");
+
+    return 0;
+}
+
+static char* test_array_equality(void)
+{
+    mu_assert_bexpr("[]==[]", true);
+    mu_assert_bexpr("[2,3,]==[2,3]", true);
+    mu_assert_bexpr("[2,3,[4,'abc'],nil] == [ 2, 3, [ 4, 'abc' ], nil ]", true);
+    mu_assert_bexpr("[2,3,4]==[2,3]", false);
+    mu_assert_bexpr("[2,3,4]==[2,3,5]", false);
+    mu_assert_bexpr("[2,3,4]!=[2,3,5]", true);
+
+    return 0;
+}
+
+static char* test_array_access(void)
+{
+    mu_assert_nexpr("[2,3,4][0]", 2);
+    mu_assert_nexpr("[2,3,4][1]", 3);
+    mu_assert_nexpr("[2,3,4][-1]", 4);
+    mu_assert_nexpr("[2,3,4][-2]", 3);
+    mu_assert_sexpr("[2,3,'hello'][2]", "hello");
+
+    // TODO - test key error
+
+    return 0;
+}
+
+static char* test_array_slices(void)
+{
+    mu_assert_inspect("[2,3,4][0:1]", "[2]");
+    mu_assert_inspect("[2,3,4][0:2]", "[2, 3]");
+    mu_assert_inspect("[2,3,4][1:3]", "[3, 4]");
+    mu_assert_inspect("[2,3,4][1:]", "[3, 4]");
+    mu_assert_inspect("[2,3,4][:2]", "[2, 3]");
+    mu_assert_inspect("[2,3,4][:]", "[2, 3, 4]");
+    mu_assert_inspect("[2,3,4][-1:]", "[4]");
+    mu_assert_inspect("[2,3,4][-2:-1]", "[4]");
+    mu_assert_inspect("[2,3,4][:-2]", "[2]");
+
+    return 0;
+}
+
+static char* test_array_operators(void)
+{
+    mu_assert_nexpr("#[2, 3, 4]", 3);
+    mu_assert_nexpr("#[]", 0);
+    mu_assert_inspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
+    mu_assert_inspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
+
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
@@ -385,6 +476,11 @@ static char* all_tests(void)
     mu_run_test(test_shortcircuit_expressions);
     mu_run_test(test_strings);
     mu_run_test(test_comments);
+    mu_run_test(test_array);
+    mu_run_test(test_array_equality);
+    mu_run_test(test_array_access);
+    mu_run_test(test_array_slices);
+    mu_run_test(test_array_operators);
     return 0;
 }
 

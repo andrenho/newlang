@@ -29,7 +29,7 @@ OCTAL       0[Oo][0-7_]+
 
 FLOAT       [0-9][0-9_]*\.[0-9_]+
 
-OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,]
+OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,\#]
 
 SEPARATOR   [\n\;]+
 
@@ -65,7 +65,9 @@ false           { yylval->boolean = false; return BOOLEAN; }
 <STR>\\x{HEXDIGIT}{2} { str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); }
 <STR>\\               { str_addstr(&yylval->_string, "\\"); }
 <STR>[^'\\\$]*        { str_addstr(&yylval->_string, yytext); }
-<STR>\$'              { str_addstr(&yylval->_string, "$"); yy_pop_state(yyscanner); return STRING; }
+<STR>\$'              { str_addstr(&yylval->_string, "$"); 
+                        yy_pop_state(yyscanner); 
+                        return STRING; }
 <STR>\$[^\{]          { str_addstr(&yylval->_string, yytext); }
 <STR>\$\{             { yy_push_state(SB, yyscanner); return STRING; }
 <STR>'                { yy_pop_state(yyscanner); return STRING; }

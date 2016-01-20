@@ -37,7 +37,7 @@ typedef struct ZValue {
         bool        boolean;
         double      number;
         ZFunction   function;
-        char*       string;
+        char*       string;                      // NOLINT(build/include_what_you_use)
         ZArray      array;
     };
 } ZValue;

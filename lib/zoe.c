@@ -311,47 +311,57 @@ char* zoe_typename(ZType type)
 
 // {{{ CODE EXECUTION
 
-// {{{ MATH OPERATIONS
+// {{{ OPERATIONS
 
-static void zoe_eq(Zoe* Z)
+void zoe_len(Zoe* Z)
 {
-    ZType tb = zoe_gettype(Z, -1),
-          ta = zoe_gettype(Z, -2);
-    if(ta != tb) {
-        zoe_pop(Z, 2);
-        zoe_pushboolean(Z, false);
+    ZType t = zoe_gettype(Z, -1);
+    if(t == STRING) {
+        char* str = zoe_popstring(Z);
+        zoe_pushnumber(Z, strlen(str));
+        free(str);
+    } else if(t == ARRAY) {
+        ZArray *array = &stack_peek_ptr(Z->stack, -1)->array;
+        int n = array->n;
+        zoe_pop(Z, 1);
+        zoe_pushnumber(Z, n);
     } else {
-        switch(ta) {
+        zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
+    }
+}
+
+
+static bool zoe_eq(Zoe* Z, ZValue a, ZValue b)
+{
+    if(a.type != b.type) {
+        return false;
+    } else {
+        switch(a.type) {
             case NIL:
-                zoe_pop(Z, 2);
-                zoe_pushboolean(Z, true);
-                break;
-            case BOOLEAN: {
-                    bool b = zoe_popboolean(Z),
-                         a = zoe_popboolean(Z);
-                    zoe_pushboolean(Z, a == b);
+                return true;
+            case BOOLEAN:
+                return a.boolean == b.boolean;
+            case NUMBER:
+                return fabs(a.number - b.number) < DBL_EPSILON;
+            case STRING:
+                return strcmp(a.string, b.string) == 0;
+            case ARRAY:
+                if(a.array.n != b.array.n) {
+                    return false;
                 }
-                break;
-            case NUMBER: {
-                    double b = zoe_popnumber(Z),
-                           a = zoe_popnumber(Z);
-                    zoe_pushboolean(Z, fabs(a - b) < DBL_EPSILON);
+                for(size_t i=0; i<a.array.n; ++i) {
+                    if(!zoe_eq(Z, a.array.items[i], b.array.items[i])) {
+                        return false;
+                    }
                 }
-                break;
-            case STRING: {
-                    char *b = zoe_popstring(Z),
-                         *a = zoe_popstring(Z);
-                    zoe_pushboolean(Z, strcmp(a, b) == 0);
-                    free(a);
-                    free(b);
-                }
-                break;
+                return true;
             case FUNCTION:
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
             case INVALID:
             default:
-                zoe_error(Z, "equality does not exists for type %s", zoe_typename(ta));
+                zoe_error(Z, "equality does not exists for type %s", zoe_typename(a.type));
+                return false;
         }
     }
 }
@@ -373,7 +383,11 @@ void zoe_oper(Zoe* Z, Operator oper)
             zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
         }
     } else if(oper == ZOE_EQ) {
-        zoe_eq(Z);
+        ZValue b = stack_peek(Z->stack, -1),
+               a = stack_peek(Z->stack, -2);
+        bool r = zoe_eq(Z, a, b);
+        zoe_pop(Z, 2);
+        zoe_pushboolean(Z, r);
     } else if(oper == ZOE_CAT) {
         char *b = zoe_popstring(Z),
              *a = zoe_popstring(Z);
@@ -502,6 +516,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
             case CAT:  zoe_oper(Z, ZOE_CAT);  ++p; break;
+            case LEN:  zoe_len(Z);            ++p; break;
 
             //
             // branches
@@ -705,7 +720,8 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case GT:   snprintf(buf, nbuf, "GT");   return 1;
         case GTE:  snprintf(buf, nbuf, "GTE");  return 1;
         case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
-        case CAT: snprintf(buf, nbuf, "CAT"); return 1;
+        case CAT:  snprintf(buf, nbuf, "CAT");  return 1;
+        case LEN:  snprintf(buf, nbuf, "LEN");  return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "JMP     %s", xbuf);
@@ -729,6 +745,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
     }
     return 1;
 }
+
 
 void zoe_disassemble(Zoe* Z)
 {
@@ -793,7 +810,7 @@ static void zoe_dbgopcode(uint8_t* code, uint64_t p)
 
 static void zoe_dbgstack(Zoe* Z)
 {
-    printf("[");
+    printf("< ");
     for(int i=0; i<zoe_stacksize(Z); ++i) {
         if(i != 0) {
             printf(", ");
@@ -803,7 +820,7 @@ static void zoe_dbgstack(Zoe* Z)
         printf("%s", buf);
         free(buf);
     }
-    printf("]\n");
+    printf(" >\n");
 }
 
 // }}}
