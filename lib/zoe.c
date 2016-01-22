@@ -91,7 +91,7 @@ ZValue* zoe_stack_pushnew(Zoe* Z, ZType type)
 
 void zoe_stack_remove(Zoe* Z, STPOS pos)
 {
-    pos = zoe_stackabs(Z, pos);
+    pos = zoe_absindex(Z, pos);
     if(pos >= Z->stack_sz) {
         zoe_error(Z, "Position > stack size.");
         return NULL;
@@ -118,7 +118,7 @@ void zoe_stack_pop(Zoe* Z)
 
 ZValue* zoe_stack_get(Zoe* Z, STPOS pos)
 {
-    pos = zoe_stackabs(Z, pos);
+    pos = zoe_absindex(Z, pos);
     if(pos >= Z->stack_sz) {
         zoe_error(Z, "Position > stack size.");
         return NULL;
@@ -140,7 +140,7 @@ zoe_stacksize(Zoe* Z)
 
 
 STPOS
-zoe_stackabs(Zoe* Z, STPOS pos)
+zoe_absindex(Zoe* Z, STPOS pos)
 {
     STPOS i = (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
     assert(i >= 0);
@@ -202,6 +202,8 @@ zoe_pop(Zoe* Z, size_t count)
 ZType
 zoe_gettype(Zoe* Z, STPOS n)
 {
+    n = zoe_absindex(Z, n);
+    assert(n >= 0 && n < zoe_stacksize(Z));
     return zoe_stack_get(Z, n)->type;
 }
 
@@ -344,31 +346,24 @@ void zoe_len(Zoe* Z)
 
 void zoe_lookup(Zoe* Z)
 {
-    int64_t i = zoe_popnumber(Z);
-
-    ZType t = zoe_gettype(Z, -1);
+    ZType t = zoe_gettype(Z, -2);
     if(t == STRING) {
+        int64_t i = zoe_popnumber(Z);
         char* str = zoe_popstring(Z);
         uint64_t k = (i >= 0) ? (uint64_t)i : strlen(str) + i;
         // TODO - raise error if number is higher than the number of characters in the string
         zoe_pushstring(Z, (char[]) { str[k], 0 });
         free(str);
-        /*
     } else if(t == ARRAY) {
-        // here, we free everything except the item looked up, which is inserted back
-        // in the array again
-        // TODO - this is too manual
-        ZArray array = stack_peek(Z->stack, -1).array;
-        uint64_t k = (i >= 0) ? (uint64_t)i : array.n + i;
-        for(size_t j=0; j < array.n; ++j) {
-            if(k != j) {
-                zvalue_free_data(array.items[j], Z->errorf);
-            }
+        int64_t i = zoe_popnumber(Z);
+        ZValue* value = zoe_stack_get(Z, -1);
+        uint64_t k = (i >= 0) ? (uint64_t)i : value->array.n + i;
+        if(k >= value->array.n) {
+            zoe_error(Z, "Subscript out of index.");
+            return;
         }
-        stack_pop(Z->stack);
-        stack_push(Z->stack, array.items[k]);
-        free(array.items);
-        */
+        zoe_stack_pushexisting(Z, value->array.items[k]);
+        zoe_stack_remove(Z, -2);  // remove array
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }
