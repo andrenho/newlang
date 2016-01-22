@@ -110,16 +110,18 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '~' exp %prec _NOT { bytecode_addcode(b, NOT);  }
    | '-' exp %prec _NEG { bytecode_addcode(b, NEG);  }
    | exp '[' exp ']'    { bytecode_addcode(b, LOOKUP);  }
-   | exp '[' lookup_pos ']'    { bytecode_addcode(b, LOOKUP);  }
+/* | exp '[' lookup_pos ']'    { bytecode_addcode(b, LOOKUP);  } */
    | '(' exp ')'
    ;
 
 // lookup position
+/*
 lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
           | ':' { bytecode_addcodef64(b, -1); } exp { bytecode_addcode(b, SLICE); }
           | exp ':'      { bytecode_addcodef64(b, -1); bytecode_addcode(b, SLICE); }
           | ':'          { bytecode_addcodef64(b, -1); }
           ;
+*/
 
 // strings
 string: STRING { 

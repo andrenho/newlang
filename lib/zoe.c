@@ -302,6 +302,28 @@ void zoe_arrayappend(Zoe* Z)
     zoe_pop(Z, 1);
 }
 
+
+static void zoe_arraymul(Zoe* Z)
+{
+    uint64_t mul = zoe_popnumber(Z);
+    if(mul < 1) {
+        zoe_error(Z, "Arrays can only be multiplied by values >= 1");
+        return;
+    }
+
+    ZArray* array = &zoe_stack_get(Z, -1)->array;
+    size_t n_orig = array->n;
+    array->n *= mul;
+    array->items = realloc(array->items, array->n * sizeof(ZValue*));
+    for(size_t i=1; i<mul; ++i) {
+        for(size_t j=0; j<n_orig; ++j) {
+            ZValue* value = array->items[j];
+            array->items[(i*n_orig) + j] = value;
+            zworld_inc(Z->world, value);
+        }
+    }
+}
+
 // }}}
 
 // {{{ ERROR MANAGEMENT
@@ -331,13 +353,11 @@ void zoe_len(Zoe* Z)
         char* str = zoe_popstring(Z);
         zoe_pushnumber(Z, strlen(str));
         free(str);
-    /*
     } else if(t == ARRAY) {
-        ZArray *array = &stack_peek_ptr(Z->stack, -1)->array;
+        ZArray *array = &zoe_stack_get(Z, -1)->array;
         int n = array->n;
         zoe_pop(Z, 1);
         zoe_pushnumber(Z, n);
-    */
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }
@@ -405,6 +425,39 @@ static bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
 }
 
 
+void zoe_concat(Zoe* Z)
+{
+    ZType t = zoe_gettype(Z, -2);
+    if(t == STRING) {
+        char *b = zoe_popstring(Z),
+             *a = zoe_popstring(Z);
+        a = realloc(a, strlen(a) + strlen(b) + 1);
+        strcat(a, b);
+        zoe_pushstring(Z, a);
+        free(b);
+        free(a);
+    } else if(t == ARRAY) {
+        // get arrays
+        ZValue *a_dest = zoe_stack_get(Z, -2),
+               *a_orig = zoe_checktype(Z, -1, ARRAY);
+        // expand array size
+        size_t n_orig = a_dest->array.n;
+        a_dest->array.n += a_orig->array.n;
+        a_dest->array.items = realloc(a_dest->array.items, a_dest->array.n * sizeof(ZValue*));
+        // copy items
+        for(size_t i=0; i < a_orig->array.n; ++i) {
+            ZValue* value = a_orig->array.items[i];
+            a_dest->array.items[i + n_orig] = value;
+            zworld_inc(Z->world, value);
+        }
+        // pop old array
+        zoe_pop(Z, 1);
+    } else {
+        zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
+    }
+}
+
+
 void zoe_oper(Zoe* Z, Operator oper)
 {
     if(oper == ZOE_NEG) {
@@ -426,14 +479,8 @@ void zoe_oper(Zoe* Z, Operator oper)
         bool r = zoe_eq(Z, a, b);
         zoe_pop(Z, 2);
         zoe_pushboolean(Z, r);
-    } else if(oper == ZOE_CAT) {
-        char *b = zoe_popstring(Z),
-             *a = zoe_popstring(Z);
-        a = realloc(a, strlen(a) + strlen(b) + 1);
-        strcat(a, b);
-        zoe_pushstring(Z, a);
-        free(b);
-        free(a);
+    } else if(oper == ZOE_MUL && zoe_gettype(Z, -2) == ARRAY) {
+        zoe_arraymul(Z);
     } else {
         double b = zoe_popnumber(Z), 
                a = zoe_popnumber(Z);
@@ -461,7 +508,6 @@ void zoe_oper(Zoe* Z, Operator oper)
             case ZOE_NEG:  // pleases gcc
             case ZOE_NOT:
             case ZOE_EQ:
-            case ZOE_CAT:
             default:
                 zoe_error(Z, "Invalid operator (code %d)", oper);
                 return;
@@ -471,6 +517,8 @@ void zoe_oper(Zoe* Z, Operator oper)
 }
 
 // }}}
+
+// {{{ EVAL & EXECUTION
 
 void zoe_eval(Zoe* Z, const char* code)
 {
@@ -502,7 +550,6 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 #ifdef DEBUG
         if(Z->debug_asm) {
             zoe_dbgopcode(bc->code, p);
-            printf("\n");
         }
 #endif
         Opcode op = bc->code[p];
@@ -548,7 +595,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
             case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
             case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
-            case CAT:  zoe_oper(Z, ZOE_CAT);  ++p; break;
+            case CAT:  zoe_concat(Z);         ++p; break;
             case LEN:  zoe_len(Z);            ++p; break;
             case LOOKUP: zoe_lookup(Z);       ++p; break;
 
@@ -592,7 +639,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
         }
 #ifdef DEBUG
         if(Z->debug_asm) {
-            //zoe_dbgstack(Z);
+            zoe_dbgstack(Z);
         }
 #endif
     }
@@ -603,6 +650,8 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 
 void zoe_call(Zoe* Z, int n_args)
 {
+    (void) n_args;
+
     STPOS initial = zoe_stacksize(Z);
 
     // load function
@@ -637,6 +686,8 @@ void zoe_call(Zoe* Z, int n_args)
 
     free(data);
 }
+
+// }}}
 
 // }}}
 
@@ -762,7 +813,6 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case CAT:  snprintf(buf, nbuf, "CAT");  return 1;
         case LEN:  snprintf(buf, nbuf, "LEN");  return 1;
         case LOOKUP: snprintf(buf, nbuf, "LOOKUP");  return 1;
-        case SLICE:  snprintf(buf, nbuf, "SLICE");   return 1;
         case JMP: {
                 char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "JMP     %s", xbuf);

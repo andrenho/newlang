@@ -39,7 +39,6 @@ typedef enum Opcode {
     CAT      = 0x28,
     LEN      = 0x29,
     LOOKUP   = 0x2A,
-    SLICE    = 0x2B,
 
     // branches
     JMP      = 0x30,

@@ -23,8 +23,8 @@ Next steps:
    - equality (ok)
    - len operator (ok)
    - array access (ok)
-   - slices
  - tables
+ - documentation
 
 Other steps:
 
@@ -33,6 +33,7 @@ Other steps:
  - garbage collection
  - control structures
  - functions + closures + yields
+ - ranges + array slices + iterators
  - structured functions (metamethods, functions, visibility)
  - const correctness
  - error management

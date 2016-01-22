@@ -70,10 +70,10 @@ typedef enum {
     ZOE_ADD, ZOE_SUB, ZOE_MUL, ZOE_DIV, ZOE_IDIV, ZOE_MOD, ZOE_POW, ZOE_NEG,    // arithmetic
     ZOE_AND, ZOE_XOR, ZOE_OR, ZOE_SHL, ZOE_SHR, ZOE_NOT,                        // bitwise
     ZOE_LT, ZOE_LTE, ZOE_GT, ZOE_GTE, ZOE_EQ,                                   // relational
-    ZOE_CAT,                                                                    // string
 } Operator;
 void zoe_len(Zoe* Z);
 void zoe_lookup(Zoe* Z);
+void zoe_concat(Zoe* Z);
 void zoe_oper(Zoe* Z, Operator oper);
 void zoe_eval(Zoe* Z, const char* code);
 void zoe_call(Zoe* Z, int n_args);

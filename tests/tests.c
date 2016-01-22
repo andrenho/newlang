@@ -538,8 +538,8 @@ static char* all_tests(void)
     mu_run_test(test_array_access);
     /*
     mu_run_test(test_array_slices);
-    mu_run_test(test_array_operators);
     */
+    mu_run_test(test_array_operators);
     return 0;
 }
 
