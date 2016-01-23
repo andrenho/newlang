@@ -23,6 +23,8 @@ Next steps:
    - equality (ok)
    - len operator (ok)
    - array access (ok)
+ - nil? operator
+ - wildcart '_' identifier
  - tables
  - documentation
 

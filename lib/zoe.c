@@ -312,16 +312,21 @@ static void zoe_arraymul(Zoe* Z)
     }
 
     ZArray* array = &zoe_stack_get(Z, -1)->array;
-    size_t n_orig = array->n;
-    array->n *= mul;
-    array->items = realloc(array->items, array->n * sizeof(ZValue*));
-    for(size_t i=1; i<mul; ++i) {
-        for(size_t j=0; j<n_orig; ++j) {
+
+    // create new array
+    ZValue* narr = zoe_stack_pushnew(Z, ARRAY);
+    narr->array.n = array->n * mul;
+    narr->array.items = malloc(narr->array.n * sizeof(ZValue*));
+    for(size_t i=0; i<mul; ++i) {
+        for(size_t j=0; j<array->n; ++j) {
             ZValue* value = array->items[j];
-            array->items[(i*n_orig) + j] = value;
+            narr->array.items[(i*array->n) + j] = value;
             zworld_inc(Z->world, value);
         }
     }
+
+    // remove old array
+    zoe_stack_remove(Z, -2);
 }
 
 // }}}
