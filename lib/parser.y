@@ -60,6 +60,7 @@ typedef struct String {
 %right      _POW
 %precedence _LEN
 %left       CONCAT
+%precedence _BNOT
 %precedence _NOT
 %precedence _NEG
 %precedence ISNIL
@@ -87,43 +88,46 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | ternary
    | ccand
    | ccor
-   | exp _EQ exp        { bytecode_addcode(b, EQ);   }
-   | exp _NEQ exp       { bytecode_addcode(b, EQ); 
-                          bytecode_addcode(b, NOT);  }
-   | exp _LTE exp       { bytecode_addcode(b, LTE);  }
-   | exp '<' exp        { bytecode_addcode(b, LT);   }
-   | exp _GTE exp       { bytecode_addcode(b, GTE);  }
-   | exp '>' exp        { bytecode_addcode(b, GT);   }
-   | exp '&' exp        { bytecode_addcode(b, AND);  }
-   | exp '^' exp        { bytecode_addcode(b, XOR);  }
-   | exp '|' exp        { bytecode_addcode(b, OR);   }
-   | exp _SHL exp       { bytecode_addcode(b, SHL);  }
-   | exp _SHR exp       { bytecode_addcode(b, SHR);  }
-   | exp '+' exp        { bytecode_addcode(b, ADD);  }
-   | exp '-' exp        { bytecode_addcode(b, SUB);  }
-   | exp '*' exp        { bytecode_addcode(b, MUL);  }
-   | exp '/' exp        { bytecode_addcode(b, DIV);  }
-   | exp _IDIV exp      { bytecode_addcode(b, IDIV); }
-   | exp '%' exp        { bytecode_addcode(b, MOD);  }
-   | exp _POW exp       { bytecode_addcode(b, POW);  }
-   | '#' exp %prec _LEN { bytecode_addcode(b, LEN);  }
-   | exp CONCAT exp     { bytecode_addcode(b, CAT);  }
-   | '~' exp %prec _NOT { bytecode_addcode(b, NOT);  }
-   | '-' exp %prec _NEG { bytecode_addcode(b, NEG);  }
-   | exp '[' exp ']'    { bytecode_addcode(b, LOOKUP);  }
-/* | exp '[' lookup_pos ']'    { bytecode_addcode(b, LOOKUP);  } */
+   | exp _EQ exp         { bytecode_addcode(b, EQ);   }
+   | exp _NEQ exp        { bytecode_addcode(b, EQ); 
+                           bytecode_addcode(b, BNOT); }
+   | exp _LTE exp        { bytecode_addcode(b, LTE);  }
+   | exp '<' exp         { bytecode_addcode(b, LT);   }
+   | exp _GTE exp        { bytecode_addcode(b, GTE);  }
+   | exp '>' exp         { bytecode_addcode(b, GT);   }
+   | exp '&' exp         { bytecode_addcode(b, AND);  }
+   | exp '^' exp         { bytecode_addcode(b, XOR);  }
+   | exp '|' exp         { bytecode_addcode(b, OR);   }
+   | exp _SHL exp        { bytecode_addcode(b, SHL);  }
+   | exp _SHR exp        { bytecode_addcode(b, SHR);  }
+   | exp '+' exp         { bytecode_addcode(b, ADD);  }
+   | exp '-' exp         { bytecode_addcode(b, SUB);  }
+   | exp '*' exp         { bytecode_addcode(b, MUL);  }
+   | exp '/' exp         { bytecode_addcode(b, DIV);  }
+   | exp _IDIV exp       { bytecode_addcode(b, IDIV); }
+   | exp '%' exp         { bytecode_addcode(b, MOD);  }
+   | exp _POW exp        { bytecode_addcode(b, POW);  }
+   | '#' exp %prec _LEN  { bytecode_addcode(b, LEN);  }
+   | exp CONCAT exp      { bytecode_addcode(b, CAT);  }
+   | '!' exp %prec _BNOT { bytecode_addcode(b, BNOT);  }
+   | '~' exp %prec _NOT  { bytecode_addcode(b, NOT);  }
+   | '-' exp %prec _NEG  { bytecode_addcode(b, NEG);  }
+   | exp '[' exp ']'     { bytecode_addcode(b, LOOKUP);  }
+   | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
    | '(' exp ')'
    ;
 
 // lookup position
-/*
 lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
-          | ':' { bytecode_addcodef64(b, -1); } exp { bytecode_addcode(b, SLICE); }
-          | exp ':'      { bytecode_addcodef64(b, -1); bytecode_addcode(b, SLICE); }
-          | ':'          { bytecode_addcodef64(b, -1); }
+          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); } 
+            exp          { bytecode_addcode(b, SLICE); }
+          | exp ':'      { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, -1); 
+                           bytecode_addcode(b, SLICE); }
+          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); 
+                           bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, -1); 
+                           bytecode_addcode(b, SLICE); }
           ;
-*/
 
 // strings
 string: STRING { 

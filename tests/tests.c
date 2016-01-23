@@ -378,6 +378,8 @@ static char* test_math_expressions(void)
     mu_assert_bexpr("2 != 3", true);
     mu_assert_bexpr("?3", false);
     mu_assert_bexpr("?nil", true);
+    mu_assert_bexpr("!true", false);
+    mu_assert_bexpr("!false", true);
 
     return 0;
 }
@@ -501,8 +503,8 @@ static char* test_array_slices(void)
     mu_assert_inspect("[2,3,4][:2]", "[2, 3]");
     mu_assert_inspect("[2,3,4][:]", "[2, 3, 4]");
     mu_assert_inspect("[2,3,4][-1:]", "[4]");
-    mu_assert_inspect("[2,3,4][-2:-1]", "[4]");
-    mu_assert_inspect("[2,3,4][:-2]", "[2]");
+    mu_assert_inspect("[2,3,4][-2:-1]", "[3]");
+    mu_assert_inspect("[2,3,4][:-3]", "[2]");
 
     return 0;
 }
@@ -538,9 +540,7 @@ static char* all_tests(void)
     mu_run_test(test_array);
     mu_run_test(test_array_equality);
     mu_run_test(test_array_access);
-    /*
     mu_run_test(test_array_slices);
-    */
     mu_run_test(test_array_operators);
     return 0;
 }

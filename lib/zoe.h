@@ -52,6 +52,7 @@ char const* zoe_peekstring(Zoe* Z);
 // 
 void zoe_pusharray(Zoe* Z);
 void zoe_arrayappend(Zoe* Z);
+void zoe_arrayslice(Zoe* Z);
 
 //
 // ERROR MANAGEMENT
@@ -70,6 +71,7 @@ typedef enum {
     ZOE_ADD, ZOE_SUB, ZOE_MUL, ZOE_DIV, ZOE_IDIV, ZOE_MOD, ZOE_POW, ZOE_NEG,    // arithmetic
     ZOE_AND, ZOE_XOR, ZOE_OR, ZOE_SHL, ZOE_SHR, ZOE_NOT,                        // bitwise
     ZOE_LT, ZOE_LTE, ZOE_GT, ZOE_GTE, ZOE_EQ,                                   // relational
+    ZOE_BNOT,                                                                   // boolean
 } Operator;
 void zoe_len(Zoe* Z);
 void zoe_lookup(Zoe* Z);

@@ -329,6 +329,42 @@ static void zoe_arraymul(Zoe* Z)
     zoe_stack_remove(Z, -2);
 }
 
+
+void zoe_arrayslice(Zoe* Z)
+{
+    // read data
+    int64_t end   = zoe_popnumber(Z),
+            start = zoe_popnumber(Z);
+    ZArray* oldary = &zoe_checktype(Z, -1, ARRAY)->array;
+    int64_t old_n = oldary->n;
+    start = (start >=0) ? start : (old_n + start + 1);
+    end = (end >=0) ? end : (old_n + end + 1);
+
+    printf("[%zd:%zd]\n", start, end);
+
+    if(start > old_n || end > old_n) {
+        zoe_error(Z, "Subscript out of range.");
+        return;
+    }
+    if(start >= end) {
+        zoe_error(Z, "Inverted slicing (start <= end)");
+    }
+
+    // add to new array
+    ZArray* newary = &zoe_stack_pushnew(Z, ARRAY)->array;
+    newary->n = (end-start);
+    newary->items = malloc(newary->n * sizeof(ZValue*));
+    for(int i=0, j=start; j<end; ++i, ++j) {
+        ZValue* value = oldary->items[j];
+        newary->items[i] = value;
+        zworld_inc(Z->world, value);
+    }
+
+    // remove old array from stack
+    zoe_stack_remove(Z, -2);
+}
+
+
 // }}}
 
 // {{{ ERROR MANAGEMENT
@@ -476,16 +512,11 @@ void zoe_oper(Zoe* Z, Operator oper)
     if(oper == ZOE_NEG) {
         zoe_pushnumber(Z, -zoe_popnumber(Z));
     } else if(oper == ZOE_NOT) {
-        ZType t = zoe_peektype(Z);
-        if(t == NUMBER) {
-            double d = zoe_popnumber(Z);
-            int64_t c = (int64_t)d;
-            zoe_pushnumber(Z, ~c);
-        } else if(t == BOOLEAN) {
-            zoe_pushboolean(Z, !zoe_popboolean(Z));
-        } else {
-            zoe_error(Z, "Expected number or boolean, found %s\n", zvalue_typename(t));
-        }
+        double d = zoe_popnumber(Z);
+        int64_t c = (int64_t)d;
+        zoe_pushnumber(Z, ~c);
+    } else if(oper == ZOE_BNOT) {
+        zoe_pushboolean(Z, !zoe_popboolean(Z));
     } else if(oper == ZOE_EQ) {
         ZValue *b = zoe_stack_get(Z, -1),
                *a = zoe_stack_get(Z, -2);
@@ -519,8 +550,9 @@ void zoe_oper(Zoe* Z, Operator oper)
             case ZOE_GTE: zoe_pushboolean(Z, a >= b); return;
 
             case ZOE_NEG:  // pleases gcc
-            case ZOE_NOT:
             case ZOE_EQ:
+            case ZOE_NOT:
+            case ZOE_BNOT:
             default:
                 zoe_error(Z, "Invalid operator (code %d)", oper);
                 return;
@@ -603,6 +635,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case SHL:  zoe_oper(Z, ZOE_SHL);  ++p; break;
             case SHR:  zoe_oper(Z, ZOE_SHR);  ++p; break;
             case NOT:  zoe_oper(Z, ZOE_NOT);  ++p; break;
+            case BNOT: zoe_oper(Z, ZOE_BNOT); ++p; break;
             case LT:   zoe_oper(Z, ZOE_LT);   ++p; break;
             case LTE:  zoe_oper(Z, ZOE_LTE);  ++p; break;
             case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
@@ -642,6 +675,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             case PUSHARY: zoe_pusharray(Z);   ++p; break;
             case APPEND:  zoe_arrayappend(Z); ++p; break;
+            case SLICE:   zoe_arrayslice(Z);  ++p; break;
             
             //
             // others
@@ -818,6 +852,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case SHL:  snprintf(buf, nbuf, "SHL");  return 1;
         case SHR:  snprintf(buf, nbuf, "SHR");  return 1;
         case NOT:  snprintf(buf, nbuf, "NOT");  return 1;
+        case BNOT: snprintf(buf, nbuf, "BNOT"); return 1;
         case LT:   snprintf(buf, nbuf, "LT");   return 1;
         case LTE:  snprintf(buf, nbuf, "LTE");  return 1;
         case GT:   snprintf(buf, nbuf, "GT");   return 1;
@@ -843,6 +878,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
             }
         case PUSHARY: snprintf(buf, nbuf, "PUSHARY"); return 1;
         case APPEND:  snprintf(buf, nbuf, "APPEND");  return 1;
+        case SLICE:   snprintf(buf, nbuf, "SLICE");   return 1;
         case END:     snprintf(buf, nbuf, "END");     return 1;
         default:
             snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);
