@@ -73,6 +73,13 @@ zworld_alloc(ZWorld* w, ZType type)
 void
 zworld_release(ZWorld* w, ZValue* value)
 {
+    // decrement reference of the children
+    if(value->type == ARRAY) {
+        for(size_t i=0; i < value->array.n; ++i) {
+            zworld_dec(w, value->array.items[i]);
+        }
+    }
+
     // find reference
     // (TODO) - this can be much faster if we keep an ordered list of pointers
     ZValueRef *ref = w->refs,
@@ -86,13 +93,6 @@ zworld_release(ZWorld* w, ZValue* value)
     }
     w->errorf("Fatal error: trying to release a ZValue that was not allocated.");
 found:
-
-    // decrement reference of the children
-    if(value->type == ARRAY) {
-        for(size_t i=0; i < value->array.n; ++i) {
-            zworld_dec(w, value->array.items[i]);
-        }
-    }
 
     // remove reference
     if(!prev) {  // it's the first reference

@@ -111,7 +111,6 @@ static void str_addstr(String* str, char* s)
         size_t new_alloc = (new_size > (str->alloc * 2)) ? new_size : (str->alloc * 2);
         str->str = realloc(str->str, new_alloc);
     }
-    //strcat(str->str, s);
     memcpy(&str->str[strlen(str->str)], s, len);
 }
 

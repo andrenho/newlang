@@ -438,20 +438,28 @@ void zoe_concat(Zoe* Z)
         free(a);
     } else if(t == ARRAY) {
         // get arrays
-        ZValue *a_dest = zoe_stack_get(Z, -2),
-               *a_orig = zoe_checktype(Z, -1, ARRAY);
-        // expand array size
-        size_t n_orig = a_dest->array.n;
-        a_dest->array.n += a_orig->array.n;
-        a_dest->array.items = realloc(a_dest->array.items, a_dest->array.n * sizeof(ZValue*));
-        // copy items
-        for(size_t i=0; i < a_orig->array.n; ++i) {
-            ZValue* value = a_orig->array.items[i];
-            a_dest->array.items[i + n_orig] = value;
-            zworld_inc(Z->world, value);
+        ZValue *a1 = zoe_stack_get(Z, -2),
+               *a2 = zoe_checktype(Z, -1, ARRAY);
+
+        // create new array
+        ZValue *anew = zoe_stack_pushnew(Z, ARRAY);
+        anew->array.n = a1->array.n + a2->array.n;
+        anew->array.items = malloc(anew->array.n * sizeof(ZValue*));
+        
+        // add data
+        size_t i=0;
+        ZValue *arr[] = { a1, a2 };
+        for(size_t j=0; j<2; ++j) {
+            for(size_t k=0; k < arr[j]->array.n; ++k) {
+                ZValue* value = arr[j]->array.items[k];
+                anew->array.items[i++] = value;
+                zworld_inc(Z->world, value);
+            }
         }
-        // pop old array
-        zoe_pop(Z, 1);
+
+        // pop old arrays
+        zoe_stack_remove(Z, -2);
+        zoe_stack_remove(Z, -2);
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }

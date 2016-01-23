@@ -553,7 +553,9 @@ int main(void)
     if(result != 0) {
         printf("\033[1;31merror: %s\033[0m\n", result);
     } else {
-        printf("\033[1;32m+++ ALL TESTS PASSED! +++\033[0m\n");
+        printf("\033[1;32m.-----------------------.\033[0m\n");
+        printf("\033[1;32m|   ALL TESTS PASSED!   |\033[0m\n");
+        printf("\033[1;32m'-----------------------'\033[0m\n");
     }
     printf("Tests run: %d\n", tests_run);
 
