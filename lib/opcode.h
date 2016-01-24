@@ -39,6 +39,7 @@ typedef enum Opcode {
     CAT      = 0x28,
     LEN      = 0x29,
     LOOKUP   = 0x2A,
+    SLICE    = 0x2B,
 
     // binary
     BNOT     = 0x2F,
@@ -51,7 +52,6 @@ typedef enum Opcode {
     // arrays
     PUSHARY  = 0x40,
     APPEND   = 0x41,
-    SLICE    = 0x42,
 
     // others
     END      = 0xFF,

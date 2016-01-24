@@ -436,6 +436,18 @@ static char* test_strings(void)
     return 0;
 }
 
+static char* test_zoe_string_subscripts(void)
+{
+    mu_assert_sexpr("'abcd'[1]", "b");
+    mu_assert_sexpr("'abcd'[-1]", "d");
+    mu_assert_sexpr("'abcd'[1:2]", "b");
+    mu_assert_sexpr("'abcd'[1:3]", "bc");
+    mu_assert_sexpr("'abcd'[1:]", "bcd");
+    mu_assert_sexpr("'abcd'[:3]", "abc");
+    mu_assert_sexpr("'abcd'[-3:-1]", "bc");
+    return 0;
+}
+
 // }}}
 
 // {{{ ZOE COMMENTS
@@ -531,6 +543,7 @@ static char* all_tests(void)
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
     mu_run_test(test_zoe_string);
+    mu_run_test(test_zoe_string_subscripts);
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
     mu_run_test(test_math_expressions);

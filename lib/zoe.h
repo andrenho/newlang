@@ -52,7 +52,6 @@ char const* zoe_peekstring(Zoe* Z);
 // 
 void zoe_pusharray(Zoe* Z);
 void zoe_arrayappend(Zoe* Z);
-void zoe_arrayslice(Zoe* Z);
 
 //
 // ERROR MANAGEMENT
@@ -75,6 +74,7 @@ typedef enum {
 } Operator;
 void zoe_len(Zoe* Z);
 void zoe_lookup(Zoe* Z);
+void zoe_slice(Zoe* Z);
 void zoe_concat(Zoe* Z);
 void zoe_oper(Zoe* Z, Operator oper);
 void zoe_eval(Zoe* Z, const char* code);

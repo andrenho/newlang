@@ -24,9 +24,12 @@ Next steps:
    - len operator (ok)
    - array access (ok)
  - nil? operator (ok -+)
- - array slices
- - tables
+ - array slices (ok)
+ - string subscripts (ok)
+ - partial equality
  - documentation
+
+ - tables
 
 Other steps:
 
@@ -34,6 +37,7 @@ Other steps:
  - assingment + scope
  - garbage collection
  - control structures
+ - regular expressions
  - functions + closures + yields
  - structured functions (metamethods, functions, visibility)
  - const correctness

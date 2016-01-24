@@ -330,45 +330,6 @@ static void zoe_arraymul(Zoe* Z)
 }
 
 
-void zoe_arrayslice(Zoe* Z)
-{
-    // read data
-    int64_t start, end;
-    ZArray* oldary = &zoe_checktype(Z, -3, ARRAY)->array;
-    if(zoe_gettype(Z, -1) == NIL) {
-        end = oldary->n;
-        zoe_pop(Z, 1);
-    } else {
-        end = zoe_popnumber(Z);
-    }
-    start = zoe_popnumber(Z);
-    int64_t old_n = oldary->n;
-    start = (start >=0) ? start : (old_n + start);
-    end = (end >=0) ? end : (old_n + end);
-
-    if(start > old_n || end > old_n) {
-        zoe_error(Z, "Subscript out of range.");
-        return;
-    }
-    if(start >= end) {
-        zoe_error(Z, "Inverted slicing (start <= end)");
-    }
-
-    // add to new array
-    ZArray* newary = &zoe_stack_pushnew(Z, ARRAY)->array;
-    newary->n = (end-start);
-    newary->items = malloc(newary->n * sizeof(ZValue*));
-    for(int i=0, j=start; j<end; ++i, ++j) {
-        ZValue* value = oldary->items[j];
-        newary->items[i] = value;
-        zworld_inc(Z->world, value);
-    }
-
-    // remove old array from stack
-    zoe_stack_remove(Z, -2);
-}
-
-
 // }}}
 
 // {{{ ERROR MANAGEMENT
@@ -406,6 +367,61 @@ void zoe_len(Zoe* Z)
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }
+}
+
+
+void zoe_slice(Zoe* Z)
+{
+    // get full size
+    ssize_t sz;
+    if(zoe_gettype(Z, -3) == ARRAY) {
+        sz = zoe_stack_get(Z, -3)->array.n;
+    } else if(zoe_gettype(Z, -3) == STRING) {
+        sz = strlen(zoe_stack_get(Z, -3)->string);
+    } else {
+        zoe_error(Z, "Expected string or array, found '%s'.", zvalue_typename(zoe_gettype(Z, -3)));
+    }
+
+    // find start & end
+    int64_t start, end;
+    if(zoe_gettype(Z, -1) == NIL) {
+        end = sz;
+        zoe_pop(Z, 1);
+    } else {
+        end = zoe_popnumber(Z);
+    }
+    start = zoe_popnumber(Z);
+    start = (start >=0) ? start : (sz + start);
+    end = (end >=0) ? end : (sz + end);
+
+    if(start > sz || end > sz) {
+        zoe_error(Z, "Subscript out of range.");
+        return;
+    }
+    if(start >= end) {
+        zoe_error(Z, "Inverted slicing (start <= end)");
+    }
+
+    // slice
+    if(zoe_gettype(Z, -1) == ARRAY) {
+        ZArray* oldary = &zoe_stack_get(Z, -1)->array;
+        ZArray* newary = &zoe_stack_pushnew(Z, ARRAY)->array;
+        newary->n = (end-start);
+        newary->items = malloc(newary->n * sizeof(ZValue*));
+        for(int i=0, j=start; j<end; ++i, ++j) {
+            ZValue* value = oldary->items[j];
+            newary->items[i] = value;
+            zworld_inc(Z->world, value);
+        }
+    } else if(zoe_gettype(Z, -1) == STRING) {
+        char* oldstr = zoe_stack_get(Z, -1)->string;
+        char* newstr = strndup(&oldstr[start], end-start);
+        zoe_pushstring(Z, newstr);
+        free(newstr);
+    }
+
+    // remove old data from stack
+    zoe_stack_remove(Z, -2);
 }
 
 
@@ -625,29 +641,30 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // oper
             //
-            case ADD:  zoe_oper(Z, ZOE_ADD);  ++p; break;
-            case SUB:  zoe_oper(Z, ZOE_SUB);  ++p; break;
-            case MUL:  zoe_oper(Z, ZOE_MUL);  ++p; break;
-            case DIV:  zoe_oper(Z, ZOE_DIV);  ++p; break;
-            case IDIV: zoe_oper(Z, ZOE_IDIV); ++p; break;
-            case MOD:  zoe_oper(Z, ZOE_MOD);  ++p; break;
-            case POW:  zoe_oper(Z, ZOE_POW);  ++p; break;
-            case NEG:  zoe_oper(Z, ZOE_NEG);  ++p; break;
-            case AND:  zoe_oper(Z, ZOE_AND);  ++p; break;
-            case OR:   zoe_oper(Z, ZOE_OR);   ++p; break;
-            case XOR:  zoe_oper(Z, ZOE_XOR);  ++p; break;
-            case SHL:  zoe_oper(Z, ZOE_SHL);  ++p; break;
-            case SHR:  zoe_oper(Z, ZOE_SHR);  ++p; break;
-            case NOT:  zoe_oper(Z, ZOE_NOT);  ++p; break;
-            case BNOT: zoe_oper(Z, ZOE_BNOT); ++p; break;
-            case LT:   zoe_oper(Z, ZOE_LT);   ++p; break;
-            case LTE:  zoe_oper(Z, ZOE_LTE);  ++p; break;
-            case GT:   zoe_oper(Z, ZOE_GT);   ++p; break;
-            case GTE:  zoe_oper(Z, ZOE_GTE);  ++p; break;
-            case EQ:   zoe_oper(Z, ZOE_EQ);   ++p; break;
-            case CAT:  zoe_concat(Z);         ++p; break;
-            case LEN:  zoe_len(Z);            ++p; break;
-            case LOOKUP: zoe_lookup(Z);       ++p; break;
+            case ADD:    zoe_oper(Z, ZOE_ADD);  ++p; break;
+            case SUB:    zoe_oper(Z, ZOE_SUB);  ++p; break;
+            case MUL:    zoe_oper(Z, ZOE_MUL);  ++p; break;
+            case DIV:    zoe_oper(Z, ZOE_DIV);  ++p; break;
+            case IDIV:   zoe_oper(Z, ZOE_IDIV); ++p; break;
+            case MOD:    zoe_oper(Z, ZOE_MOD);  ++p; break;
+            case POW:    zoe_oper(Z, ZOE_POW);  ++p; break;
+            case NEG:    zoe_oper(Z, ZOE_NEG);  ++p; break;
+            case AND:    zoe_oper(Z, ZOE_AND);  ++p; break;
+            case OR:     zoe_oper(Z, ZOE_OR);   ++p; break;
+            case XOR:    zoe_oper(Z, ZOE_XOR);  ++p; break;
+            case SHL:    zoe_oper(Z, ZOE_SHL);  ++p; break;
+            case SHR:    zoe_oper(Z, ZOE_SHR);  ++p; break;
+            case NOT:    zoe_oper(Z, ZOE_NOT);  ++p; break;
+            case BNOT:   zoe_oper(Z, ZOE_BNOT); ++p; break;
+            case LT:     zoe_oper(Z, ZOE_LT);   ++p; break;
+            case LTE:    zoe_oper(Z, ZOE_LTE);  ++p; break;
+            case GT:     zoe_oper(Z, ZOE_GT);   ++p; break;
+            case GTE:    zoe_oper(Z, ZOE_GTE);  ++p; break;
+            case EQ:     zoe_oper(Z, ZOE_EQ);   ++p; break;
+            case CAT:    zoe_concat(Z);         ++p; break;
+            case LEN:    zoe_len(Z);            ++p; break;
+            case LOOKUP: zoe_lookup(Z);         ++p; break;
+            case SLICE:  zoe_slice(Z);          ++p; break;
 
             //
             // branches
@@ -679,7 +696,6 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             case PUSHARY: zoe_pusharray(Z);   ++p; break;
             case APPEND:  zoe_arrayappend(Z); ++p; break;
-            case SLICE:   zoe_arrayslice(Z);  ++p; break;
             
             //
             // others
