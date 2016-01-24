@@ -54,6 +54,11 @@ void zoe_pusharray(Zoe* Z);
 void zoe_arrayappend(Zoe* Z);
 
 //
+// HASH MANAGEMENT
+//
+uint64_t zoe_hash_value(Zoe* Z, ZValue* value);
+
+//
 // ERROR MANAGEMENT
 //
 void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
@@ -76,6 +81,7 @@ void zoe_len(Zoe* Z);
 void zoe_lookup(Zoe* Z);
 void zoe_slice(Zoe* Z);
 void zoe_concat(Zoe* Z);
+bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b);
 void zoe_oper(Zoe* Z, Operator oper);
 void zoe_eval(Zoe* Z, const char* code);
 void zoe_call(Zoe* Z, int n_args);
@@ -89,6 +95,12 @@ void zoe_disassemble(Zoe* Z);
 void zoe_asmdebugger(Zoe* Z, bool value);
 void zoe_gcdebugger(Zoe* Z, bool value);
 #endif
+
+// 
+// REFERENCE MANAGEMENT
+//
+void zoe_inc_ref(Zoe* Z, ZValue* value);
+void zoe_dec_ref(Zoe* Z, ZValue* value);
 
 #endif
 

@@ -233,7 +233,7 @@ static char* test_stack(void)
 
     mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
 
-    ZValue* value = zoe_stack_pushnew(Z, NIL);
+    zoe_stack_pushnew(Z, NIL);
     mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
     mu_assert("stack abs 0 = 0", zoe_absindex(Z, 0) == 0);
     mu_assert("stack abs -1 = 0", zoe_absindex(Z, -1) == 0);
@@ -546,23 +546,43 @@ static char* test_hash(void)
 
     Hash* h = hash_new(Z);
 
-    hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -2));  // hello = world
-    hash_set(h, zoe_stack_get(Z, -3), zoe_stack_get(Z, -4));  // 13 = 24
-    hash_set(h, zoe_stack_get(Z, -4), zoe_stack_get(Z, -2));  // 24 = world
+    hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -2));  // 24 = 13
+    hash_set(h, zoe_stack_get(Z, -3), zoe_stack_get(Z, -4));  // world = hello
+    hash_set(h, zoe_stack_get(Z, -4), zoe_stack_get(Z, -2));  // hello = 13
 
     mu_assert("fetch #1", hash_get(h, zoe_stack_get(Z, -1)) == zoe_stack_get(Z, -2));
     mu_assert("fetch #2", hash_get(h, zoe_stack_get(Z, -3)) == zoe_stack_get(Z, -4));
     mu_assert("fetch #3", hash_get(h, zoe_stack_get(Z, -4)) == zoe_stack_get(Z, -2));
 
-    error_found = false;
-    hash_get(h, zoe_stack_get(Z, -2));
-    mu_assert("fetch #4 - key error", error_found);
+    mu_assert("fetch #4 - key error", hash_get(h, zoe_stack_get(Z, -2)) == NULL);
 
     hash_del(h, zoe_stack_get(Z, -1));
-    error_found = false;
-    hash_get(h, zoe_stack_get(Z, -1));
-    mu_assert("fetch #5 - key error after delete", error_found);
+    mu_assert("fetch #5 - key error after delete", hash_get(h, zoe_stack_get(Z, -1)) == NULL);
 
+    hash_free(h);
+    zoe_free(Z);
+    return 0;
+}
+
+static char* test_hash_grow_shrink(void) 
+{
+    Zoe* Z = zoe_createvm(NULL);
+    Hash* h = hash_new(Z);
+
+    for(int i=30; i>=0; --i) {
+        zoe_pushnumber(Z, i);
+        hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -1));
+        zoe_pop(Z, 1);
+    }
+    zoe_pushnumber(Z, 28);
+    ZValue* v = hash_get(h, zoe_stack_get(Z, -1));
+    mu_assert("sanity check #1", v);
+    mu_assert("sanity check #2", v->type == NUMBER);
+    mu_assert("sanity check #3", v->number == 28);
+    zoe_pop(Z, 1);
+
+    mu_assert("hash should have tripled by now", hash_buckets(h) == 64);
+    
     hash_free(h);
     zoe_free(Z);
     return 0;
@@ -593,6 +613,7 @@ static char* all_tests(void)
     mu_run_test(test_array_slices);
     mu_run_test(test_array_operators);
     mu_run_test(test_hash);
+    mu_run_test(test_hash_grow_shrink);
     return 0;
 }
 

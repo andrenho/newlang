@@ -76,7 +76,7 @@ ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
     Z->stack[Z->stack_sz] = existing;
     ++Z->stack_sz;
 
-    zworld_inc(Z->world, existing);
+    zoe_inc_ref(Z, existing);
 
     return existing;
 }
@@ -97,7 +97,7 @@ void zoe_stack_remove(Zoe* Z, STPOS pos)
         return NULL;
     }
     
-    zworld_dec(Z->world, Z->stack[pos]);
+    zoe_dec_ref(Z, Z->stack[pos]);
     if(Z->stack_sz > 1) {
         memmove(&Z->stack[pos], &Z->stack[pos+1], sizeof(ZValue*) * (STACK_MAX - pos));
     }
@@ -296,7 +296,7 @@ void zoe_arrayappend(Zoe* Z)
     ++array->n;
     array->items = realloc(array->items, array->n * sizeof(ZValue*));
     array->items[array->n-1] = value;
-    zworld_inc(Z->world, value);
+    zoe_inc_ref(Z, value);
 
     // pop item from stack
     zoe_pop(Z, 1);
@@ -321,7 +321,7 @@ static void zoe_arraymul(Zoe* Z)
         for(size_t j=0; j<array->n; ++j) {
             ZValue* value = array->items[j];
             narr->array.items[(i*array->n) + j] = value;
-            zworld_inc(Z->world, value);
+            zoe_inc_ref(Z, value);
         }
     }
 
@@ -329,6 +329,38 @@ static void zoe_arraymul(Zoe* Z)
     zoe_stack_remove(Z, -2);
 }
 
+
+// }}}
+
+// {{{ HASH MANAGEMENT
+
+uint64_t 
+zoe_hash_value(Zoe* Z, ZValue* value)
+{
+    switch(value->type) {
+        case NIL:
+            return 0;
+        case BOOLEAN:
+            return value->boolean ? 1 : 0;
+        case NUMBER:
+            return (uint64_t)value->number;
+        case STRING: {
+                uint64_t hash = 5381;
+                int c;
+                int i = 0;
+                while((c = value->string[i++])) {
+                    hash = ((hash << 5) + hash) + c;
+                }
+                return hash;
+            }
+        case FUNCTION:
+        case ARRAY:
+            zoe_error(Z, "No hash function for this value.");
+            return 0;
+        default:
+            abort();
+    }
+}
 
 // }}}
 
@@ -411,7 +443,7 @@ void zoe_slice(Zoe* Z)
         for(int i=0, j=start; j<end; ++i, ++j) {
             ZValue* value = oldary->items[j];
             newary->items[i] = value;
-            zworld_inc(Z->world, value);
+            zoe_inc_ref(Z, value);
         }
     } else if(zoe_gettype(Z, -1) == STRING) {
         char* oldstr = zoe_stack_get(Z, -1)->string;
@@ -451,7 +483,7 @@ void zoe_lookup(Zoe* Z)
 }
 
 
-static bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
+bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
 {
     if(a->type != b->type) {
         return false;
@@ -514,7 +546,7 @@ void zoe_concat(Zoe* Z)
             for(size_t k=0; k < arr[j]->array.n; ++k) {
                 ZValue* value = arr[j]->array.items[k];
                 anew->array.items[i++] = value;
-                zworld_inc(Z->world, value);
+                zoe_inc_ref(Z, value);
             }
         }
 
@@ -1061,6 +1093,24 @@ void zoe_inspect(Zoe* Z, STPOS i)
 }
 
 // }}}
+
+// }}}
+
+// {{{ REFERENCE MANAGEMENT
+
+void 
+zoe_inc_ref(Zoe* Z, ZValue* value)
+{
+    zworld_inc(Z->world, value);
+}
+
+
+void 
+zoe_dec_ref(Zoe* Z, ZValue* value)
+{
+    zworld_dec(Z->world, value);
+}
+
 
 // }}}
 
