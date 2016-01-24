@@ -39,7 +39,9 @@ hash_free(Hash* h)
         ZValueLL* place = h->buckets[i];
         while(place) {
             ZValueLL* nxt = place->next;
-            hash_del(h, place->key);
+            zoe_dec_ref(h->Z, place->key);
+            zoe_dec_ref(h->Z, place->value);
+            free(place);
             place = nxt;
         }
     }

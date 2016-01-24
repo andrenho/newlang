@@ -588,6 +588,30 @@ static char* test_hash_grow_shrink(void)
     return 0;
 }
 
+static char* test_hash_stress(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+    Hash* h = hash_new(Z);
+
+    for(int i=30000; i>=0; --i) {
+        zoe_pushnumber(Z, i);
+        hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -1));
+        zoe_pop(Z, 1);
+    }
+    zoe_pushnumber(Z, 23456);
+    ZValue* v = hash_get(h, zoe_stack_get(Z, -1));
+    mu_assert("sanity check #1", v);
+    mu_assert("sanity check #2", v->type == NUMBER);
+    mu_assert("sanity check #3", v->number == 23456);
+    zoe_pop(Z, 1);
+
+    mu_assert("expected hash size = 65536", hash_buckets(h) == 65536);
+    
+    hash_free(h);
+    zoe_free(Z);
+    return 0;
+}
+
 // }}}
 
 static char* all_tests(void)
@@ -614,6 +638,7 @@ static char* all_tests(void)
     mu_run_test(test_array_operators);
     mu_run_test(test_hash);
     mu_run_test(test_hash_grow_shrink);
+    mu_run_test(test_hash_stress);
     return 0;
 }
 

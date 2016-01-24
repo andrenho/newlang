@@ -81,7 +81,8 @@ zworld_release(ZWorld* w, ZValue* value)
     }
 
     // find reference
-    // (TODO) - this can be much faster if we keep an ordered list of pointers
+    // TODO - this is incredibly slow!
+    //   we could use a hash table or, at least, store this in order
     ZValueRef *ref = w->refs,
               *prev = NULL;
     while(ref) {
