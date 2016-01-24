@@ -333,14 +333,18 @@ static void zoe_arraymul(Zoe* Z)
 void zoe_arrayslice(Zoe* Z)
 {
     // read data
-    int64_t end   = zoe_popnumber(Z),
-            start = zoe_popnumber(Z);
-    ZArray* oldary = &zoe_checktype(Z, -1, ARRAY)->array;
+    int64_t start, end;
+    ZArray* oldary = &zoe_checktype(Z, -3, ARRAY)->array;
+    if(zoe_gettype(Z, -1) == NIL) {
+        end = oldary->n;
+        zoe_pop(Z, 1);
+    } else {
+        end = zoe_popnumber(Z);
+    }
+    start = zoe_popnumber(Z);
     int64_t old_n = oldary->n;
-    start = (start >=0) ? start : (old_n + start + 1);
-    end = (end >=0) ? end : (old_n + end + 1);
-
-    printf("[%zd:%zd]\n", start, end);
+    start = (start >=0) ? start : (old_n + start);
+    end = (end >=0) ? end : (old_n + end);
 
     if(start > old_n || end > old_n) {
         zoe_error(Z, "Subscript out of range.");

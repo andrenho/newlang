@@ -504,7 +504,7 @@ static char* test_array_slices(void)
     mu_assert_inspect("[2,3,4][:]", "[2, 3, 4]");
     mu_assert_inspect("[2,3,4][-1:]", "[4]");
     mu_assert_inspect("[2,3,4][-2:-1]", "[3]");
-    mu_assert_inspect("[2,3,4][:-3]", "[2]");
+    mu_assert_inspect("[2,3,4][:-2]", "[2]");
 
     return 0;
 }

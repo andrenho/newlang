@@ -122,10 +122,10 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
 lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
           | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); } 
             exp          { bytecode_addcode(b, SLICE); }
-          | exp ':'      { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, -1); 
+          | exp ':'      { bytecode_addcode(b, PUSH_Nil); 
                            bytecode_addcode(b, SLICE); }
           | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); 
-                           bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, -1); 
+                           bytecode_addcode(b, PUSH_Nil);
                            bytecode_addcode(b, SLICE); }
           ;
 
