@@ -10,8 +10,7 @@ SRC_LIB=lib/zoe.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c 	\
 	lib/zworld.c 		\
-	lib/zvalue.c#		\
-	lib/stack.c
+	lib/zvalue.c
 
 SRC_EXE=src/main.c		\
 	src/options.c		\
@@ -23,10 +22,11 @@ OBJ_LIB=${SRC_LIB:.c=.o}
 OBJ_EXE=${SRC_EXE:.c=.o}
 OBJ_TST=${SRC_TST:.c=.o}
 
-HEADERS=$(filter-out src/main.h,${SRC_EXE:.c=.h}) ${SRC_LIB:.c=.h} 
+HEADERS=$(filter-out src/main.h,${SRC_EXE:.c=.h}) ${SRC_LIB:.c=.h} lib/global.h lib/opcode.h
 
-DIST=COPYING INSTALL README.md Makefile build/config.mk \
-     build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)
+DIST=COPYING INSTALL README.md Makefile build/config.mk HACKING \
+     build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)  \
+     lib/lexer.l lib/parser.y doc/zoe.html
 
 CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c11 -march=native -fPIC
 
@@ -111,7 +111,8 @@ options:
 install: all
 	install -p zoe ${PREFIX}/bin
 	install -p libzoe.so.${VERSION} ${PREFIX}/lib
-	ln -s ${PREFIX}/lib/libzoe.so.${VERSION} ${PREFIX}/lib/libzoe.so.0
+	ln -f -s ${PREFIX}/lib/libzoe.so.${VERSION} ${PREFIX}/lib/libzoe.so.0
+	mkdir -p ${MANPREFIX}/man1
 	cp zoe.1 ${MANPREFIX}/man1
 
 uninstall:

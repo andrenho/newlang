@@ -186,10 +186,12 @@ size_t zworld_ref_count(ZWorld* w)
 
 // {{{ DEBUGGING
 
+#ifdef DEBUG
 void zworld_gcdebugger(ZWorld* w, bool value)
 {
     w->debug_gc = value;
 }
+#endif
 
 // }}}
 

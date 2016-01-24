@@ -52,7 +52,7 @@ typedef struct String {
 %precedence '?'
 %precedence ':'
 %left       CCAND CCOR
-%nonassoc   _LTE _GTE '<' '>' _EQ _NEQ _EQP
+%nonassoc   _LTE _GTE '<' '>' _EQ _NEQ
 %left       '&' '^' '|'
 %left       _SHL _SHR
 %left       '+' '-'
