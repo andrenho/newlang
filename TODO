@@ -26,9 +26,9 @@ Next steps:
  - nil? operator (ok -+)
  - array slices (ok)
  - string subscripts (ok)
- - partial equality
  - documentation
 
+Other:
  - tables
 
 Other steps:
@@ -43,6 +43,7 @@ Other steps:
  - const correctness
  - error management
  - match
+   - partial equality
    - wildcart '_' identifier
  - goto
  - imports
