@@ -18,6 +18,12 @@ Zoe* zoe_createvm(ERROR errorf);
 void zoe_free(Zoe* Z);
 
 //
+// MEMORY MANAGEMENT
+//
+void zoe_inc_ref(Zoe* Z, ZValue* value);
+void zoe_dec_ref(Zoe* Z, ZValue* value);
+
+//
 // HIGH LEVEL STACK ACCESS
 //
 STPOS       zoe_stacksize(Zoe* Z);
@@ -95,12 +101,6 @@ void zoe_disassemble(Zoe* Z);
 void zoe_asmdebugger(Zoe* Z, bool value);
 void zoe_gcdebugger(Zoe* Z, bool value);
 #endif
-
-// 
-// REFERENCE MANAGEMENT
-//
-void zoe_inc_ref(Zoe* Z, ZValue* value);
-void zoe_dec_ref(Zoe* Z, ZValue* value);
 
 #endif
 

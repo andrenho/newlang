@@ -11,13 +11,12 @@
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
-#include "lib/zworld.h"
 
 typedef struct Zoe {
-    ZWorld*  world;
     ERROR    errorf;
     ZValue*  stack[STACK_MAX];
     STPOS    stack_sz;
+    ZValue** values;
 #ifdef DEBUG
     bool     debug_asm;
 #endif
@@ -39,7 +38,6 @@ zoe_createvm(ERROR errorf)
         errorf = default_error;
     }
     Zoe* Z = calloc(sizeof(Zoe), 1);
-    Z->world = zworld_new(errorf);
     Z->errorf = errorf;
 #ifdef DEBUG
     Z->debug_asm = false;
@@ -52,8 +50,85 @@ void
 zoe_free(Zoe* Z)
 {
     zoe_pop(Z, zoe_stacksize(Z));
-    zworld_free(Z->world);
+    // TODO - free values
     free(Z);
+}
+
+// }}}
+
+// {{{ MEMORY MANAGEMENT
+
+// the following functions are not static so they can be tested
+// in tests/tests.c
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
+ZValue* 
+zoe_alloc(Zoe* Z, ZType type)
+{
+    (void) Z;
+    ZValue* value = calloc(sizeof(ZValue), 1);
+    value->type = type;
+    return value;
+}
+
+
+void
+zoe_release(Zoe* Z, ZValue* value)
+{
+    // decrement reference of the children
+    if(value->type == ARRAY) {
+        for(size_t i=0; i < value->array.n; ++i) {
+            zoe_dec_ref(Z, value->array.items[i]);
+        }
+    }
+
+    // free value
+    zvalue_free_structure(value);
+    free(value);
+}
+
+size_t
+zoe_ref_list(Zoe* Z, ZValue** values[])
+{
+    size_t i = 0,
+           alloc = 0;
+
+    for(int j=0; j<Z->stack_sz; ++j) {
+        if(Z->stack[j]->type == ARRAY) {
+            // TODO - free children
+        }
+        if(values) {
+            if(i == alloc) {
+                alloc *= 2;
+                *values = realloc(*values, sizeof(ZValue*) * alloc);
+            }
+            (*values)[i++] = Z->stack[j];
+        }
+    }
+
+    // TODO - find from variables
+
+    return i;
+}
+
+#pragma GCC diagnostic pop
+
+void zoe_inc_ref(Zoe* Z, ZValue* value)
+{
+    (void) Z;
+    zvalue_incref(value);
+}
+
+
+void zoe_dec_ref(Zoe* Z, ZValue* value)
+{
+    // decrement reference and possibly collect it
+    zvalue_decref(value);
+    if(value->ref_count <= 0) {
+        zoe_release(Z, value);
+    }
 }
 
 // }}}
@@ -84,7 +159,7 @@ ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
 
 ZValue* zoe_stack_pushnew(Zoe* Z, ZType type)
 {
-    ZValue* value = zworld_alloc(Z->world, type);
+    ZValue* value = zoe_alloc(Z, type);
     return zoe_stack_pushexisting(Z, value);
 }
 
@@ -995,12 +1070,6 @@ void zoe_asmdebugger(Zoe* Z, bool value)
 }
 
 
-void zoe_gcdebugger(Zoe* Z, bool value)
-{
-    zworld_gcdebugger(Z->world, value);
-}
-
-
 static void zoe_dbgopcode(uint8_t* code, uint64_t p)
 {
     int ns = printf("%08" PRIx64 ":\t", p);
@@ -1093,24 +1162,6 @@ void zoe_inspect(Zoe* Z, STPOS i)
 }
 
 // }}}
-
-// }}}
-
-// {{{ REFERENCE MANAGEMENT
-
-void 
-zoe_inc_ref(Zoe* Z, ZValue* value)
-{
-    zworld_inc(Z->world, value);
-}
-
-
-void 
-zoe_dec_ref(Zoe* Z, ZValue* value)
-{
-    zworld_dec(Z->world, value);
-}
-
 
 // }}}
 

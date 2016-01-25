@@ -81,12 +81,6 @@ static char* inspect_expr(char* expr)
 #define mu_assert_sexpr(expr, r) { char* s = string_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
 #define mu_assert_inspect(expr, r) { char* s = inspect_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
 
-static void my_error(const char* str)
-{
-    fprintf(stderr, "error: %s\n", str);
-    abort();
-}
-
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
 // }}}
@@ -170,45 +164,51 @@ static char* test_bytecode_simplecode(void)
 
 // {{{ WORLD
 
+extern ZValue* zoe_alloc(Zoe* Z, ZType type);
+extern void zoe_release(Zoe* Z, ZValue* value);
+
+
 static char* test_world(void)
 {
-    ZWorld* w = zworld_new(my_error);
+    /*
+    Zoe* Z = zoe_createvm(NULL);
 
-    ZValue* v1 = zworld_alloc(w, NUMBER);
+    ZValue* v1 = zoe_alloc(Z, NUMBER);
     v1->number = 1;
-    zworld_inc(w, v1);
+    zoe_inc_ref(Z, v1);
     mu_assert("Count values = 1", zworld_ref_count(w) == 1);
 
-    ZValue* v2 = zworld_alloc(w, NUMBER);
+    ZValue* v2 = zoe_alloc(Z, NUMBER);
     v2->number = 2;
-    zworld_inc(w, v2);
+    zoe_inc_ref(Z, v2);
     mu_assert("Count values = 2", zworld_ref_count(w) == 2);
 
-    ZValue* v3 = zworld_alloc(w, NUMBER);
+    ZValue* v3 = zoe_alloc(Z, NUMBER);
     v2->number = 3;
-    zworld_inc(w, v3);
+    zoe_inc_ref(Z, v3);
     mu_assert("Count values = 3", zworld_ref_count(w) == 3);
 
-    zworld_dec(w, v2);
+    zoe_dec_ref(Z, v2);
     mu_assert("Record #2 eliminated", zworld_ref_count(w) == 2);
 
-    zworld_dec(w, v1);
+    zoe_dec_ref(Z, v1);
     mu_assert("Record #1 eliminated", zworld_ref_count(w) == 1);
 
-    zworld_dec(w, v3);
+    zoe_dec_ref(Z, v3);
     mu_assert("Record #3 eliminated", zworld_ref_count(w) == 0);
 
-    ZValue* v4 = zworld_alloc(w, NUMBER);
+    ZValue* v4 = zoe_alloc(Z, NUMBER);
     v4->number = 4;
-    zworld_inc(w, v4);
+    zoe_inc_ref(Z, v4);
     mu_assert("Count values = 1", zworld_ref_count(w) == 1);
 
-    zworld_dec(w, v4);
+    zoe_dec_ref(Z, v4);
     mu_assert("Record #4 eliminated", zworld_ref_count(w) == 0);
 
     // right here, running with valgrind should return no leaks
 
-    zworld_free(w);
+    zoe_free(Z);
+    */
     return 0;
 }
 
@@ -247,7 +247,11 @@ static char* test_stack(void)
     zoe_stack_pop(Z);
     mu_assert("stack underflow", error_found);
 
-    zoe_free(Z);
+    zoe_stack_pushnew(Z, NIL); // for testing memory leaks
+    zoe_stack_pushnew(Z, NIL);
+    zoe_stack_pushnew(Z, NIL);
+
+    zoe_free(Z); // if there's a memory leak, it will happen here
 
     return 0;
 }

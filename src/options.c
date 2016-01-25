@@ -22,7 +22,6 @@ options_parse(int argc, char* argv[])
             { "debug-asm",        no_argument, NULL, 'A' },
             { "debug-bison",      no_argument, NULL, 'B' },
             { "repl-disassemble", no_argument, NULL, 'D' },
-            { "debug-gc",         no_argument, NULL, 'G' },
 #endif
             { "help",             no_argument, NULL, 'h' },
             { "version",          no_argument, NULL, 'v' },
@@ -32,7 +31,7 @@ options_parse(int argc, char* argv[])
         int opt_idx = 0;
         static const char* opts = "hv"
 #ifdef DEBUG
-            "ABDG"
+            "ABD"
 #endif
         ;
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
@@ -45,9 +44,6 @@ options_parse(int argc, char* argv[])
                 break;
             case 'D':
                 opt->repl_options.disassemble = true;
-                break;
-            case 'G':
-                opt->debug_gc = true;
                 break;
 #endif
 

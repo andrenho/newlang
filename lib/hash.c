@@ -92,8 +92,8 @@ static void hash_rehash(Hash* h)
     // readd all keys/values
     for(uint64_t i=0; i<k; ++i) {
         // find key
-        uint64_t k = zoe_hash_value(h->Z, items[i].key);
-        uint64_t bk = k % h->n_buckets;
+        uint64_t k2 = zoe_hash_value(h->Z, items[i].key);
+        uint64_t bk = k2 % h->n_buckets;
 
         // create value
         ZValueLL* new;

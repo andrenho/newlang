@@ -15,9 +15,6 @@ void repl_execute(Options* opt)
     if(opt->debug_asm) {
         zoe_asmdebugger(Z, true);
     }
-    if(opt->debug_gc) {
-        zoe_gcdebugger(Z, true);
-    }
 #endif
 
     char* buf;

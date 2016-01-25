@@ -39,6 +39,8 @@ typedef struct ZValue {
         ZFunction function;
         ZArray    array;
     };
+    struct ZValue *prev,
+                  *next;
 } ZValue;
 
 // MEMORY MANAGEMENT

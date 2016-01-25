@@ -10,7 +10,6 @@ SRC_LIB=lib/zoe.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c 	\
 	lib/hash.c 		\
-	lib/zworld.c 		\
 	lib/zvalue.c
 
 SRC_EXE=src/main.c		\
