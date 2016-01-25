@@ -579,6 +579,17 @@ void zoe_lookup(Zoe* Z)
         }
         zoe_stack_pushexisting(Z, value->array.items[k]);
         zoe_stack_remove(Z, -2);  // remove array
+    } else if(t == TABLE) {
+        Hash* table = zoe_stack_get(Z, -2)->table;
+        ZValue* key = zoe_stack_get(Z, -1);
+        ZValue* value = hash_get(table, key);
+        if(!value) {
+            zoe_error(Z, "Key error");
+            return;
+        }
+        zoe_stack_pushexisting(Z, value);
+        zoe_stack_remove(Z, -2);
+        zoe_stack_remove(Z, -2);
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }

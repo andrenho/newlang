@@ -636,10 +636,10 @@ static char* test_table_access(void)
     mu_assert_sexpr("{hello: 'world', a: 42}['hello']", "world");
     mu_assert_sexpr("{hello: 'world', a: 42}.hello", "world");
     mu_assert_nexpr("{hello: 'world', a: 42}.a", 42);
-    mu_assert_nexpr("{hello: {world: 42}}.world.hello", 42);
-    mu_assert_nexpr("{hello: {world: 42}}['world']['hello']", 42);
+    mu_assert_nexpr("{hello: {world: 42}}.hello.world", 42);
+    mu_assert_nexpr("{hello: {world: 42}}['hello']['world']", 42);
 
-    Zoe* Z = zoe_createvm(NULL);
+    Zoe* Z = zoe_createvm(test_error);
     error_found = false;
     zoe_eval(Z, "{hello: 'world'}.a");
     zoe_call(Z, 0);

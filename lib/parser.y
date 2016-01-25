@@ -67,6 +67,7 @@ typedef struct String {
 %precedence _NEG
 %precedence ISNIL
 %precedence '['
+%precedence '.'
 
 %error-verbose
 %start code
@@ -88,6 +89,9 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | strings
    | array
    | table
+   | exp '.' IDENTIFIER { bytecode_addcode(b, PUSH_S);
+                          bytecode_addcodestr(b, $3);
+                          bytecode_addcode(b, LOOKUP); }
    | ternary
    | ccand
    | ccor
