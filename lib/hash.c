@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lib/zworld.h"
-
 #define INITIAL_SIZE 8
 
 typedef struct ZValueLL {

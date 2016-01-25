@@ -4,7 +4,6 @@
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
 #include "lib/hash.h"
-#include "lib/zworld.h"
 #include "lib/zoe.h"
 
 // {{{ TEST FRAMEWORK
