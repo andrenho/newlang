@@ -115,14 +115,16 @@ zoe_ref_list(Zoe* Z, ZValue** values[])
 
 #pragma GCC diagnostic pop
 
-void zoe_inc_ref(Zoe* Z, ZValue* value)
+inline void
+zoe_inc_ref(Zoe* Z, ZValue* value)
 {
     (void) Z;
     zvalue_incref(value);
 }
 
 
-void zoe_dec_ref(Zoe* Z, ZValue* value)
+inline void
+zoe_dec_ref(Zoe* Z, ZValue* value)
 {
     // decrement reference and possibly collect it
     zvalue_decref(value);
@@ -141,7 +143,8 @@ void zoe_dec_ref(Zoe* Z, ZValue* value)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
-ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
+ZValue*
+zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
 {
     if(Z->stack_sz == STACK_MAX-1) {
         zoe_error(Z, "Stack overflow.");
@@ -157,14 +160,16 @@ ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
 }
 
 
-ZValue* zoe_stack_pushnew(Zoe* Z, ZType type)
+ZValue*
+zoe_stack_pushnew(Zoe* Z, ZType type)
 {
     ZValue* value = zoe_alloc(Z, type);
     return zoe_stack_pushexisting(Z, value);
 }
 
 
-void zoe_stack_remove(Zoe* Z, STPOS pos)
+void
+zoe_stack_remove(Zoe* Z, STPOS pos)
 {
     pos = zoe_absindex(Z, pos);
     if(pos >= Z->stack_sz) {
@@ -180,7 +185,8 @@ void zoe_stack_remove(Zoe* Z, STPOS pos)
 }
 
 
-void zoe_stack_pop(Zoe* Z)
+void
+zoe_stack_pop(Zoe* Z)
 {
     if(Z->stack_sz == 0) {
         zoe_error(Z, "Stack overflow.");
@@ -191,7 +197,8 @@ void zoe_stack_pop(Zoe* Z)
 }
 
 
-ZValue* zoe_stack_get(Zoe* Z, STPOS pos)
+ZValue*
+zoe_stack_get(Zoe* Z, STPOS pos)
 {
     pos = zoe_absindex(Z, pos);
     if(pos >= Z->stack_sz) {
@@ -207,14 +214,14 @@ ZValue* zoe_stack_get(Zoe* Z, STPOS pos)
 
 // {{{ HIGH LEVEL STACK ACCESS
 
-STPOS
+inline STPOS
 zoe_stacksize(Zoe* Z)
 {
     return Z->stack_sz;
 }
 
 
-STPOS
+inline STPOS
 zoe_absindex(Zoe* Z, STPOS pos)
 {
     STPOS i = (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
@@ -409,7 +416,7 @@ static void zoe_arraymul(Zoe* Z)
 
 // {{{ HASH MANAGEMENT
 
-uint64_t 
+inline uint64_t 
 zoe_hash_value(Zoe* Z, ZValue* value)
 {
     switch(value->type) {

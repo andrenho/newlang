@@ -33,13 +33,15 @@ void zvalue_free_structure(ZValue* value)
 
 // {{{ REFERENCE COUNTING MANAGEMENT
 
-void zvalue_incref(ZValue* value)
+inline void 
+zvalue_incref(ZValue* value)
 {
     ++value->ref_count;
 }
 
 
-void zvalue_decref(ZValue* value)
+inline void
+zvalue_decref(ZValue* value)
 {
     --value->ref_count;
 }

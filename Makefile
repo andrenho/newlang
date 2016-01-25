@@ -30,6 +30,16 @@ DIST=COPYING INSTALL README.md Makefile build/config.mk HACKING \
 
 CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c11 -march=native -fPIC
 
+ifdef PROFILE
+  CPPFLAGS+=-pg
+  LDFLAGS+=-pg
+endif
+
+ifdef COV
+  CPPFLAGS+=-fprofile-arcs -ftest-coverage
+  LDFLAGS+=-lgcov --coverage
+endif
+
 ifdef DEBUG
   CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG
   LDFLAGS+=-g
@@ -130,7 +140,7 @@ install-strip:
 #
 
 clean:
-	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} runtests **/*.o
+	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} runtests **/*.o gmon.out **/*.gcda **/*.gcno **/*.gcov lib/parser.output
 
 distclean:
 	${MAKE} clean
@@ -177,6 +187,9 @@ check-leaks: zoe
 
 check-leaks-check: runtests
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./runtests -D
+
+cachegrind:
+	valgrind --tool=cachegrind ./runtests
 
 gen-suppressions: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe

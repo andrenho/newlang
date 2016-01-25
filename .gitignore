@@ -39,6 +39,7 @@ lib/parser.tab.*
 lib/parser.output
 libzoe.so.*
 runtests
+gmon.out
 
 # vim files
 .*.swo
