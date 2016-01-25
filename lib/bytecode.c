@@ -13,11 +13,19 @@ typedef struct LabelRef {
     uint64_t* refs;
 } LabelRef;
 
+typedef struct LocalVar {
+    const char* name;
+    bool        mutable;
+} LocalVar;
+
 struct B_Priv {
     ERROR     errorf;
     size_t    code_alloc;
     LabelRef* labels;
     size_t    labels_sz;
+    LocalVar* locals;
+    size_t    locals_sz;
+    size_t    locals_alloc;
 };
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -171,6 +179,23 @@ bytecode_setlabel(Bytecode* bc, Label lbl)
     bc->_->labels[lbl].address = bc->code_sz;
 }
 
+
+// }}}
+
+// {{{ LOCAL VARIABLES
+
+void
+bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable)
+{
+    if(bc->_->locals_sz >= bc->_->locals_alloc) {
+        bc->_->locals_alloc *= 2;
+        bc->_->locals = realloc(bc->_->locals, bc->_->locals_alloc * sizeof(LocalVar));
+    }
+    bc->_->locals[bc->_->locals_sz++] = (LocalVar) {
+        .name = strdup(varname),
+        .mutable = mutable,
+    };
+}
 
 // }}}
 

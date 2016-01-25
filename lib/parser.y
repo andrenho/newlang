@@ -49,8 +49,10 @@ typedef struct String {
 %token <boolean> BOOLEAN
 %token <_string> STRING
 %token <str>     IDENTIFIER
-%token NIL SEP
+%token NIL LET
+%token SEP
 
+%precedence '='
 %precedence '?'
 %precedence ':'
 %left       CCAND CCOR
@@ -89,9 +91,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | strings
    | array
    | table
-   | exp '.' IDENTIFIER { bytecode_addcode(b, PUSH_S);
-                          bytecode_addcodestr(b, $3);
-                          bytecode_addcode(b, LOOKUP); }
+   | local_assignment
    | ternary
    | ccand
    | ccor
@@ -122,8 +122,16 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | exp '[' exp ']'     { bytecode_addcode(b, LOOKUP);  }
    | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
+   | exp '.' IDENTIFIER { bytecode_addcode(b, PUSH_S);
+                          bytecode_addcodestr(b, $3);
+                          bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
    ;
+
+// local variable assingment (TODO)
+local_assignment: LET IDENTIFIER { bytecode_addlocalassignment(b, $2, false); } 
+                  '=' exp { bytecode_addcode(b, ADDCONST); }
+                ;
 
 // strings
 string: STRING { 

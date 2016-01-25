@@ -13,11 +13,19 @@
 #include "lib/opcode.h"
 #include "lib/hash.h"
 
+typedef struct LocalVariable {
+    ZValue* value;
+    bool    mutable;
+} LocalVariable;
+
 typedef struct Zoe {
-    ERROR    errorf;
-    ZValue*  stack[STACK_MAX];
-    STPOS    stack_sz;
-    ZValue** values;
+    ERROR          errorf;
+    ZValue*        stack[STACK_MAX];
+    STPOS          stack_sz;
+    ZValue**       values;
+    LocalVariable* locals;
+    size_t         locals_top;
+    size_t         locals_alloc;
 #ifdef DEBUG
     bool     debug_asm;
 #endif
@@ -47,11 +55,18 @@ zoe_createvm(ERROR errorf)
 }
 
 
+static void zoe_poplocal(Zoe* Z);
+
 void
 zoe_free(Zoe* Z)
 {
     zoe_pop(Z, zoe_stacksize(Z));
-    // TODO - free values
+    while(Z->locals_top) {
+        zoe_poplocal(Z);
+    }
+    if(Z->locals) {
+        free(Z->locals);
+    }
     free(Z);
 }
 
@@ -367,6 +382,26 @@ inline void        zoe_peeknil(Zoe* Z)     { zoe_getnil(Z, -1); }
 inline bool        zoe_peekboolean(Zoe* Z) { return zoe_getboolean(Z, -1); }
 inline double      zoe_peeknumber(Zoe* Z)  { return zoe_getnumber(Z, -1); }
 inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
+
+// }}}
+
+// {{{ LOCAL VARIABLES
+
+static void zoe_pushlocal(Zoe* Z, ZValue* value, bool mutable)
+{
+    if(Z->locals_top == Z->locals_alloc) {
+        Z->locals_alloc *= 2;
+        Z->locals = realloc(Z->locals, Z->locals_alloc * sizeof(LocalVariable));
+    }
+    Z->locals[Z->locals_top].value = value;
+    Z->locals[Z->locals_top++].mutable = mutable;
+    zoe_inc_ref(Z, value);
+}
+
+static void zoe_poplocal(Zoe* Z)
+{
+    zoe_dec_ref(Z, Z->locals[--Z->locals_top].value);
+}
 
 // }}}
 
@@ -876,6 +911,11 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             case PUSHTBL: zoe_pushtable(Z); ++p; break;
             case TBLSET:  zoe_table_set(Z); ++p; break;
+
+            //
+            // local variables
+            //
+            case ADDCONST: zoe_pushlocal(Z, zoe_stack_get(Z, -1), false); ++p; break;
             
             //
             // others
@@ -1076,12 +1116,13 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
                 snprintf(buf, nbuf, "Btrue   %s", xbuf);
                 return 9;
             }
-        case PUSHARY: snprintf(buf, nbuf, "PUSHARY"); return 1;
-        case APPEND:  snprintf(buf, nbuf, "APPEND");  return 1;
-        case PUSHTBL: snprintf(buf, nbuf, "PUSHTBL"); return 1;
-        case TBLSET:  snprintf(buf, nbuf, "TBLSET");  return 1;
-        case SLICE:   snprintf(buf, nbuf, "SLICE");   return 1;
-        case END:     snprintf(buf, nbuf, "END");     return 1;
+        case PUSHARY:  snprintf(buf, nbuf, "PUSHARY");  return 1;
+        case APPEND:   snprintf(buf, nbuf, "APPEND");   return 1;
+        case PUSHTBL:  snprintf(buf, nbuf, "PUSHTBL");  return 1;
+        case TBLSET:   snprintf(buf, nbuf, "TBLSET");   return 1;
+        case SLICE:    snprintf(buf, nbuf, "SLICE");    return 1;
+        case ADDCONST: snprintf(buf, nbuf, "ADDCONST"); return 1;
+        case END:      snprintf(buf, nbuf, "END");      return 1;
         default:
             snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);
     }

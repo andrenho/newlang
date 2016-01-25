@@ -9,6 +9,7 @@
 #error Sorry, Zoe is not yet implemented for machines where sizeof(double) != 8.
 #endif
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,6 +52,11 @@ void      bytecode_addcodestr(Bytecode* bc, const char* str);
 Label     bytecode_createlabel(Bytecode* bc);
 void      bytecode_setlabel(Bytecode* bc, Label lbl);
 void      bytecode_addcodelabel(Bytecode* bc, Label lbl);
+
+// 
+// LOCAL VARIABLES
+//
+void      bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable);
 
 //
 // GENERATE ZB FILE

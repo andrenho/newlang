@@ -35,7 +35,10 @@ Other:
 
 Other steps:
 
- - assingment + scope
+ - local variables
+   - expression management
+   - multiple scopes
+ - array/table assingment
    - delete record from table
  - complex garbage collection
  - environments

@@ -31,7 +31,7 @@ FLOAT        [0-9][0-9_]*\.[0-9_]+
 
 IDENTIFIER   [[:alpha:]_][[:alnum:]_]*
 
-SPECIALCHARS [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,\#\!\{\}\.]
+SPECIALCHARS [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,\#\!\{\}\.\=]
 
 SEPARATOR    [\n\;]+
 
@@ -58,6 +58,8 @@ SPACES       [ \t]+
 
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
+nil             { return NIL; }
+let             { return LET; }
 
 '                     { yy_push_state(STR, yyscanner);
                         yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
@@ -76,8 +78,6 @@ false           { yylval->boolean = false; return BOOLEAN; }
 
 <SB>\}                { yy_pop_state(yyscanner);
                         yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
-
-nil             { return NIL; }
 
 {SPECIALCHARS}  { return yytext[0]; }
 

@@ -684,6 +684,17 @@ static char* test_table_equality(void)
 
 // }}}
 
+// {{{ LOCAL VARIABLES
+
+static char* test_local_vars(void)
+{
+    mu_assert_nexpr("let a = 4", 4);
+
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_bytecode_gen);
@@ -713,6 +724,7 @@ static char* all_tests(void)
     mu_run_test(test_table);
     mu_run_test(test_table_access);
     mu_run_test(test_table_equality);
+    mu_run_test(test_local_vars);
     return 0;
 }
 

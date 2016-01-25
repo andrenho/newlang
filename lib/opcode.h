@@ -57,6 +57,9 @@ typedef enum Opcode {
     PUSHTBL  = 0x48,
     TBLSET   = 0x49,
 
+    // local variables
+    ADDCONST = 0x50,
+
     // others
     END      = 0xFF,
 
