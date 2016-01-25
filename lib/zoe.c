@@ -596,6 +596,19 @@ void zoe_lookup(Zoe* Z)
 }
 
 
+struct Eq { Zoe* Z; Hash* h; bool* r; };
+static void table_eq(ZValue* key, ZValue* value, void* data)
+{
+    struct Eq* eq = data;
+    ZValue* nvalue = hash_get(eq->h, key);
+    if(!nvalue) {
+        *(eq->r) = false;
+    } else {
+        *(eq->r) = zoe_eq(eq->Z, value, nvalue);
+    }
+}
+
+
 bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
 {
     if(a->type != b->type) {
@@ -623,6 +636,12 @@ bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
             case FUNCTION:
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
+            case TABLE: {
+                    bool r;
+                    struct Eq eq = { Z, a->table, &r };
+                    hash_iterate(a->table, table_eq, &eq);
+                    return eq.r;
+                }
             default:
                 zoe_error(Z, "equality does not exists for type %s", zvalue_typename(a->type));
                 return false;
