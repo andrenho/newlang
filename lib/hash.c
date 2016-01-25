@@ -215,6 +215,19 @@ hash_del(Hash* h, ZValue* key)
     return false;
 }
 
+
+void
+hash_iterate(Hash* h, void(*iterator)(ZValue* key, ZValue* value, void* data), void* data)
+{
+    for(uint64_t i=0; i<h->n_buckets; ++i) {
+        ZValueLL* place = h->buckets[i];
+        while(place) {
+            iterator(place->key, place->value, data);
+            place = place->next;
+        }
+    }
+}
+
 // }}}
 
 // {{{ INFORMATION

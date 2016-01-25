@@ -1,5 +1,6 @@
 #include "lib/zvalue.h"
 
+#include "lib/hash.h"
 #include "lib/global.h"
 
 // {{{ MEMORY MANAGEMENT
@@ -25,6 +26,9 @@ void zvalue_free_structure(ZValue* value)
                     free(value->function.bytecode.data);
                     break;
             }
+            break;
+        case TABLE:
+            hash_free(value->table);
             break;
     }
 }
@@ -59,6 +63,7 @@ char* zvalue_typename(ZType type)
         case FUNCTION: return "function";
         case STRING:   return "string";
         case ARRAY:    return "array";
+        case TABLE:    return "table";
         default:       return "undefined (?)";
     }
 }

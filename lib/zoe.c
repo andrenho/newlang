@@ -11,6 +11,7 @@
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
+#include "lib/hash.h"
 
 typedef struct Zoe {
     ERROR    errorf;
@@ -266,11 +267,19 @@ zoe_pushstring(Zoe* Z, char* s)
     value->string = strdup(s);
 }
 
-void zoe_pusharray(Zoe* Z)
+void 
+zoe_pusharray(Zoe* Z)
 {
     ZValue* value = zoe_stack_pushnew(Z, ARRAY);
     value->array.n = 0;
     value->array.items = NULL;
+}
+
+void
+zoe_pushtable(Zoe* Z)
+{
+    ZValue* value = zoe_stack_pushnew(Z, TABLE);
+    value->table = hash_new(Z);
 }
 
 void
@@ -437,11 +446,22 @@ zoe_hash_value(Zoe* Z, ZValue* value)
             }
         case FUNCTION:
         case ARRAY:
+        case TABLE:
             zoe_error(Z, "No hash function for this value.");
             return 0;
         default:
             abort();
     }
+}
+
+void
+zoe_table_set(Zoe* Z)
+{
+    ZValue *tbl = zoe_checktype(Z, -3, TABLE),
+           *key = zoe_stack_get(Z, -2),
+           *value = zoe_stack_get(Z, -1);
+    hash_set(tbl->table, key, value);
+    zoe_pop(Z, 2);
 }
 
 // }}}
@@ -810,6 +830,12 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             case PUSHARY: zoe_pusharray(Z);   ++p; break;
             case APPEND:  zoe_arrayappend(Z); ++p; break;
+
+            //
+            // tables
+            //
+            case PUSHTBL: zoe_pushtable(Z); ++p; break;
+            case TBLSET:  zoe_table_set(Z); ++p; break;
             
             //
             // others
@@ -1012,6 +1038,8 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
             }
         case PUSHARY: snprintf(buf, nbuf, "PUSHARY"); return 1;
         case APPEND:  snprintf(buf, nbuf, "APPEND");  return 1;
+        case PUSHTBL: snprintf(buf, nbuf, "PUSHTBL"); return 1;
+        case TBLSET:  snprintf(buf, nbuf, "TBLSET");  return 1;
         case SLICE:   snprintf(buf, nbuf, "SLICE");   return 1;
         case END:     snprintf(buf, nbuf, "END");     return 1;
         default:
@@ -1109,6 +1137,25 @@ static void zoe_dbgstack(Zoe* Z)
 
 // {{{ INSPECTION
 
+static char* zvalue_inspect(Zoe* Z, ZValue* value);
+struct InspectPair { Zoe* Z; char** buf; };
+
+static void table_inspect(ZValue* key, ZValue* value, void* data)
+{
+    struct InspectPair* ip = data;
+
+    char *vbuf = zvalue_inspect(ip->Z, value);
+    if(key->type == STRING) {
+        *ip->buf = realloc(*ip->buf, strlen(*ip->buf) + strlen(key->string) + strlen(vbuf) + 5);
+        sprintf(*ip->buf, "%s%s: %s, ", *ip->buf, key->string, vbuf);
+    } else {
+        char *kbuf = zvalue_inspect(ip->Z, key);
+        *ip->buf = realloc(*ip->buf, strlen(*ip->buf) + strlen(kbuf) + strlen(vbuf) + 7);
+        sprintf(*ip->buf, "%s[%s]: %s, ", *ip->buf, kbuf, vbuf);
+        free(kbuf);
+    }
+    free(vbuf);
+}
 
 static char* zvalue_inspect(Zoe* Z, ZValue* value)
 {
@@ -1151,6 +1198,17 @@ static char* zvalue_inspect(Zoe* Z, ZValue* value)
                 }
                 buf = realloc(buf, strlen(buf)+2);
                 strcat(buf, "]");
+                return buf;
+            }
+        case TABLE: {
+                char* buf = strdup("{");
+                buf = realloc(buf, strlen(buf)+2);
+                struct InspectPair ip = { Z, &buf };
+                hash_iterate(value->table, table_inspect, &ip);
+                if(buf[1] != 0) { // not empty
+                    buf[strlen(buf)-2] = 0;  // remove last comma
+                }
+                strcat(buf, "}");
                 return buf;
             }
         default: {

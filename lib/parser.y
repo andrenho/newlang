@@ -38,15 +38,17 @@ typedef struct String {
 %defines "lib/parser.tab.h"
 
 %union {
-    double number;
-    bool   boolean;
-    String _string;
-    Label  label;
+    double      number;
+    bool        boolean;
+    String      _string;
+    const char* str;
+    Label       label;
 }
 
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <_string> STRING
+%token <str>     IDENTIFIER
 %token NIL SEP
 
 %precedence '?'
@@ -85,6 +87,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
    | strings
    | array
+   | table
    | ternary
    | ccand
    | ccor
@@ -118,17 +121,6 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '(' exp ')'
    ;
 
-// lookup position
-lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
-          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); } 
-            exp          { bytecode_addcode(b, SLICE); }
-          | exp ':'      { bytecode_addcode(b, PUSH_Nil); 
-                           bytecode_addcode(b, SLICE); }
-          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); 
-                           bytecode_addcode(b, PUSH_Nil);
-                           bytecode_addcode(b, SLICE); }
-          ;
-
 // strings
 string: STRING { 
             bytecode_addcode(b, PUSH_S); 
@@ -151,6 +143,33 @@ array_items: %empty
            ;
 
 array_item: exp { bytecode_addcode(b, APPEND); }
+          ;
+
+// table initialization
+table: '{' { bytecode_addcode(b, PUSHTBL); } tbl_items '}'
+     ;
+
+tbl_items: %empty
+         | tbl_item
+         | tbl_item ',' tbl_items
+         ;
+
+tbl_item: IDENTIFIER { 
+              bytecode_addcode(b, PUSH_S);
+              bytecode_addcodestr(b, $1);
+           } ':' exp { bytecode_addcode(b, TBLSET); }
+        | '[' exp ']' ':' exp { bytecode_addcode(b, TBLSET); }
+        ;
+
+// lookup position
+lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
+          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); } 
+            exp          { bytecode_addcode(b, SLICE); }
+          | exp ':'      { bytecode_addcode(b, PUSH_Nil); 
+                           bytecode_addcode(b, SLICE); }
+          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); 
+                           bytecode_addcode(b, PUSH_Nil);
+                           bytecode_addcode(b, SLICE); }
           ;
 
 // short-circuit AND

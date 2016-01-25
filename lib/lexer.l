@@ -21,19 +21,21 @@ static char* remove_undersc(char* t);
 %option stack
 %option warn
 
-INTEGER     [0-9][0-9_]*
-BINARY      0[Bb][01_]+
-HEXDIGIT    [0-9A-Fa-f_]
-HEX         0[Xx]{HEXDIGIT}+
-OCTAL       0[Oo][0-7_]+
+INTEGER      [0-9][0-9_]*
+BINARY       0[Bb][01_]+
+HEXDIGIT     [0-9A-Fa-f_]
+HEX          0[Xx]{HEXDIGIT}+
+OCTAL        0[Oo][0-7_]+
 
-FLOAT       [0-9][0-9_]*\.[0-9_]+
+FLOAT        [0-9][0-9_]*\.[0-9_]+
 
-OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,\#\!]
+IDENTIFIER   [[:alpha:]_][[:alnum:]_]*
 
-SEPARATOR   [\n\;]+
+SPECIALCHARS [\+\-\*\/%\(\)\^\~\&\|\<\>\:\?\[\]\,\#\!\{\}]
 
-SPACES      [ \t]+
+SEPARATOR    [\n\;]+
+
+SPACES       [ \t]+
 
 %x STR CMT
 %s SB
@@ -77,7 +79,9 @@ false           { yylval->boolean = false; return BOOLEAN; }
 
 nil             { return NIL; }
 
-{OPERANDS}      { return yytext[0]; }
+{SPECIALCHARS}  { return yytext[0]; }
+
+{IDENTIFIER}    { yylval->str = yytext; return IDENTIFIER; }
 
 \/\/            { return _IDIV; }
 \*\*            { return _POW; }

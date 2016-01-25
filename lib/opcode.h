@@ -53,6 +53,10 @@ typedef enum Opcode {
     PUSHARY  = 0x40,
     APPEND   = 0x41,
 
+    // tables
+    PUSHTBL  = 0x48,
+    TBLSET   = 0x49,
+
     // others
     END      = 0xFF,
 

@@ -617,6 +617,56 @@ static char* test_hash_stress(void)
 
 // }}}
 
+// {{{
+
+static char* test_table(void)
+{
+    mu_assert_inspect("{}", "{}");
+    mu_assert_inspect("{hello: 'world'}", "{hello: 'world'}");
+    mu_assert_inspect("{hello: 'world',}", "{hello: 'world'}");
+    mu_assert_inspect("{b: {a:1}}", "{b: {a: 1}}");
+    mu_assert_inspect("{hello: []}", "{hello: []}");
+    mu_assert_inspect("{[2]: 3, abc: {d: {e: 42}}}", "{[2]: 3, abc: {d: {e: 42}}}"); 
+
+    return 0;
+}
+
+static char* test_table_access(void)
+{
+    mu_assert_sexpr("{hello: 'world', a: 42}['hello']", "world");
+    mu_assert_sexpr("{hello: 'world', a: 42}.hello", "world");
+    mu_assert_nexpr("{hello: 'world', a: 42}.a", 42);
+    mu_assert_nexpr("{hello: {world: 42}}.world.hello", 42);
+    mu_assert_nexpr("{hello: {world: 42}}['world']['hello']", 42);
+
+    Zoe* Z = zoe_createvm(NULL);
+    error_found = false;
+    zoe_eval(Z, "{hello: 'world'}.a");
+    zoe_call(Z, 0);
+    mu_assert("key error", error_found);
+    zoe_free(Z);
+
+    return 0;
+}
+
+static char* test_table_equality(void)
+{
+    mu_assert_bexpr("{}=={}", true);
+    mu_assert_bexpr("{hello: 'world'}=={hello: 'world'}", true);
+    mu_assert_bexpr("{b: {a:1}}=={b: {a:1}}", true);
+    mu_assert_bexpr("{[2]: 3, abc: {d: {e: 42}}}=={[2]: 3, abc: {d: {e: 42}}}", true);
+    mu_assert_bexpr("{}=={hello: 'world'}", false);
+    mu_assert_bexpr("{hello: 'world'}=={}", false);
+    mu_assert_bexpr("{b: {a:1}}=={b: 1}", false);
+    mu_assert_bexpr("{b: {a:1}}=={b: {a:2}}", false);
+    mu_assert_bexpr("{b: {a:1}}=={b: {c:1}}", false);
+
+    return 0;
+}
+
+// }}}
+
+
 static char* all_tests(void)
 {
     mu_run_test(test_bytecode_gen);
@@ -642,6 +692,9 @@ static char* all_tests(void)
     mu_run_test(test_hash);
     mu_run_test(test_hash_grow_shrink);
     mu_run_test(test_hash_stress);
+    mu_run_test(test_table);
+    mu_run_test(test_table_access);
+    mu_run_test(test_table_equality);
     return 0;
 }
 

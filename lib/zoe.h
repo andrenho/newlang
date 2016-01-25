@@ -33,6 +33,8 @@ void        zoe_pushboolean(Zoe* Z, bool b);
 void        zoe_pushnumber(Zoe* Z, double n);
 void        zoe_pushbfunction(Zoe* Z, uint8_t* data, size_t sz);
 void        zoe_pushstring(Zoe* Z, char* s);
+void        zoe_pusharray(Zoe* Z);
+void        zoe_pushtable(Zoe* Z);
 
 void        zoe_pop(Zoe* Z, size_t count);
 
@@ -56,13 +58,13 @@ char const* zoe_peekstring(Zoe* Z);
 //
 // ARRAY MANAGEMENT
 // 
-void zoe_pusharray(Zoe* Z);
 void zoe_arrayappend(Zoe* Z);
 
 //
 // HASH MANAGEMENT
 //
 uint64_t zoe_hash_value(Zoe* Z, ZValue* value);
+void     zoe_table_set(Zoe* Z);
 
 //
 // ERROR MANAGEMENT

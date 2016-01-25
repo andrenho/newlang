@@ -5,8 +5,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+//#include "hash.h"
+
 // TYPES
-typedef enum ZType { NIL, BOOLEAN, NUMBER, STRING, FUNCTION, ARRAY } ZType;
+typedef enum ZType { 
+    NIL, BOOLEAN, NUMBER, STRING, FUNCTION, ARRAY, TABLE,
+} ZType;
 
 // TYPES SPECIFICATION
 typedef struct ZArray {
@@ -33,11 +37,12 @@ typedef struct ZValue {
     ZType   type;
     ssize_t ref_count;
     union {
-        bool      boolean;
-        double    number;
-        char*     string;
-        ZFunction function;
-        ZArray    array;
+        bool         boolean;
+        double       number;
+        char*        string;
+        ZFunction    function;
+        ZArray       array;
+        struct Hash* table;
     };
     struct ZValue *prev,
                   *next;
