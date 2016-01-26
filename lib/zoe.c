@@ -388,7 +388,8 @@ inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
 
 // {{{ LOCAL VARIABLES
 
-static void zoe_pushlocal(Zoe* Z, ZValue* value, bool mutable)
+static void
+zoe_pushlocal(Zoe* Z, ZValue* value, bool mutable)
 {
     if(Z->locals_top == Z->locals_alloc) {
         Z->locals_alloc = Z->locals_alloc * 2 + 1;
@@ -399,18 +400,41 @@ static void zoe_pushlocal(Zoe* Z, ZValue* value, bool mutable)
     zoe_inc_ref(Z, value);
 }
 
-static void zoe_poplocal(Zoe* Z)
+
+static void
+zoe_pushmultiplelocal(Zoe* Z, uint8_t count, ZValue* value, bool mutable)
+{
+    if(value->type != ARRAY) {
+        zoe_error(Z, "Expected array, found %s.", zvalue_typename(value->type));
+        return;
+    }
+    
+    ZArray* array = &value->array;
+    if(array->n != count) {
+        zoe_error(Z, "The number of assignment elements doesn't match the number of items in the array (%zd found, expected %d).",
+                array->n, count);
+        return;
+    }
+
+    for(uint8_t i=0; i<count; ++i) {
+        zoe_pushlocal(Z, array->items[i], mutable);
+    }
+}
+
+
+static void
+zoe_poplocal(Zoe* Z)
 {
     zoe_dec_ref(Z, Z->locals[--Z->locals_top].value);
 }
 
 
-static void zoe_getlocal(Zoe* Z, int64_t idx)
+static void
+zoe_getlocal(Zoe* Z, int64_t idx)
 {
     assert(idx < 0);
     zoe_stack_pushexisting(Z, Z->locals[Z->locals_top+idx].value);
 }
-
 
 // }}}
 
@@ -924,7 +948,8 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             // local variables
             //
-            case ADDCONST: zoe_pushlocal(Z, zoe_stack_get(Z, -1), false); ++p; break;
+            case ADDCNST:  zoe_pushlocal(Z, zoe_stack_get(Z, -1), false); ++p; break;
+            case ADDMCNST: zoe_pushmultiplelocal(Z, bc->code[p+1], zoe_stack_get(Z, -1), false); p += 2; break;
             case GETLOCAL: zoe_getlocal(Z, zoe_popnumber(Z)); ++p; break;
             
             //
@@ -1131,7 +1156,8 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case PUSHTBL:  snprintf(buf, nbuf, "PUSHTBL");  return 1;
         case TBLSET:   snprintf(buf, nbuf, "TBLSET");   return 1;
         case SLICE:    snprintf(buf, nbuf, "SLICE");    return 1;
-        case ADDCONST: snprintf(buf, nbuf, "ADDCONST"); return 1;
+        case ADDCNST:  snprintf(buf, nbuf, "ADDCNST");  return 1;
+        case ADDMCNST: snprintf(buf, nbuf, "ADDMCNST %d", code[p+1]); return 2;
         case GETLOCAL: snprintf(buf, nbuf, "GETLOCAL"); return 1;
         case END:      snprintf(buf, nbuf, "END");      return 1;
         default:

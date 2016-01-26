@@ -3,66 +3,37 @@
 
 typedef enum Opcode {
     // stack
-    PUSH_Nil = 0x01,
-    PUSH_Bt  = 0x02,
-    PUSH_Bf  = 0x03,
-    PUSH_N   = 0x04,
-    PUSH_S   = 0x05,
-    POP      = 0x0F,
+    PUSH_Nil, PUSH_Bt, PUSH_Bf, PUSH_N, PUSH_S, POP,
 
     // arithmetic
-    ADD      = 0x10,
-    SUB      = 0x11,
-    MUL      = 0x12,
-    DIV      = 0x13,
-    IDIV     = 0x14,
-    MOD      = 0x15,
-    POW      = 0x16,
-    NEG      = 0x17,
+    ADD, SUB, MUL, DIV, IDIV, MOD, POW, NEG,
 
     // bitwise
-    AND      = 0x18,
-    XOR      = 0x19,
-    OR       = 0x1F,
-    SHL      = 0x20,
-    SHR      = 0x21,
-    NOT      = 0x22,
+    AND, XOR, OR, SHL, SHR, NOT,
 
     // relational
-    LT       = 0x23,
-    LTE      = 0x24,
-    GT       = 0x25,
-    GTE      = 0x26,
-    EQ       = 0x27,
+    LT, LTE, GT, GTE, EQ,
 
     // string / array
-    CAT      = 0x28,
-    LEN      = 0x29,
-    LOOKUP   = 0x2A,
-    SLICE    = 0x2B,
+    CAT, LEN, LOOKUP, SLICE,
 
     // binary
-    BNOT     = 0x2F,
+    BNOT,
 
     // branches
-    JMP      = 0x30,
-    Bfalse   = 0x31,
-    Btrue    = 0x32,
+    JMP, Bfalse, Btrue,
 
     // arrays
-    PUSHARY  = 0x40,
-    APPEND   = 0x41,
+    PUSHARY, APPEND,
 
     // tables
-    PUSHTBL  = 0x48,
-    TBLSET   = 0x49,
+    PUSHTBL, TBLSET,
 
     // local variables
-    ADDCONST = 0x50,
-    GETLOCAL = 0x51,
+    ADDCNST, ADDMCNST, GETLOCAL,
 
     // others
-    END      = 0xFF,
+    END,
 
 } Opcode;
 

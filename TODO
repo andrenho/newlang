@@ -48,6 +48,7 @@ Other steps:
  - structured functions (metamethods, functions, visibility)
  - const correctness
  - error management
+   - error line
  - match
    - partial equality
    - wildcart '_' identifier

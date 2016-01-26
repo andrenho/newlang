@@ -26,6 +26,7 @@ struct B_Priv {
     LocalVar* locals;
     size_t    locals_sz;
     size_t    locals_alloc;
+    uint8_t   var_counter;
 };
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -227,6 +228,28 @@ bytecode_addcodelocal(Bytecode* bc, const char* varname)
     snprintf(buf, sizeof buf, "Variable '%s' not found.", varname);
     bc->_->errorf(buf);
 }
+
+void
+bytecode_varcounterreset(Bytecode* bc)
+{
+    bc->_->var_counter = 0;
+}
+
+void
+bytecode_varcounterinc(Bytecode* bc)
+{
+    if(bc->_->var_counter == 255) {
+        bc->_->errorf("Only 255 variables can be added simultaneously.");
+    }
+    ++bc->_->var_counter;
+}
+
+void
+bytecode_addcodevarcounter(Bytecode* bc)
+{
+    bytecode_addcode(bc, bc->_->var_counter);
+}
+
 
 // }}}
 

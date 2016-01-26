@@ -12,7 +12,7 @@ typedef struct Zoe Zoe;
 typedef int8_t STPOS;
 
 //
-// CONSTRUCTOR/DESTRUCTOR
+// CNSTRUCTOR/DESTRUCTOR
 //
 Zoe* zoe_createvm(ERROR errorf);
 void zoe_free(Zoe* Z);

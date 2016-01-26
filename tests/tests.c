@@ -95,7 +95,7 @@ static uint8_t expected[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
     POP, PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
-    0xFF,                                               // EOF
+    END,                                                // EOF
 };
 
 static char* test_bytecode_gen(void) 
@@ -113,7 +113,7 @@ static char* test_bytecode_gen(void)
     mu_assert("BZ size", sz == sizeof expected);
     for(size_t i=0; i<sz; ++i) {
         static char buf[100];
-        sprintf(buf, "%zuth byte", i);
+        sprintf(buf, "%zuth byte (expected: 0x%02X, found: 0x%02X)", i, expected[i], found[i]);
         mu_assert(buf, expected[i] == found[i]);
     }
     free(found);
@@ -647,13 +647,18 @@ static char* test_local_vars(void)
     mu_assert_nexpr("let a = let b = 25; b", 25);
     mu_assert_nexpr("let a = 25; let b = a; b", 25);
     mu_assert_nexpr("let a = 25; let b = a; let c = b; c", 25);
+    mu_assert_nexpr("let a = 25, b = 13; a", 25);
+    mu_assert_nexpr("let a = 25, b = 13, c = 48; b", 13);
+    mu_assert_nexpr("let a = 25, b = a, c = b; b", 25);
 
     return 0;
 }
 
 static char* test_multiple_assignment(void)
 {
-    // mu_assert_nexpr("let [a, b] = [3, 4]; a", 3);
+    mu_assert_nexpr("let [a, b] = [3, 4]; a", 3);
+    mu_assert_nexpr("let [a, b, c] = [3, 4, 5]; b", 4);
+    mu_assert_nexpr("let x = 8, [a, b, c] = [3, x, 5]; b", 8);
     return 0;
 }
 

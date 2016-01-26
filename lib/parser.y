@@ -74,6 +74,8 @@ typedef struct String {
 %error-verbose
 %start code
 
+%expect 1  /* TODO */
+
 %%
 
 code: expressions      { bytecode_addcode(b, END); }
@@ -125,23 +127,39 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | exp '[' exp ']'     { bytecode_addcode(b, LOOKUP);  }
    | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
-   | exp '.' IDENTIFIER { bytecode_addcode(b, PUSH_S);
-                          bytecode_addcodestr(b, $3); free($3);
-                          bytecode_addcode(b, LOOKUP); }
+   | exp '.' IDENTIFIER  { bytecode_addcode(b, PUSH_S);
+                           bytecode_addcodestr(b, $3); free($3);
+                           bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
    ;
 
 // local variable assingment (TODO)
-local_assignment: LET IDENTIFIER '=' exp { 
-                      bytecode_addlocalassignment(b, $2, false); free($2);
-                      bytecode_addcode(b, ADDCONST); 
-                  }
-                | LET '[' identifiers ']' '=' exp
+local_assignment: LET assignments
                 ;
 
-identifiers: identifiers ',' IDENTIFIER
-           | IDENTIFIER
+assignments: one_assignment
+           | assignments ',' { bytecode_addcode(b, POP); } one_assignment
            ;
+
+one_assignment: IDENTIFIER '=' exp { 
+                    bytecode_addlocalassignment(b, $1, false); free($1);
+                    bytecode_addcode(b, ADDCNST); 
+                }
+              | '[' { bytecode_varcounterreset(b); } mult_identifiers ']' '=' exp {
+                    bytecode_addcode(b, ADDMCNST); 
+                    bytecode_addcodevarcounter(b);
+                }
+              ;
+
+mult_identifiers: mult_identifiers ',' single_identifier
+                | single_identifier
+                ;
+
+single_identifier: IDENTIFIER {
+                        bytecode_addlocalassignment(b, $1, false); free($1);
+                        bytecode_varcounterinc(b);
+                    }
+                 ;
 
 // strings
 string: STRING { 
