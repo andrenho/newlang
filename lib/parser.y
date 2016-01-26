@@ -90,7 +90,7 @@ expression: { bytecode_addcode(b, POP); } exp;
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | IDENTIFIER         { bytecode_addcodelocal(b, $1); }
+   | IDENTIFIER         { bytecode_addcodelocal(b, $1); free($1); }
    | strings
    | array
    | table
@@ -136,7 +136,12 @@ local_assignment: LET IDENTIFIER '=' exp {
                       bytecode_addlocalassignment(b, $2, false); free($2);
                       bytecode_addcode(b, ADDCONST); 
                   }
+                | LET '[' identifiers ']' '=' exp
                 ;
+
+identifiers: identifiers ',' IDENTIFIER
+           | IDENTIFIER
+           ;
 
 // strings
 string: STRING { 
@@ -173,7 +178,7 @@ tbl_items: %empty
 
 tbl_item: IDENTIFIER { 
               bytecode_addcode(b, PUSH_S);
-              bytecode_addcodestr(b, $1);
+              bytecode_addcodestr(b, $1); free($1);
            } ':' exp { bytecode_addcode(b, TBLSET); }
         | '[' exp ']' ':' exp { bytecode_addcode(b, TBLSET); }
         ;

@@ -648,8 +648,12 @@ static char* test_local_vars(void)
     mu_assert_nexpr("let a = 25; let b = a; b", 25);
     mu_assert_nexpr("let a = 25; let b = a; let c = b; c", 25);
 
-    // mu_assert_nexpr("let c=12; let b = 25", 25);
+    return 0;
+}
 
+static char* test_multiple_assignment(void)
+{
+    // mu_assert_nexpr("let [a, b] = [3, 4]; a", 3);
     return 0;
 }
 
@@ -684,6 +688,7 @@ static char* all_tests(void)
     mu_run_test(test_table_access);
     mu_run_test(test_table_equality);
     mu_run_test(test_local_vars);
+    mu_run_test(test_multiple_assignment);
     return 0;
 }
 
