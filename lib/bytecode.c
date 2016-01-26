@@ -14,8 +14,8 @@ typedef struct LabelRef {
 } LabelRef;
 
 typedef struct LocalVar {
-    const char* name;
-    bool        mutable;
+    char* name;
+    bool  mutable;
 } LocalVar;
 
 struct B_Priv {
@@ -85,16 +85,29 @@ bytecode_newfromzb(uint8_t* data, size_t sz, ERROR errorf)
 void
 bytecode_free(Bytecode* bc)
 {
+    // free code
     if(bc->code) {
         free(bc->code);
     }
+
+    // free labels
     for(size_t i=0; i<bc->_->labels_sz; ++i) {
         free(bc->_->labels[i].refs);
     }
     free(bc->_->labels);
+
+    // free locals
+    for(size_t i=0; i<bc->_->locals_sz; ++i) {
+        free(bc->_->locals[i].name);
+    }
+    free(bc->_->locals);
+
+    // free privates
     if(bc->_) {
         free(bc->_);
     }
+
+    // free bytecode
     free(bc);
 }
 
@@ -188,13 +201,31 @@ void
 bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable)
 {
     if(bc->_->locals_sz >= bc->_->locals_alloc) {
-        bc->_->locals_alloc *= 2;
+        bc->_->locals_alloc = 2 * bc->_->locals_alloc + 1;
         bc->_->locals = realloc(bc->_->locals, bc->_->locals_alloc * sizeof(LocalVar));
     }
     bc->_->locals[bc->_->locals_sz++] = (LocalVar) {
         .name = strdup(varname),
         .mutable = mutable,
     };
+}
+
+
+void
+bytecode_addcodelocal(Bytecode* bc, const char* varname)
+{
+    ssize_t i = -1;
+    for(ssize_t j = bc->_->locals_sz - 1; j >= 0; --j, --i) {
+        if(strcmp(bc->_->locals[j].name, varname) == 0) {
+            bytecode_addcode(bc, PUSH_N);
+            bytecode_addcodef64(bc, i);
+            bytecode_addcode(bc, GETLOCAL);
+            return;
+        }
+    }
+    static char buf[512];
+    snprintf(buf, sizeof buf, "Variable '%s' not found.", varname);
+    bc->_->errorf(buf);
 }
 
 // }}}

@@ -81,7 +81,7 @@ let             { return LET; }
 
 {SPECIALCHARS}  { return yytext[0]; }
 
-{IDENTIFIER}    { yylval->str = yytext; return IDENTIFIER; }
+{IDENTIFIER}    { yylval->str = strdup(yytext); return IDENTIFIER; }
 
 \/\/            { return _IDIV; }
 \*\*            { return _POW; }

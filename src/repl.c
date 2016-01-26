@@ -54,9 +54,6 @@ void repl_execute(Options* opt)
         printf("%s\n", result);
         free(result);
 
-        // pop the result
-        zoe_pop(Z, 1);
-
         free(buf);
     }
 

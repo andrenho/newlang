@@ -89,12 +89,12 @@ static char* inspect_expr(char* expr)
 static uint8_t expected[] = {
     0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
     0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
-    0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
+    0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_pos
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_sz
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
-    PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
+    POP, PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
     0xFF,                                               // EOF
 };
 
@@ -102,6 +102,7 @@ static char* test_bytecode_gen(void)
 {
     Bytecode* bc = bytecode_new(NULL);
 
+    bytecode_addcode(bc, POP);
     bytecode_addcode(bc, PUSH_N);
     bytecode_addcodef64(bc, 3.1416);
     bytecode_addcode(bc, END);
@@ -128,10 +129,10 @@ static char* test_bytecode_import(void)
     Bytecode* bc = bytecode_newfromzb(expected, sizeof expected, NULL);
 
     mu_assert("version minor", bc->version_minor == 0x1);
-    mu_assert("code_sz", bc->code_sz == 10);
-    mu_assert("code[0]", bc->code[0] == PUSH_N);
-    mu_assert("code[1]", bc->code[1] == 0xA7);
-    mu_assert("code[8]", bc->code[8] == 0x40);
+    mu_assert("code_sz", bc->code_sz == 11);
+    mu_assert("code[0]", bc->code[1] == PUSH_N);
+    mu_assert("code[1]", bc->code[2] == 0xA7);
+    mu_assert("code[8]", bc->code[9] == 0x40);
 
     bytecode_free(bc);
 
@@ -161,58 +162,6 @@ static char* test_bytecode_simplecode(void)
 
 // }}}
 
-// {{{ WORLD
-
-extern ZValue* zoe_alloc(Zoe* Z, ZType type);
-extern void zoe_release(Zoe* Z, ZValue* value);
-
-
-static char* test_world(void)
-{
-    /*
-    Zoe* Z = zoe_createvm(NULL);
-
-    ZValue* v1 = zoe_alloc(Z, NUMBER);
-    v1->number = 1;
-    zoe_inc_ref(Z, v1);
-    mu_assert("Count values = 1", zworld_ref_count(w) == 1);
-
-    ZValue* v2 = zoe_alloc(Z, NUMBER);
-    v2->number = 2;
-    zoe_inc_ref(Z, v2);
-    mu_assert("Count values = 2", zworld_ref_count(w) == 2);
-
-    ZValue* v3 = zoe_alloc(Z, NUMBER);
-    v2->number = 3;
-    zoe_inc_ref(Z, v3);
-    mu_assert("Count values = 3", zworld_ref_count(w) == 3);
-
-    zoe_dec_ref(Z, v2);
-    mu_assert("Record #2 eliminated", zworld_ref_count(w) == 2);
-
-    zoe_dec_ref(Z, v1);
-    mu_assert("Record #1 eliminated", zworld_ref_count(w) == 1);
-
-    zoe_dec_ref(Z, v3);
-    mu_assert("Record #3 eliminated", zworld_ref_count(w) == 0);
-
-    ZValue* v4 = zoe_alloc(Z, NUMBER);
-    v4->number = 4;
-    zoe_inc_ref(Z, v4);
-    mu_assert("Count values = 1", zworld_ref_count(w) == 1);
-
-    zoe_dec_ref(Z, v4);
-    mu_assert("Record #4 eliminated", zworld_ref_count(w) == 0);
-
-    // right here, running with valgrind should return no leaks
-
-    zoe_free(Z);
-    */
-    return 0;
-}
-
-// }}}
-
 // {{{ LOW-LEVEL STACK
 
 bool error_found = false;
@@ -230,19 +179,20 @@ static char* test_stack(void)
 {
     Zoe* Z = zoe_createvm(test_error);
 
-    mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
+    mu_assert("stack size == 1", zoe_stacksize(Z) == 1);
 
     zoe_stack_pushnew(Z, NIL);
-    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("stack size == 2 (after push)", zoe_stacksize(Z) == 2);
     mu_assert("stack abs 0 = 0", zoe_absindex(Z, 0) == 0);
-    mu_assert("stack abs -1 = 0", zoe_absindex(Z, -1) == 0);
+    mu_assert("stack abs -1 = 1", zoe_absindex(Z, -1) == 1);
 
     mu_assert("push & peek", zoe_stack_get(Z, -1)->type == NIL);
 
     zoe_stack_pop(Z);
-    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+    mu_assert("stack size == 1 (after push/pop)", zoe_stacksize(Z) == 1);
     
     mu_assert("no errors so far", !error_found);
+    zoe_stack_pop(Z);
     zoe_stack_pop(Z);
     mu_assert("stack underflow", error_found);
 
@@ -263,14 +213,14 @@ static char* test_zoe_stack(void)
 {
     Zoe* Z = zoe_createvm(NULL);
 
-    mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
+    mu_assert("stack size == 1", zoe_stacksize(Z) == 1);
 
     double f = 3.24;
     zoe_pushnumber(Z, f);
-    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("stack size == 2 (after push)", zoe_stacksize(Z) == 2);
     mu_assert("peek", zoe_peeknumber(Z) == f);
     mu_assert("pop", zoe_popnumber(Z) == f);
-    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+    mu_assert("stack size == 1 (after push/pop)", zoe_stacksize(Z) == 1);
 
     zoe_free(Z);
     return 0;
@@ -284,10 +234,11 @@ static char* test_zoe_stack_order(void)
     zoe_pushnumber(Z, 1);
     zoe_pushnumber(Z, 2);
     zoe_pushnumber(Z, 3);
-    mu_assert("stack size == 3", zoe_stacksize(Z) == 3);
+    mu_assert("stack size == 4", zoe_stacksize(Z) == 4);
     mu_assert("pop == 3", zoe_popnumber(Z) == 3);
     mu_assert("pop == 3", zoe_popnumber(Z) == 2);
     mu_assert("pop == 3", zoe_popnumber(Z) == 1);
+    zoe_popnil(Z);
     mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
 
     zoe_free(Z);
@@ -300,14 +251,14 @@ static char* test_zoe_string(void)
     Zoe* Z = zoe_createvm(NULL);
     
     zoe_pushstring(Z, "hello world");
-    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("stack size == 2 (after push)", zoe_stacksize(Z) == 2);
     mu_assert("peek", strcmp(zoe_peekstring(Z), "hello world") == 0);
 
     char* buf = zoe_popstring(Z);
     mu_assert("pop", strcmp(buf, "hello world") == 0);
     free(buf);
 
-    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+    mu_assert("stack size == 1 (after push/pop)", zoe_stacksize(Z) == 1);
     zoe_free(Z);
 
     return 0;
@@ -324,7 +275,7 @@ static char* test_execution(void)
 
     // load code
     zoe_eval(Z, "42");
-    mu_assert("eval pushed into stack", zoe_stacksize(Z) == 1);
+    mu_assert("eval pushed into stack", zoe_stacksize(Z) == 2);
     mu_assert("type == function", zoe_peektype(Z) == FUNCTION);
 
     // execute code
@@ -689,6 +640,15 @@ static char* test_table_equality(void)
 static char* test_local_vars(void)
 {
     mu_assert_nexpr("let a = 4", 4);
+    mu_assert_nexpr("let a = 4; a", 4);
+    mu_assert_nexpr("let a = 4; let b = 25; a", 4);
+    mu_assert_nexpr("let a = 4; let b = 25; b", 25);
+    mu_assert_nexpr("let a = let b = 25; a", 25);
+    mu_assert_nexpr("let a = let b = 25; b", 25);
+    mu_assert_nexpr("let a = 25; let b = a; b", 25);
+    mu_assert_nexpr("let a = 25; let b = a; let c = b; c", 25);
+
+    // mu_assert_nexpr("let c=12; let b = 25", 25);
 
     return 0;
 }
@@ -700,7 +660,6 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_gen);
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
-    mu_run_test(test_world);
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);

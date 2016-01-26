@@ -51,6 +51,7 @@ zoe_createvm(ERROR errorf)
 #ifdef DEBUG
     Z->debug_asm = false;
 #endif
+    zoe_pushnil(Z);
     return Z;
 }
 
@@ -390,7 +391,7 @@ inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
 static void zoe_pushlocal(Zoe* Z, ZValue* value, bool mutable)
 {
     if(Z->locals_top == Z->locals_alloc) {
-        Z->locals_alloc *= 2;
+        Z->locals_alloc = Z->locals_alloc * 2 + 1;
         Z->locals = realloc(Z->locals, Z->locals_alloc * sizeof(LocalVariable));
     }
     Z->locals[Z->locals_top].value = value;
@@ -402,6 +403,14 @@ static void zoe_poplocal(Zoe* Z)
 {
     zoe_dec_ref(Z, Z->locals[--Z->locals_top].value);
 }
+
+
+static void zoe_getlocal(Zoe* Z, int64_t idx)
+{
+    assert(idx < 0);
+    zoe_stack_pushexisting(Z, Z->locals[Z->locals_top+idx].value);
+}
+
 
 // }}}
 
@@ -916,6 +925,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             // local variables
             //
             case ADDCONST: zoe_pushlocal(Z, zoe_stack_get(Z, -1), false); ++p; break;
+            case GETLOCAL: zoe_getlocal(Z, zoe_popnumber(Z)); ++p; break;
             
             //
             // others
@@ -966,8 +976,8 @@ void zoe_call(Zoe* Z, int n_args)
     zoe_execute(Z, data, sz);
 
     // verify if the stack has now is the same size as the beginning
-    // (-1 function +1 return argument)
-    if(zoe_stacksize(Z) != initial) {
+    // (-1 pop previous value -1 function + 1 return argument)
+    if(zoe_stacksize(Z) != initial-1) {
         zoe_error(Z, "Function should have returned exaclty one argument.");
     }
 
@@ -1122,6 +1132,7 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
         case TBLSET:   snprintf(buf, nbuf, "TBLSET");   return 1;
         case SLICE:    snprintf(buf, nbuf, "SLICE");    return 1;
         case ADDCONST: snprintf(buf, nbuf, "ADDCONST"); return 1;
+        case GETLOCAL: snprintf(buf, nbuf, "GETLOCAL"); return 1;
         case END:      snprintf(buf, nbuf, "END");      return 1;
         default:
             snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);

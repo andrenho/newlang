@@ -38,11 +38,11 @@ typedef struct String {
 %defines "lib/parser.tab.h"
 
 %union {
-    double      number;
-    bool        boolean;
-    String      _string;
-    const char* str;
-    Label       label;
+    double   number;
+    bool     boolean;
+    String   _string;
+    char*    str;
+    Label    label;
 }
 
 %token <number>  NUMBER
@@ -76,18 +76,21 @@ typedef struct String {
 
 %%
 
-code: exps             { bytecode_addcode(b, END); }
+code: expressions      { bytecode_addcode(b, END); }
     ;
 
-exps: %empty
-    | exp SEP exps
-    | exp
-    | SEP               { bytecode_addcode(b, PUSH_Nil); }
-    ;
+expressions: %empty
+           | expression SEP expressions
+           | expression
+           | SEP        { bytecode_addcode(b, PUSH_Nil); }
+           ;
+
+expression: { bytecode_addcode(b, POP); } exp;
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | IDENTIFIER         { bytecode_addcodelocal(b, $1); }
    | strings
    | array
    | table
@@ -123,14 +126,16 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
    | exp '.' IDENTIFIER { bytecode_addcode(b, PUSH_S);
-                          bytecode_addcodestr(b, $3);
+                          bytecode_addcodestr(b, $3); free($3);
                           bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
    ;
 
 // local variable assingment (TODO)
-local_assignment: LET IDENTIFIER { bytecode_addlocalassignment(b, $2, false); } 
-                  '=' exp { bytecode_addcode(b, ADDCONST); }
+local_assignment: LET IDENTIFIER '=' exp { 
+                      bytecode_addlocalassignment(b, $2, false); free($2);
+                      bytecode_addcode(b, ADDCONST); 
+                  }
                 ;
 
 // strings

@@ -59,6 +59,7 @@ typedef enum Opcode {
 
     // local variables
     ADDCONST = 0x50,
+    GETLOCAL = 0x51,
 
     // others
     END      = 0xFF,

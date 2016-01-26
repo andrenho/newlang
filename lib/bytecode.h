@@ -57,6 +57,7 @@ void      bytecode_addcodelabel(Bytecode* bc, Label lbl);
 // LOCAL VARIABLES
 //
 void      bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable);
+void      bytecode_addcodelocal(Bytecode* bc, const char* varname);
 
 //
 // GENERATE ZB FILE
