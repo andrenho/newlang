@@ -58,9 +58,14 @@ void      bytecode_addcodelabel(Bytecode* bc, Label lbl);
 //
 void      bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable);
 void      bytecode_addcodelocal(Bytecode* bc, const char* varname);
-void      bytecode_varcounterreset(Bytecode* bc);
-void      bytecode_varcounterinc(Bytecode* bc);
-void      bytecode_addcodevarcounter(Bytecode* bc);
+
+// 
+// MULTIPLE VARIABLES
+//
+void      bytecode_multivarreset(Bytecode* bc);
+void      bytecode_multivaradd(Bytecode* bc, const char* varname);
+void      bytecode_addcodemultivarcounter(Bytecode* bc);
+void      bytecode_addmultivarassignment(Bytecode* bc, bool mutable);
 
 //
 // GENERATE ZB FILE

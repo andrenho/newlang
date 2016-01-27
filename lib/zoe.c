@@ -1319,11 +1319,11 @@ static char* zvalue_inspect(Zoe* Z, ZValue* value)
                 return buf;
             }
         case TABLE: {
-                char* buf = strdup("{");
+                char* buf = strdup("%{");
                 buf = realloc(buf, strlen(buf)+2);
                 struct InspectPair ip = { Z, &buf };
                 hash_iterate(value->table, table_inspect, &ip);
-                if(buf[1] != 0) { // not empty
+                if(buf[2] != 0) { // not empty
                     buf[strlen(buf)-2] = 0;  // remove last comma
                 }
                 strcat(buf, "}");

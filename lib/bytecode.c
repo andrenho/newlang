@@ -26,7 +26,7 @@ struct B_Priv {
     LocalVar* locals;
     size_t    locals_sz;
     size_t    locals_alloc;
-    uint8_t   var_counter;
+    char*     multivar[255];
 };
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -86,6 +86,8 @@ bytecode_newfromzb(uint8_t* data, size_t sz, ERROR errorf)
 void
 bytecode_free(Bytecode* bc)
 {
+    bytecode_multivarreset(bc);
+
     // free code
     if(bc->code) {
         free(bc->code);
@@ -229,27 +231,53 @@ bytecode_addcodelocal(Bytecode* bc, const char* varname)
     bc->_->errorf(buf);
 }
 
-void
-bytecode_varcounterreset(Bytecode* bc)
-{
-    bc->_->var_counter = 0;
-}
+// }}}
+
+// {{{ MULTIVARIABLES
 
 void
-bytecode_varcounterinc(Bytecode* bc)
+bytecode_multivarreset(Bytecode* bc)
 {
-    if(bc->_->var_counter == 255) {
-        bc->_->errorf("Only 255 variables can be added simultaneously.");
+    uint8_t i=0;
+    while(bc->_->multivar[i]) {
+        free(bc->_->multivar[i++]);
     }
-    ++bc->_->var_counter;
 }
+
 
 void
-bytecode_addcodevarcounter(Bytecode* bc)
+bytecode_multivaradd(Bytecode* bc, const char* varname)
 {
-    bytecode_addcode(bc, bc->_->var_counter);
+    uint8_t i=0;
+    while(bc->_->multivar[i]) {
+        ++i;
+    }
+    if(i == 255) {
+        bc->_->errorf("Multivariables can only have up to 255 variables.");
+    }
+    bc->_->multivar[i] = strdup(varname);
 }
 
+
+void
+bytecode_addcodemultivarcounter(Bytecode* bc)
+{
+    uint8_t i=0;
+    while(bc->_->multivar[i]) {
+        ++i;
+    }
+    bytecode_addcode(bc, i);
+}
+
+
+void
+bytecode_addmultivarassignment(Bytecode* bc, bool mutable)
+{
+    uint8_t i=0;
+    while(bc->_->multivar[i]) {
+        bytecode_addlocalassignment(bc, bc->_->multivar[i++], mutable);
+    }
+}
 
 // }}}
 

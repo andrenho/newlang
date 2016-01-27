@@ -71,20 +71,24 @@ typedef struct String {
 %precedence '['
 %precedence '.'
 
+
 %error-verbose
 %start code
 
-%expect 1  /* TODO */
+/* %expect 1  /* TODO */
 
 %%
 
 code: expressions      { bytecode_addcode(b, END); }
     ;
 
+seps: seps SEP
+    | SEP
+    ;
+
 expressions: %empty
-           | expression SEP expressions
            | expression
-           | SEP        { bytecode_addcode(b, PUSH_Nil); }
+           | expression seps expressions
            ;
 
 expression: { bytecode_addcode(b, POP); } exp;
@@ -145,9 +149,10 @@ one_assignment: IDENTIFIER '=' exp {
                     bytecode_addlocalassignment(b, $1, false); free($1);
                     bytecode_addcode(b, ADDCNST); 
                 }
-              | '[' { bytecode_varcounterreset(b); } mult_identifiers ']' '=' exp {
+              | '[' { bytecode_multivarreset(b); } mult_identifiers ']' '=' exp {
+                    bytecode_addmultivarassignment(b, false);
                     bytecode_addcode(b, ADDMCNST); 
-                    bytecode_addcodevarcounter(b);
+                    bytecode_addcodemultivarcounter(b);
                 }
               ;
 
@@ -156,8 +161,7 @@ mult_identifiers: mult_identifiers ',' single_identifier
                 ;
 
 single_identifier: IDENTIFIER {
-                        bytecode_addlocalassignment(b, $1, false); free($1);
-                        bytecode_varcounterinc(b);
+                        bytecode_multivaradd(b, $1); free($1);
                     }
                  ;
 
@@ -186,7 +190,7 @@ array_item: exp { bytecode_addcode(b, APPEND); }
           ;
 
 // table initialization
-table: '{' { bytecode_addcode(b, PUSHTBL); } tbl_items '}'
+table: '%' '{' { bytecode_addcode(b, PUSHTBL); } tbl_items '}'
      ;
 
 tbl_items: %empty
