@@ -7,6 +7,8 @@ using namespace std;
 
 // {{{ TEST INFRASTRUCTURE
 
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+
 #define RED      "\033[1;31m"
 #define DIMRED   "\033[2;31m"
 #define GREEN    "\033[1;32m"
@@ -36,7 +38,7 @@ static int tests_run = 0;
             message = "" __VA_ARGS__;                                           \
         }                                                                       \
         string color = string("\033[2;3") + (_v ? "2" : "1") + "m";             \
-        cout << "   " << color << "[" << (!_v ? "err" : "ok") << "]" NORMAL " "  \
+        cout << "   " << color << "[" << (!_v ? "err" : "ok") << "]" NORMAL " " \
              << message << endl;                                                \
         if(!_v) {                                                               \
             return message;                                                     \
@@ -54,10 +56,11 @@ static int tests_run = 0;
         }                                                               \
         try {                                                           \
             test();                                                     \
-            cout << DIMRED "   [ok]" NORMAL " " << message << endl;      \
+            cout << DIMRED "   [err]" NORMAL " " << message             \
+                 << " - did not throw" << endl;                         \
             return message;                                             \
-        } catch(const exception& e) {                                   \
-            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;    \
+        } catch(...) {                                                  \
+            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
         }                                                               \
     } while (0);                                                        \
     ++tests_run;                                                        \
@@ -72,10 +75,14 @@ static int tests_run = 0;
         }                                                               \
         try {                                                           \
             test();                                                     \
-            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;    \
+            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
         } catch(const exception& e) {                                   \
-            cout << DIMRED "   [ok]" NORMAL " " << message << ": "       \
+            cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
                  << e.what() << endl;                                   \
+            return message;                                             \
+        } catch(const string& e) {                                      \
+            cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
+                 << e << endl;                                          \
             return message;                                             \
         }                                                               \
     } while (0);                                                        \
@@ -119,7 +126,7 @@ static const char* test_tool()
 
 // {{{ TEST BYTECODE
 
-static uint8_t expected[] = {
+static vector<uint8_t> expected = {
     0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
     0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
     0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
@@ -132,7 +139,7 @@ static uint8_t expected[] = {
 };
 
 
-static const char* bytecode_gen(void) 
+static const char* bytecode_gen() 
 {
     Bytecode bc;
 
@@ -142,20 +149,29 @@ static const char* bytecode_gen(void)
     bc.Add(END);
 
     vector<uint8_t> found = bc.GenerateZB();
+    massert(found == expected);
 
-    massert(found.size() == sizeof expected);
-    size_t i = 0;
-    for(auto const& d: found) {
-        massert(expected[i++] == d);
-    }
-    
     return nullptr;
 }
 
 
-static const char* bytecode_import(void)
+static const char* bytecode_string()
 {
-    Bytecode bc(expected, sizeof expected);
+    Bytecode bc;
+
+    bc.AddString("ABC");
+    massert(bc.Code().size() == 3, "no NULL terminator");
+    massert(bc.Code()[0] == 'A');
+    massert(bc.Code()[1] == 'B');
+    massert(bc.Code()[2] == 'C');
+
+    return nullptr;
+}
+
+
+static const char* bytecode_import()
+{
+    Bytecode bc(expected);
 
     massert(bc.VersionMinor() == 0x1);
     massert(bc.Code().size() == 11);
@@ -163,47 +179,111 @@ static const char* bytecode_import(void)
     massert(bc.Code()[2] == 0xA7);
     massert(bc.Code()[9] == 0x40);
 
+    mthrows([](){ Bytecode b(vector<uint8_t>{ 0x00 }); }, "Invalid bytecode file");
+
     return nullptr;
 }
 
 
-static const char* bytecode_labels(void)
+static const char* bytecode_labels()
 {
     Bytecode bc;
     Label x = bc.CreateLabel();
 
     for(int i=0; i<0x10; ++i) {
-        bc.Add(i);
+        bc.Add(0);
     }
     bc.SetLabel(x);
 
     for(int i=0; i<0x10; ++i) {
-        bc.Add(i);
+        bc.Add(0);
     }
     bc.AddLabel(x);
     for(int i=0; i<0x10; ++i) {
-        bc.Add(i);
+        bc.Add(0);
     }
     bc.GenerateZB();
 
-    massert(bc.Code()[0x20] == 0x10);
-    massert(bc.Code()[0x21] == 0x00);
+    massert(bc.Code()[0x20] == 0x10, "Label set (byte #0)");
+    massert(bc.Code()[0x21] == 0x00, "Label set (byte #1)");
 
     return nullptr;
 }
 
 
-static const char* bytecode_simplecode(void)
+static const char* bytecode_variables()
+{
+    Bytecode bc;
+
+    bc.VariableAssignment("a", false);
+    bc.VariableAssignment("b", false);
+    bc.AddVariable("a");
+    bc.AddVariable("b");
+
+    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
+    massert(bc.GetF64(0x0B) == -2, "Variable 'b'");
+
+    mthrows([&](){ bc.AddVariable("c"); });
+
+    return nullptr;
+}
+
+
+static const char* bytecode_multivar()
+{
+    Bytecode bc;
+
+    bc.MultivarCreate("a");
+    bc.MultivarCreate("b");
+    bc.MultivarCreate("c");
+
+    bc.AddMultivarAssignment(false);
+    bc.AddVariable("a");
+    bc.AddVariable("b");
+    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
+    massert(bc.GetF64(0x0B) == -2, "Variable 'b'");
+
+    bc.AddMultivarCounter();
+    massert(bc.Code()[0x14] == 3, "Multivar counter before reset");
+
+    bc.MultivarReset();
+    bc.AddMultivarCounter();
+    massert(bc.Code()[0x15] == 0, "Multivar counter after reset");
+
+    return nullptr;
+}
+
+
+static const char* bytecode_scopes()
+{
+    Bytecode bc;
+
+    bc.VariableAssignment("a", false);
+    bc.AddVariable("a");
+
+    bc.PushScope();
+    bc.VariableAssignment("a", false);
+    bc.AddVariable("a");
+    bc.PopScope();
+
+    bc.AddVariable("a");
+
+    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
+    massert(bc.GetF64(0x0C) == -2, "Variable 'a' (inside scope)");
+    massert(bc.GetF64(0x17) == -1, "Variable 'a' (outside scope)");
+
+    mthrows([&](){ bc.PopScope(); }, "Stack underflow");
+    
+    return nullptr;
+}
+
+
+static const char* bytecode_simplecode()
 {
     Bytecode bc("3.1416");
 
     vector<uint8_t> found = bc.GenerateZB();
-
-    massert(found.size() == sizeof expected);
-    size_t i = 0;
-    for(auto const& d: found) {
-        massert(expected[i++] == d);
-    }
+    massert(found == expected);
 
     return nullptr;
 }
@@ -218,8 +298,12 @@ static const char* all_tests()
 
     // bytecode
     run_test(bytecode_gen);
+    run_test(bytecode_string);
     run_test(bytecode_import);
     run_test(bytecode_labels);
+    run_test(bytecode_variables);
+    run_test(bytecode_multivar);
+    run_test(bytecode_scopes);
     //run_test(bytecode_simplecode);
 
     return nullptr;

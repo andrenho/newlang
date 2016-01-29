@@ -12,7 +12,7 @@ SRC_LIB=lib/zoe.cc		\
 	lib/hash.cc 		\
 	lib/zvalue.cc
 
-SRC_EXE=#src/main.cc		\
+SRC_EXE=src/main.cc	#	\
 	src/options.cc		\
 	src/repl.cc
 
@@ -140,7 +140,7 @@ install-strip:
 #
 
 clean:
-	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} runtests **/*.o gmon.out **/*.gcda **/*.gcno **/*.gcov lib/parser.output
+	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} runtests **/*.o gmon.out **/*.gcda **/*.gcno **/*.gcov *.gcov lib/parser.output
 
 distclean:
 	${MAKE} clean
@@ -183,6 +183,11 @@ check-leaks: zoe
 
 check-leaks-check: runtests
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./runtests -D
+
+coverage:
+	${MAKE} clean
+	${MAKE} check COV=1
+	gcov ${SRC_LIB}
 
 cachegrind:
 	valgrind --tool=cachegrind ./runtests
