@@ -2,12 +2,11 @@
 
 #define YY_HEADER_EXPORT_START_CONDITIONS
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "bytecode.h"
-#include "parser.tab.h"
+#include "parser.h"
 
 static void str_addstr(String* str, char* s);
 static char* remove_undersc(char* t);
@@ -63,27 +62,27 @@ false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 let             { return LET; }
 
-'                     { yy_push_state(STR, yyscanner);
-                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
-<STR>\\n              { str_addstr(&yylval->_string, "\n"); }
-<STR>\\r              { str_addstr(&yylval->_string, "\r"); }
-<STR>\\\\             { str_addstr(&yylval->_string, "\\"); }
-<STR>\\x{HEXDIGIT}{2} { str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); }
-<STR>\\               { str_addstr(&yylval->_string, "\\"); }
-<STR>[^'\\\$]*        { str_addstr(&yylval->_string, yytext); }
-<STR>\$'              { str_addstr(&yylval->_string, "$"); 
+'                     { /* yy_push_state(STR, yyscanner);
+                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 };*/ }
+<STR>\\n              { /* str_addstr(&yylval->_string, "\n"); */ }
+<STR>\\r              { /* str_addstr(&yylval->_string, "\r"); */ }
+<STR>\\\\             { /* str_addstr(&yylval->_string, "\\"); */ }
+<STR>\\x{HEXDIGIT}{2} { /* str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); */ }
+<STR>\\               { /* str_addstr(&yylval->_string, "\\"); */ }
+<STR>[^'\\\$]*        { /* str_addstr(&yylval->_string, yytext); */ }
+<STR>\$'              { /* str_addstr(&yylval->_string, "$"); 
                         yy_pop_state(yyscanner); 
-                        return STRING; }
-<STR>\$[^\{]          { str_addstr(&yylval->_string, yytext); }
-<STR>\$\{             { yy_push_state(SB, yyscanner); return STRING; }
-<STR>'                { yy_pop_state(yyscanner); return STRING; }
+                        return STRING; */ }
+<STR>\$[^\{]          { /* str_addstr(&yylval->_string, yytext); */ }
+<STR>\$\{             { /* yy_push_state(SB, yyscanner); return STRING; */ }
+<STR>'                { /* yy_pop_state(yyscanner); return STRING; */ }
 
-<SB>\}                { yy_pop_state(yyscanner);
-                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; }
+<SB>\}                { /* yy_pop_state(yyscanner);
+                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; */ }
 
 {SPECIALCHARS}  { return yytext[0]; }
 
-{IDENTIFIER}    { yylval->str = strdup(yytext); return IDENTIFIER; }
+{IDENTIFIER}    { /* yylval->str = strdup(yytext); return IDENTIFIER; */ }
 
 \%\/            { return _IDIV; }
 \*\*            { return _POW; }
@@ -109,6 +108,7 @@ let             { return LET; }
 %%
 
 
+/*
 static void str_addstr(String* str, char* s)
 {
     size_t len = strlen(s);
@@ -119,6 +119,7 @@ static void str_addstr(String* str, char* s)
     }
     memcpy(&str->str[strlen(str->str)], s, len);
 }
+*/
 
 
 static char* remove_undersc(char* t)

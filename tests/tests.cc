@@ -160,10 +160,11 @@ static const char* bytecode_string()
     Bytecode bc;
 
     bc.AddString("ABC");
-    massert(bc.Code().size() == 3, "no NULL terminator");
+    massert(bc.Code().size() == 4, "no NULL terminator");
     massert(bc.Code()[0] == 'A');
     massert(bc.Code()[1] == 'B');
     massert(bc.Code()[2] == 'C');
+    massert(bc.Code()[3] == 0);
 
     return nullptr;
 }
@@ -304,7 +305,7 @@ static const char* all_tests()
     run_test(bytecode_variables);
     run_test(bytecode_multivar);
     run_test(bytecode_scopes);
-    //run_test(bytecode_simplecode);
+    run_test(bytecode_simplecode);
 
     return nullptr;
 }

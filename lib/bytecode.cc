@@ -20,7 +20,7 @@ extern int parse(Bytecode&, string const&);  // defined in parser.y
 
 Bytecode::Bytecode(string const& code)
 {
-    // TODO parse(*this, code);
+    parse(*this, code);
 }
 
 
@@ -70,6 +70,7 @@ void Bytecode::AddF64(double data)
 void Bytecode::AddString(string const& str)
 {
     copy(begin(str), end(str), back_inserter(code));
+    Add(0);
 }
 
 // }}}

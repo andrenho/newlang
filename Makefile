@@ -6,9 +6,9 @@ include build/config.mk
 #
 
 SRC_LIB=lib/zoe.cc		\
-	lib/bytecode.cc	#	\
+	lib/bytecode.cc		\
 	lib/lexer.cc		\
-	lib/parser.cc 		\
+	lib/parser.cc #		\
 	lib/hash.cc 		\
 	lib/zvalue.cc
 
@@ -81,7 +81,7 @@ lib/parser.cc: lib/parser.y
 
 lib/lexer.h:
 
-lib/parser.tab.h:
+lib/parser.h:
 
 #
 # COMPILATION RULES
@@ -148,7 +148,7 @@ distclean:
 
 maintainer-clean:
 	${MAKE} distclean
-	rm -f lib/lexer.cc lib/lexer.h lib/parser.tab.h lib/parser.cc
+	rm -f lib/lexer.cc lib/lexer.h lib/parser.h lib/parser.cc
 
 # 
 # PACKAGING RULES

@@ -1,16 +1,18 @@
 %{
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <inttypes.h>
 
+#include <string>
+using namespace std;
+
 #include "bytecode.h"
-#include "parser.tab.h"
+#include "parser.h"
 #include "lexer.h"
 
-void yyerror(void* scanner, Bytecode* bc, const char *s);
+void yyerror(void* scanner, Bytecode& bc, const char *s);
 
 %}
 
@@ -35,22 +37,20 @@ typedef struct String {
 %verbose
 %printer { fprintf(yyoutput, "%f", $$); } NUMBER;
 %printer { fprintf(yyoutput, "%s", $$ ? "true" : "false"); } BOOLEAN;
-%printer { fprintf(yyoutput, "%s", $$.str); } STRING
+%printer { fprintf(yyoutput, "%s", $$->c_str()); } STRING;
 
-%defines "lib/parser.tab.h"
+%defines "lib/parser.h"
 
 %union {
-    double   number;
-    bool     boolean;
-    String   _string;
-    char*    str;
-    Label    label;
+    double       number;
+    bool         boolean;
+    std::string* str;
+    Label        label;
 }
 
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
-%token <_string> STRING
-%token <str>     IDENTIFIER
+%token <str>     STRING IDENTIFIER
 %token NIL LET
 
 %token SEP
@@ -89,14 +89,14 @@ optsep: %empty
       | SEP
       ;
 
-exps: exps SEP { bytecode_addcode(b, POP); } exp
-    | { bytecode_addcode(b, POP); } exp
+exps: exps SEP { b.Add(POP); } exp
+    | { b.Add(POP); } exp
     ;
 
-exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
-   | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
-   | NIL                { bytecode_addcode(b, PUSH_Nil); }
-   | IDENTIFIER         { bytecode_addcodelocal(b, $1); free($1); }
+exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1); }
+   | BOOLEAN            { b.Add($1 ? PUSH_Bt : PUSH_Bf); }
+   | NIL                { b.Add(PUSH_Nil); }
+   | IDENTIFIER         { b.AddVariable(*$1); /* free($1); */ }
    | strings
    | array
    | table
@@ -104,39 +104,39 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | ternary
    | ccand
    | ccor
-   | exp _EQ exp         { bytecode_addcode(b, EQ);   }
-   | exp _NEQ exp        { bytecode_addcode(b, EQ); 
-                           bytecode_addcode(b, BNOT); }
-   | exp _LTE exp        { bytecode_addcode(b, LTE);  }
-   | exp '<' exp         { bytecode_addcode(b, LT);   }
-   | exp _GTE exp        { bytecode_addcode(b, GTE);  }
-   | exp '>' exp         { bytecode_addcode(b, GT);   }
-   | exp '&' exp         { bytecode_addcode(b, AND);  }
-   | exp '^' exp         { bytecode_addcode(b, XOR);  }
-   | exp '|' exp         { bytecode_addcode(b, OR);   }
-   | exp _SHL exp        { bytecode_addcode(b, SHL);  }
-   | exp _SHR exp        { bytecode_addcode(b, SHR);  }
-   | exp '+' exp         { bytecode_addcode(b, ADD);  }
-   | exp '-' exp         { bytecode_addcode(b, SUB);  }
-   | exp '*' exp         { bytecode_addcode(b, MUL);  }
-   | exp '/' exp         { bytecode_addcode(b, DIV);  }
-   | exp _IDIV exp       { bytecode_addcode(b, IDIV); }
-   | exp '%' exp         { bytecode_addcode(b, MOD);  }
-   | exp _POW exp        { bytecode_addcode(b, POW);  }
-   | '#' exp %prec _LEN  { bytecode_addcode(b, LEN);  }
-   | exp CONCAT exp      { bytecode_addcode(b, CAT);  }
-   | '!' exp %prec _BNOT { bytecode_addcode(b, BNOT);  }
-   | '~' exp %prec _NOT  { bytecode_addcode(b, NOT);  }
-   | '-' exp %prec _NEG  { bytecode_addcode(b, NEG);  }
-   | exp '[' exp ']'     { bytecode_addcode(b, LOOKUP);  }
+   | exp _EQ exp         { b.Add(EQ);   }
+   | exp _NEQ exp        { b.Add(EQ); 
+                           b.Add(BNOT); }
+   | exp _LTE exp        { b.Add(LTE);  }
+   | exp '<' exp         { b.Add(LT);   }
+   | exp _GTE exp        { b.Add(GTE);  }
+   | exp '>' exp         { b.Add(GT);   }
+   | exp '&' exp         { b.Add(AND);  }
+   | exp '^' exp         { b.Add(XOR);  }
+   | exp '|' exp         { b.Add(OR);   }
+   | exp _SHL exp        { b.Add(SHL);  }
+   | exp _SHR exp        { b.Add(SHR);  }
+   | exp '+' exp         { b.Add(ADD);  }
+   | exp '-' exp         { b.Add(SUB);  }
+   | exp '*' exp         { b.Add(MUL);  }
+   | exp '/' exp         { b.Add(DIV);  }
+   | exp _IDIV exp       { b.Add(IDIV); }
+   | exp '%' exp         { b.Add(MOD);  }
+   | exp _POW exp        { b.Add(POW);  }
+   | '#' exp %prec _LEN  { b.Add(LEN);  }
+   | exp CONCAT exp      { b.Add(CAT);  }
+   | '!' exp %prec _BNOT { b.Add(BNOT);  }
+   | '~' exp %prec _NOT  { b.Add(NOT);  }
+   | '-' exp %prec _NEG  { b.Add(NEG);  }
+   | exp '[' exp ']'     { b.Add(LOOKUP);  }
    | exp '[' lookup_pos ']'
-   | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
-   | exp '.' IDENTIFIER  { bytecode_addcode(b, PUSH_S);
-                           bytecode_addcodestr(b, $3); free($3);
-                           bytecode_addcode(b, LOOKUP); }
+   | '?' exp %prec ISNIL { b.Add(PUSH_Nil); b.Add(EQ); }
+   | exp '.' IDENTIFIER  { b.Add(PUSH_S);
+                           b.AddString(*$3);
+                           b.Add(LOOKUP); }
    | '(' exp ')'
-   | '{' { bytecode_pushscope(b); bytecode_addcode(b, PUSH_Nil); } code '}' { bytecode_popscope(b); }
-   | '{' { bytecode_pushscope(b); bytecode_addcode(b, PUSH_Nil); } '}' { bytecode_popscope(b); }
+   | '{' { b.PushScope(); b.Add(PUSH_Nil); } code '}' { b.PopScope(); }
+   | '{' { b.PushScope(); b.Add(PUSH_Nil); } '}' { b.PopScope(); }
    ;
 
 // local variable assingment (TODO)
@@ -144,17 +144,17 @@ local_assignment: LET assignments
                 ;
 
 assignments: one_assignment
-           | assignments ',' { bytecode_addcode(b, POP); } one_assignment
+           | assignments ',' { b.Add(POP); } one_assignment
            ;
 
 one_assignment: IDENTIFIER '=' exp { 
-                    bytecode_addlocalassignment(b, $1, false); free($1);
-                    bytecode_addcode(b, ADDCNST); 
+                    b.VariableAssignment(*$1, false);
+                    b.Add(ADDCNST); 
                 }
-              | '[' { bytecode_multivarreset(b); } mult_identifiers ']' '=' exp {
-                    bytecode_addmultivarassignment(b, false);
-                    bytecode_addcode(b, ADDMCNST); 
-                    bytecode_addcodemultivarcounter(b);
+              | '[' { b.MultivarReset(); } mult_identifiers ']' '=' exp {
+                    b.AddMultivarAssignment(false);
+                    b.Add(ADDMCNST); 
+                    b.AddMultivarCounter();
                 }
               ;
 
@@ -162,25 +162,19 @@ mult_identifiers: mult_identifiers ',' single_identifier
                 | single_identifier
                 ;
 
-single_identifier: IDENTIFIER {
-                        bytecode_multivaradd(b, $1); free($1);
-                    }
+single_identifier: IDENTIFIER { b.MultivarCreate(*$1); }
                  ;
 
 // strings
-string: STRING { 
-            bytecode_addcode(b, PUSH_S); 
-            bytecode_addcodestr(b, $1.str); 
-            free($1.str); 
-        }
-   ;
+string: STRING { b.Add(PUSH_S); b.AddString(*$1); }
+      ;
 
 strings: string
-       | string strings { bytecode_addcode(b, CAT); }
+       | string strings { b.Add(CAT); }
        ;
 
 // arrays
-array: '[' { bytecode_addcode(b, PUSHARY); } array_items ']'
+array: '[' { b.Add(PUSHARY); } array_items ']'
      ;
 
 array_items: %empty
@@ -188,11 +182,11 @@ array_items: %empty
            | array_item ',' array_items
            ;
 
-array_item: exp { bytecode_addcode(b, APPEND); }
+array_item: exp { b.Add(APPEND); }
           ;
 
 // table initialization
-table: '%' '{' { bytecode_addcode(b, PUSHTBL); } tbl_items '}'
+table: '%' '{' { b.Add(PUSHTBL); } tbl_items '}'
      ;
 
 tbl_items: %empty
@@ -201,21 +195,21 @@ tbl_items: %empty
          ;
 
 tbl_item: IDENTIFIER { 
-              bytecode_addcode(b, PUSH_S);
-              bytecode_addcodestr(b, $1); free($1);
-           } ':' exp { bytecode_addcode(b, TBLSET); }
-        | '[' exp ']' ':' exp { bytecode_addcode(b, TBLSET); }
+              b.Add(PUSH_S);
+              b.AddString(*$1);
+           } ':' exp { b.Add(TBLSET); }
+        | '[' exp ']' ':' exp { b.Add(TBLSET); }
         ;
 
 // lookup position
-lookup_pos: exp ':' exp  { bytecode_addcode(b, SLICE); }
-          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); } 
-            exp          { bytecode_addcode(b, SLICE); }
-          | exp ':'      { bytecode_addcode(b, PUSH_Nil); 
-                           bytecode_addcode(b, SLICE); }
-          | ':'          { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, 0); 
-                           bytecode_addcode(b, PUSH_Nil);
-                           bytecode_addcode(b, SLICE); }
+lookup_pos: exp ':' exp  { b.Add(SLICE); }
+          | ':'          { b.Add(PUSH_N); b.AddF64(0); } 
+            exp          { b.Add(SLICE); }
+          | exp ':'      { b.Add(PUSH_Nil); 
+                           b.Add(SLICE); }
+          | ':'          { b.Add(PUSH_N); b.AddF64(0); 
+                           b.Add(PUSH_Nil);
+                           b.Add(SLICE); }
           ;
 
 // short-circuit AND
@@ -230,19 +224,19 @@ ccand: exp CCAND {
              is_false:	PUSH_Bf
              is_true:   ...
             */
-             $<label>2 = bytecode_createlabel(b);
-             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
+             $<label>2 = b.CreateLabel();
+             b.Add(Bfalse); b.AddLabel($<label>2);
          } exp {
-             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
-             bytecode_addcode(b, PUSH_Bt);
+             b.Add(Bfalse); b.AddLabel($<label>2);
+             b.Add(PUSH_Bt);
 
-             Label is_true = bytecode_createlabel(b);
-             bytecode_addcode(b, JMP); bytecode_addcodelabel(b, is_true);
+             Label is_true = b.CreateLabel();
+             b.Add(JMP); b.AddLabel(is_true);
 
-             bytecode_setlabel(b, $<label>2); 
-             bytecode_addcode(b, PUSH_Bf);
+             b.SetLabel($<label>2); 
+             b.Add(PUSH_Bf);
 
-             bytecode_setlabel(b, is_true); 
+             b.SetLabel(is_true); 
          }
      ;
 
@@ -258,19 +252,19 @@ ccor: exp CCOR {
              is_true:	PUSH_Bt
              is_false:  ...
             */
-             $<label>2 = bytecode_createlabel(b);
-             bytecode_addcode(b, Btrue); bytecode_addcodelabel(b, $<label>2);
+             $<label>2 = b.CreateLabel();
+             b.Add(Btrue); b.AddLabel($<label>2);
          } exp {
-             bytecode_addcode(b, Btrue); bytecode_addcodelabel(b, $<label>2);
-             bytecode_addcode(b, PUSH_Bf);
+             b.Add(Btrue); b.AddLabel($<label>2);
+             b.Add(PUSH_Bf);
 
-             Label is_false = bytecode_createlabel(b);
-             bytecode_addcode(b, JMP); bytecode_addcodelabel(b, is_false);
+             Label is_false = b.CreateLabel();
+             b.Add(JMP); b.AddLabel(is_false);
 
-             bytecode_setlabel(b, $<label>2); 
-             bytecode_addcode(b, PUSH_Bt);
+             b.SetLabel($<label>2); 
+             b.Add(PUSH_Bt);
 
-             bytecode_setlabel(b, is_false); 
+             b.SetLabel(is_false); 
          }
     ;
 
@@ -284,15 +278,15 @@ ternary: exp '?' {
              is_false:  [exp3]
                  done:  ...
              */
-             $<label>2 = bytecode_createlabel(b);
-             bytecode_addcode(b, Bfalse); bytecode_addcodelabel(b, $<label>2);
+             $<label>2 = b.CreateLabel();
+             b.Add(Bfalse); b.AddLabel($<label>2);
          } exp ':' {
-             $<label>4 = bytecode_createlabel(b);
-             bytecode_addcode(b, JMP); bytecode_addcodelabel(b, $<label>4);
+             $<label>4 = b.CreateLabel();
+             b.Add(JMP); b.AddLabel($<label>4);
              
-             bytecode_setlabel(b, $<label>2); 
+             b.SetLabel($<label>2); 
          } exp {
-             bytecode_setlabel(b, $<label>4); 
+             b.SetLabel($<label>4); 
          }
        ;
 
@@ -303,15 +297,15 @@ int parse(Bytecode& b, string const& code)
 {
     // parse code
     void *scanner;
-    yylex_init_extra(b, &scanner);
-    yy_scan_bytes(code, strlen(code), scanner);
+    yylex_init_extra(&b, &scanner);
+    yy_scan_bytes(code.c_str(), code.size(), scanner);
     int r = yyparse(scanner, b);
     yylex_destroy(scanner);
     return r;
 }
 
 
-void yyerror(void* scanner, Bytecode* bc, const char *s)
+void yyerror(void* scanner, Bytecode& bc, const char *s)
 {
 	fprintf(stderr, "%s\n", s);
 }
