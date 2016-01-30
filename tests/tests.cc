@@ -4,6 +4,7 @@ using namespace std;
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
+#include "lib/zoe.h"
 
 // {{{ TEST INFRASTRUCTURE
 
@@ -292,6 +293,27 @@ static const char* bytecode_simplecode()
 
 // }}}
 
+// {{{ ZOE STACK
+
+static const char* zoe_stack(void) 
+{
+    Zoe Z;
+
+    massert(Z.Stack().size() == 1);
+
+    double f = 3.24;
+    Z.Push(f);
+
+    massert(Z.Stack().size() == 2, "stack size == 2 (after push)");
+    massert(Z.Peek<double>() == f);
+    massert(Z.Pop<double>() == f);
+    massert(Z.Stack().size() == 1, "stack size == 2 (after push/pop)");
+
+    return nullptr;
+}
+
+// }}}
+
 static const char* all_tests()
 {
     // test tool
@@ -306,6 +328,9 @@ static const char* all_tests()
     run_test(bytecode_multivar);
     run_test(bytecode_scopes);
     run_test(bytecode_simplecode);
+
+    // ZoeVM
+    run_test(zoe_stack);
 
     return nullptr;
 }

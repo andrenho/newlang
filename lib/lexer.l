@@ -84,23 +84,23 @@ let             { return LET; }
 
 {IDENTIFIER}    { /* yylval->str = strdup(yytext); return IDENTIFIER; */ }
 
-\%\/            { return _IDIV; }
-\*\*            { return _POW; }
-\<\<            { return _SHL; }
-\>\>            { return _SHR; }
+\%\/            { return _IDIV;  }
+\*\*            { return _POW;   }
+\<\<            { return _SHL;   }
+\>\>            { return _SHR;   }
 
-\>\=            { return _GTE; }
-\<\=            { return _LTE; }
+\>\=            { return _GTE;   }
+\<\=            { return _LTE;   }
 
-\=\=            { return _EQ; }
-\!\=            { return _NEQ; }
+\=\=            { return _EQ;    }
+\!\=            { return _NEQ;   }
 
-\&\&            { return CCAND; }
-\|\|            { return CCOR; }
+\&\&            { return CCAND;  }
+\|\|            { return CCOR;   }
 
 \.\.            { return CONCAT; }
 
-{SEPARATOR}     { return SEP; }
+{SEPARATOR}     { return SEP;    }
 
 {SPACES}        ;
 .               return 1;

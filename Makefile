@@ -8,8 +8,7 @@ include build/config.mk
 SRC_LIB=lib/zoe.cc		\
 	lib/bytecode.cc		\
 	lib/lexer.cc		\
-	lib/parser.cc #		\
-	lib/hash.cc 		\
+	lib/parser.cc 		\
 	lib/zvalue.cc
 
 SRC_EXE=src/main.cc	#	\

@@ -81,8 +81,8 @@ typedef struct String {
 
 %%
 
-code: optsep exps optsep
-    | SEP
+code: optsep exps optsep { b.Add(END); }
+    | SEP                { b.Add(END); }
     ;
 
 optsep: %empty
@@ -90,13 +90,13 @@ optsep: %empty
       ;
 
 exps: exps SEP { b.Add(POP); } exp
-    | { b.Add(POP); } exp
+    |          { b.Add(POP); } exp
     ;
 
-exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1); }
+exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1);   }
    | BOOLEAN            { b.Add($1 ? PUSH_Bt : PUSH_Bf); }
-   | NIL                { b.Add(PUSH_Nil); }
-   | IDENTIFIER         { b.AddVariable(*$1); /* free($1); */ }
+   | NIL                { b.Add(PUSH_Nil);               }
+   | IDENTIFIER         { b.AddVariable(*$1);            }
    | strings
    | array
    | table
@@ -104,31 +104,31 @@ exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1); }
    | ternary
    | ccand
    | ccor
-   | exp _EQ exp         { b.Add(EQ);   }
+   | exp _EQ exp         { b.Add(EQ);     }
    | exp _NEQ exp        { b.Add(EQ); 
-                           b.Add(BNOT); }
-   | exp _LTE exp        { b.Add(LTE);  }
-   | exp '<' exp         { b.Add(LT);   }
-   | exp _GTE exp        { b.Add(GTE);  }
-   | exp '>' exp         { b.Add(GT);   }
-   | exp '&' exp         { b.Add(AND);  }
-   | exp '^' exp         { b.Add(XOR);  }
-   | exp '|' exp         { b.Add(OR);   }
-   | exp _SHL exp        { b.Add(SHL);  }
-   | exp _SHR exp        { b.Add(SHR);  }
-   | exp '+' exp         { b.Add(ADD);  }
-   | exp '-' exp         { b.Add(SUB);  }
-   | exp '*' exp         { b.Add(MUL);  }
-   | exp '/' exp         { b.Add(DIV);  }
-   | exp _IDIV exp       { b.Add(IDIV); }
-   | exp '%' exp         { b.Add(MOD);  }
-   | exp _POW exp        { b.Add(POW);  }
-   | '#' exp %prec _LEN  { b.Add(LEN);  }
-   | exp CONCAT exp      { b.Add(CAT);  }
-   | '!' exp %prec _BNOT { b.Add(BNOT);  }
-   | '~' exp %prec _NOT  { b.Add(NOT);  }
-   | '-' exp %prec _NEG  { b.Add(NEG);  }
-   | exp '[' exp ']'     { b.Add(LOOKUP);  }
+                           b.Add(BNOT);   }
+   | exp _LTE exp        { b.Add(LTE);    }
+   | exp '<' exp         { b.Add(LT);     }
+   | exp _GTE exp        { b.Add(GTE);    }
+   | exp '>' exp         { b.Add(GT);     }
+   | exp '&' exp         { b.Add(AND);    }
+   | exp '^' exp         { b.Add(XOR);    }
+   | exp '|' exp         { b.Add(OR);     }
+   | exp _SHL exp        { b.Add(SHL);    }
+   | exp _SHR exp        { b.Add(SHR);    }
+   | exp '+' exp         { b.Add(ADD);    }
+   | exp '-' exp         { b.Add(SUB);    }
+   | exp '*' exp         { b.Add(MUL);    }
+   | exp '/' exp         { b.Add(DIV);    }
+   | exp _IDIV exp       { b.Add(IDIV);   }
+   | exp '%' exp         { b.Add(MOD);    }
+   | exp _POW exp        { b.Add(POW);    }
+   | '#' exp %prec _LEN  { b.Add(LEN);    }
+   | exp CONCAT exp      { b.Add(CAT);    }
+   | '!' exp %prec _BNOT { b.Add(BNOT);   }
+   | '~' exp %prec _NOT  { b.Add(NOT);    }
+   | '-' exp %prec _NEG  { b.Add(NEG);    }
+   | exp '[' exp ']'     { b.Add(LOOKUP); }
    | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { b.Add(PUSH_Nil); b.Add(EQ); }
    | exp '.' IDENTIFIER  { b.Add(PUSH_S);
@@ -136,7 +136,7 @@ exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1); }
                            b.Add(LOOKUP); }
    | '(' exp ')'
    | '{' { b.PushScope(); b.Add(PUSH_Nil); } code '}' { b.PopScope(); }
-   | '{' { b.PushScope(); b.Add(PUSH_Nil); } '}' { b.PopScope(); }
+   | '{' { b.PushScope(); b.Add(PUSH_Nil); }      '}' { b.PopScope(); }
    ;
 
 // local variable assingment (TODO)
@@ -202,11 +202,10 @@ tbl_item: IDENTIFIER {
         ;
 
 // lookup position
-lookup_pos: exp ':' exp  { b.Add(SLICE); }
-          | ':'          { b.Add(PUSH_N); b.AddF64(0); } 
-            exp          { b.Add(SLICE); }
-          | exp ':'      { b.Add(PUSH_Nil); 
-                           b.Add(SLICE); }
+lookup_pos: exp ':' exp  { b.Add(SLICE);                  }
+          | ':'          { b.Add(PUSH_N); b.AddF64(0);    } 
+            exp          { b.Add(SLICE);                  }
+          | exp ':'      { b.Add(PUSH_Nil); b.Add(SLICE); }
           | ':'          { b.Add(PUSH_N); b.AddF64(0); 
                            b.Add(PUSH_Nil);
                            b.Add(SLICE); }
