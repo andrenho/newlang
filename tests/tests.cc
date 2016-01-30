@@ -110,7 +110,6 @@ static int run_all_tests()
     return result != nullptr;
 }
 
-static const char* all_tests();
 
 int main()
 {
@@ -395,6 +394,18 @@ static const char* execution()
     return nullptr;
 }
 
+static const char* inspect(void)
+{
+    Zoe Z;
+
+    Z.Eval("42");
+    Z.Call(0);
+    Z.Inspect(-1);
+    massert(Z.Pop<string>() == "42");
+
+    return nullptr;
+}
+
 // }}}
 
 static const char* all_tests()
@@ -420,6 +431,7 @@ static const char* all_tests()
 
     // Execution
     run_test(execution);
+    run_test(inspect);
 
     return nullptr;
 }

@@ -1,5 +1,6 @@
 #include "lib/zoe.h"
 
+#include <cassert>
 #include <iomanip>
 #include <sstream>
 
@@ -17,6 +18,24 @@ Zoe::Zoe()
 
 // {{{ STACK ACCESS
 
+inline STPOS Zoe::AbsIndex(STPOS pos) const
+{
+    STPOS i = (pos >= 0) ? pos : stack.size() + pos;
+    assert(i >= 0);
+    return i;
+}
+
+
+ZValue const& Zoe::Get(STPOS idx) const
+{
+    STPOS p = AbsIndex(idx);
+    if(p >= stack.size()) {
+        throw "Index greater than stack size.";
+    }
+    return *stack.at(idx);
+}
+
+
 ZType Zoe::PeekType() const
 {
     if(stack.empty()) {
@@ -24,6 +43,7 @@ ZType Zoe::PeekType() const
     }
     return stack.back()->type;
 }
+
 
 void Zoe::Pop()
 {
@@ -99,6 +119,16 @@ void Zoe::Execute(vector<uint8_t> const& data)
                 }
         }
     }
+}
+
+// }}}
+
+// {{{ DEBUGGING
+
+void
+Zoe::Inspect(STPOS pos)
+{
+    Push(Get(AbsIndex(pos)).Inspect());
 }
 
 // }}}

@@ -1,5 +1,34 @@
 #include "lib/zvalue.h"
 
+void 
+ZValue::ExpectType(ZType expect) const
+{
+    if(type != expect) {
+        throw "Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.";
+    }
+}
+
+
+string 
+ZValue::Inspect() const
+{
+    switch(type) {
+        case NIL:
+            return "nil";
+        case BOOLEAN:
+            return boolean ? "true" : "false";
+        case NUMBER: {
+                string s = to_string(number);
+                s.erase(s.find_last_not_of("0")+1);
+                s.erase(s.find_last_not_of(".")+1);
+                return s;
+            }
+        case STRING:
+            return "'" + str + "'";
+    }
+}
+
+
 string Typename(ZType type)
 {
     switch(type) {
@@ -11,15 +40,6 @@ string Typename(ZType type)
         case ARRAY:    return "array";
         case TABLE:    return "table";
         default:       return "undefined (?)";
-    }
-}
-
-
-void 
-ZValue::ExpectType(ZType expect) const
-{
-    if(type != expect) {
-        throw "Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.";
     }
 }
 

@@ -19,24 +19,37 @@ public:
     // 
     // STACK ACCESS
     //
+    STPOS                         AbsIndex(STPOS pos) const;
     template<typename T> void     Push(T const& t);
     ZType                         PeekType() const;
     template<typename T> T const& Peek() const;      // return a reference
     template<typename T> T        Pop();             // return a copy
     void                          Pop();             // return nothing
+private:
+    ZValue const& Get(STPOS idx) const;
+public:
 
     // 
     // VM EXECUTION
     //
     void Eval(string const& code);
     void Call(int n_args);
+private:
+    void Execute(vector<uint8_t> const& data);
+public:
 
+    // 
+    // DEBUGGING
+    //
+    void Inspect(STPOS pos);
+
+    // 
+    // DATA
+    //
     inline ZStack const& Stack() const { return stack; }
 
 private:
     ZStack stack = {};
-
-    void Execute(vector<uint8_t> const& data);
 };
 
 #include "lib/zoe.inl.h"

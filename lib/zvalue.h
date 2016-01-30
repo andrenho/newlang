@@ -1,8 +1,6 @@
 #ifndef LIB_ZVALUE_H_
 #define LIB_ZVALUE_H_
 
-#include <cstdio>   // TODO - remove
-
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -106,7 +104,8 @@ struct ZValue {
     VALUE(string,    STRING,  str);
     // }}}
 
-    void ExpectType(ZType expect) const;
+    string Inspect() const;
+    void   ExpectType(ZType expect) const;
 };
 
 #endif
