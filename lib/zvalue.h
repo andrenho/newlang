@@ -71,8 +71,9 @@ struct ZValue {
     ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
 
     // helper constructors
-    ZValue(int const& i) : ZValue(static_cast<double>(i)) {}
-    ZValue(const char s[]) : ZValue(string(s)) {}
+    ZValue(int const& i)      : ZValue(static_cast<double>(i)) {}
+    ZValue(long int const& i) : ZValue(static_cast<double>(i)) {}
+    ZValue(const char s[])    : ZValue(string(s)) {}
 
     // NOTE: this is required for using in a anonymous union
     ~ZValue() { 
@@ -102,8 +103,12 @@ struct ZValue {
     VALUE(bool,      BOOLEAN, boolean);
     VALUE(double,    NUMBER,  number);
     VALUE(string,    STRING,  str);
+
+    // helper types
+    VALUE(int,       NUMBER,  number);
     // }}}
 
+    bool   operator==(ZValue const& other) const;
     string Inspect() const;
     void   ExpectType(ZType expect) const;
 };

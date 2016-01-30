@@ -60,7 +60,6 @@ static int tests_run = 0;
             test();                                                     \
             cout << DIMRED "   [err]" NORMAL " " << message             \
                  << " - did not throw" << endl;                         \
-            return message;                                             \
         } catch(...) {                                                  \
             cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
         }                                                               \
@@ -81,15 +80,45 @@ static int tests_run = 0;
         } catch(const exception& e) {                                   \
             cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
                  << e.what() << endl;                                   \
-            return message;                                             \
+            throw;                                                      \
         } catch(const string& e) {                                      \
             cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
                  << e << endl;                                          \
-            return message;                                             \
+            throw;                                                      \
         }                                                               \
     } while (0);                                                        \
 }
 
+
+#define zassert(code, expected) {                                        \
+    do {                                                                 \
+        Zoe Z;                                                           \
+        decltype(expected) r;                                            \
+        try {                                                            \
+            Z.Eval(code);                                                \
+            Z.Call(0);                                                   \
+            r = Z.Pop<decltype(expected)>();                             \
+        } catch(const exception& e) {                                    \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "         \
+                 << e.what() << endl;                                    \
+            throw;                                                       \
+        } catch(const string& e) {                                       \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "         \
+                 << e << endl;                                           \
+            throw;                                                       \
+        }                                                                \
+        if(r == expected) {                                              \
+            cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
+                 << to_string(expected) << endl;                         \
+        } else {                                                         \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
+                 << to_string(r) << ", expected " << to_string(expected) \
+                 << endl;                                                \
+            return code;                                                 \
+        }                                                                \
+    } while(0);                                                          \
+}
+        
 
 static const char* all_tests();
 
@@ -117,10 +146,11 @@ int main()
         return run_all_tests();
     } catch(const exception& e) {
         cout << DIMRED << "exception: " << e.what() << NORMAL << endl;
+        throw;
     } catch(const string& e) {
         cout << DIMRED << "exception: " << e << NORMAL << endl;
+        throw;
     }
-    return EXIT_FAILURE;
 }
 
 // }}}
@@ -394,7 +424,7 @@ static const char* execution()
     return nullptr;
 }
 
-static const char* inspect(void)
+static const char* inspect()
 {
     Zoe Z;
 
@@ -402,6 +432,41 @@ static const char* inspect(void)
     Z.Call(0);
     Z.Inspect(-1);
     massert(Z.Pop<string>() == "42");
+
+    return nullptr;
+}
+
+// }}}
+
+// {{{ ZOE EXPRESSIONS
+
+static const char* math_expressions()
+{
+    zassert("2 + 3", 5);
+    zassert("2 + 3", 5);
+    zassert("2 * 3", 6);
+    zassert("2 - 3", -1);
+    zassert("3 / 2", 1.5);
+    zassert("1 + 2 * 3", 7);
+    zassert("(1 + 2) * 3", 9);
+    zassert("3 %/ 2", 1);
+    zassert("3 % 2", 1);
+    zassert("-3 + 2", -1);
+    zassert("2 ** 3", 8);
+    zassert("0b11 & 0b10", 2);
+    zassert("0b11 | 0b10", 3);
+    zassert("0b11 ^ 0b10", 1);
+    zassert("0b1000 >> 2", 2);
+    zassert("0b1000 << 2", 32);
+    zassert("(~0b1010) & 0b1111", 5);
+    zassert("2 > 3", false);
+    zassert("2 < 3", true);
+    zassert("2 == 3", false);
+    zassert("2 != 3", true);
+    zassert("?3", false);
+    zassert("?nil", true);
+    zassert("!true", false);
+    zassert("!false", true);
 
     return nullptr;
 }
@@ -432,6 +497,7 @@ static const char* all_tests()
     // Execution
     run_test(execution);
     run_test(inspect);
+    run_test(math_expressions);
 
     return nullptr;
 }

@@ -24,7 +24,7 @@ public:
     ZType                         PeekType() const;
     template<typename T> T const& Peek() const;      // return a reference
     template<typename T> T        Pop();             // return a copy
-    void                          Pop();             // return nothing
+    void                          Pop(int n=1);      // return nothing
 private:
     ZValue const& Get(STPOS idx) const;
 public:
@@ -32,8 +32,16 @@ public:
     // 
     // VM EXECUTION
     //
+    enum Operator : uint8_t {
+        ZOE_ADD, ZOE_SUB, ZOE_MUL, ZOE_DIV, ZOE_IDIV, ZOE_MOD, ZOE_POW, ZOE_NEG,    // arithmetic
+        ZOE_AND, ZOE_XOR, ZOE_OR, ZOE_SHL, ZOE_SHR, ZOE_NOT,                        // bitwise
+        ZOE_LT, ZOE_LTE, ZOE_GT, ZOE_GTE, ZOE_EQ,                                   // relational
+        ZOE_BNOT,                                                                   // boolean
+    };
+
     void Eval(string const& code);
     void Call(int n_args);
+    void Op(Operator op);
 private:
     void Execute(vector<uint8_t> const& data);
 public:

@@ -1,6 +1,7 @@
 #include "lib/zoe.h"
 
 #include <cassert>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -32,7 +33,7 @@ ZValue const& Zoe::Get(STPOS idx) const
     if(p >= stack.size()) {
         throw "Index greater than stack size.";
     }
-    return *stack.at(idx);
+    return *stack.at(p);
 }
 
 
@@ -45,12 +46,14 @@ ZType Zoe::PeekType() const
 }
 
 
-void Zoe::Pop()
+void Zoe::Pop(int n)
 {
     if(stack.empty()) {
         throw "Stack underflow.";
     }
-    stack.pop_back();
+    for(int i=0; i<n; ++i) {
+        stack.pop_back();
+    }
 }
 
 // }}}
@@ -105,8 +108,35 @@ void Zoe::Execute(vector<uint8_t> const& data)
             //
             // stack
             //
-            case PUSH_N: Push(bc.GetF64(p+1)); p += 9; break;
-            case POP:    Pop();                ++p;    break;
+            case PUSH_Nil: Push(nullptr);        ++p;    break;
+            case PUSH_Bt:  Push(true);           ++p;    break;
+            case PUSH_Bf:  Push(false);          ++p;    break;
+            case PUSH_N:   Push(bc.GetF64(p+1)); p += 9; break;
+            case POP:      Pop();                ++p;    break;
+
+            //
+            // operators
+            //
+            case ADD:    Op(ZOE_ADD);  ++p; break;
+            case SUB:    Op(ZOE_SUB);  ++p; break;
+            case MUL:    Op(ZOE_MUL);  ++p; break;
+            case DIV:    Op(ZOE_DIV);  ++p; break;
+            case IDIV:   Op(ZOE_IDIV); ++p; break;
+            case MOD:    Op(ZOE_MOD);  ++p; break;
+            case POW:    Op(ZOE_POW);  ++p; break;
+            case NEG:    Op(ZOE_NEG);  ++p; break;
+            case AND:    Op(ZOE_AND);  ++p; break;
+            case OR:     Op(ZOE_OR);   ++p; break;
+            case XOR:    Op(ZOE_XOR);  ++p; break;
+            case SHL:    Op(ZOE_SHL);  ++p; break;
+            case SHR:    Op(ZOE_SHR);  ++p; break;
+            case NOT:    Op(ZOE_NOT);  ++p; break;
+            case BNOT:   Op(ZOE_BNOT); ++p; break;
+            case LT:     Op(ZOE_LT);   ++p; break;
+            case LTE:    Op(ZOE_LTE);  ++p; break;
+            case GT:     Op(ZOE_GT);   ++p; break;
+            case GTE:    Op(ZOE_GTE);  ++p; break;
+            case EQ:     Op(ZOE_EQ);   ++p; break;
 
             //
             // others
@@ -117,6 +147,54 @@ void Zoe::Execute(vector<uint8_t> const& data)
                     s << "Invalid opcode 0x" << setfill('0') << setw(2) << hex << op << '.';
                     throw s.str();
                 }
+        }
+    }
+}
+
+
+void
+Zoe::Op(Operator op)
+{
+    // exceptions
+    if(op == ZOE_NEG) {
+        Push(-Pop<double>());
+    } else if(op == ZOE_NOT) {
+        Push(~static_cast<int64_t>(Pop<double>()));
+    } else if(op == ZOE_BNOT) {
+        Push(!Pop<bool>());
+    } else if(op == ZOE_EQ) {
+        bool eq = Get(-1) == Get(-2);
+        Pop(2);
+        Push(eq);
+    } else {
+        // general case
+        double b = Pop<double>(),
+               a = Pop<double>();
+        switch(op) {
+            case ZOE_ADD:  Push(a + b); break;
+            case ZOE_SUB:  Push(a - b); break;
+            case ZOE_MUL:  Push(a * b); break;
+            case ZOE_DIV:  Push(a / b); break;
+            case ZOE_IDIV: Push(floor(a / b)); break;
+            case ZOE_MOD:  Push(fmod(a, b)); break;
+            case ZOE_POW:  Push(pow(a, b)); break;
+            case ZOE_AND:  Push(static_cast<int64_t>(a) & static_cast<int64_t>(b)); break;
+            case ZOE_XOR:  Push(static_cast<int64_t>(a) ^ static_cast<int64_t>(b)); break;
+            case ZOE_OR:   Push(static_cast<int64_t>(a) | static_cast<int64_t>(b)); break;
+            case ZOE_SHL:  Push(static_cast<int64_t>(a) << static_cast<int64_t>(b)); break;
+            case ZOE_SHR:  Push(static_cast<int64_t>(a) >> static_cast<int64_t>(b)); break;
+            
+            case ZOE_LT:  Push(a < b);  return;
+            case ZOE_LTE: Push(a <= b); return;
+            case ZOE_GT:  Push(a > b);  return;
+            case ZOE_GTE: Push(a >= b); return;
+
+            case ZOE_NEG:  // pleases gcc
+            case ZOE_EQ:
+            case ZOE_NOT:
+            case ZOE_BNOT:
+            default:
+                throw "Invalid operator code " + to_string(op) + ".";
         }
     }
 }

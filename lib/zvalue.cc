@@ -1,7 +1,9 @@
 #include "lib/zvalue.h"
 
-void 
-ZValue::ExpectType(ZType expect) const
+#include <cmath>
+#include <limits>
+
+void ZValue::ExpectType(ZType expect) const
 {
     if(type != expect) {
         throw "Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.";
@@ -9,8 +11,7 @@ ZValue::ExpectType(ZType expect) const
 }
 
 
-string 
-ZValue::Inspect() const
+string ZValue::Inspect() const
 {
     switch(type) {
         case NIL:
@@ -26,6 +27,28 @@ ZValue::Inspect() const
         case STRING:
             return "'" + str + "'";
     }
+    return "[invalid value]";
+}
+
+
+bool ZValue::operator==(ZValue const& other) const
+{
+    if(type != other.type) {
+        return false;
+    }
+
+    switch(type) {
+        case NIL:
+            return true;
+        case BOOLEAN:
+            return boolean == other.boolean;
+        case NUMBER:
+            return fabs(number - other.number) < numeric_limits<double>::epsilon();
+        case STRING:
+            return str == other.str;
+    }
+    
+    return false;
 }
 
 
