@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -107,6 +108,20 @@ static int run_all_tests()
     cout << "Tests run: " << tests_run << endl;
 
     return result != nullptr;
+}
+
+static const char* all_tests();
+
+int main()
+{
+    try {
+        return run_all_tests();
+    } catch(const exception& e) {
+        cout << DIMRED << "exception: " << e.what() << NORMAL << endl;
+    } catch(const string& e) {
+        cout << DIMRED << "exception: " << e << NORMAL << endl;
+    }
+    return EXIT_FAILURE;
 }
 
 // }}}
@@ -295,7 +310,7 @@ static const char* bytecode_simplecode()
 
 // {{{ ZOE STACK
 
-static const char* zoe_stack(void) 
+static const char* zoe_stack() 
 {
     Zoe Z;
 
@@ -315,7 +330,7 @@ static const char* zoe_stack(void)
     return nullptr;
 }
 
-static const char* zoe_stack_invalid(void)
+static const char* zoe_stack_invalid()
 {
     Zoe Z;
 
@@ -325,7 +340,7 @@ static const char* zoe_stack_invalid(void)
     return nullptr;
 }
 
-static const char* zoe_stack_order(void)
+static const char* zoe_stack_order()
 {
     Zoe Z;
 
@@ -338,6 +353,44 @@ static const char* zoe_stack_order(void)
     massert(Z.Pop<double>() == 1);
     mnothrow([&]() { Z.Pop<nullptr_t>(); });
     massert(Z.Stack().size() == 0);
+
+    return nullptr;
+}
+
+static const char* zoe_string()
+{
+    Zoe Z;
+
+    Z.Push("hello world");
+    massert(Z.Stack().size() == 2);
+    massert(Z.Peek<string>() == "hello world");
+
+    string pop = Z.Pop<string>();
+    massert(pop == "hello world");
+    massert(Z.Stack().size() == 1);
+
+    return nullptr;
+}
+
+
+// }}}
+
+// {{{ ZOE EXECUTION
+
+static const char* execution()
+{
+    Zoe Z;
+
+    // load code
+    Z.Eval("42");
+    massert(Z.Stack().size() == 2, "eval pushed into stack");
+    massert(Z.PeekType() == FUNCTION);
+
+    // execute code
+    Z.Call(0);
+    massert(Z.Stack().size(), "result pushed into stack");
+    massert(Z.PeekType() == NUMBER);
+    massert(Z.Pop<double>() == 42);
 
     return nullptr;
 }
@@ -363,14 +416,13 @@ static const char* all_tests()
     run_test(zoe_stack);
     run_test(zoe_stack_invalid);
     run_test(zoe_stack_order);
+    run_test(zoe_string);
+
+    // Execution
+    run_test(execution);
 
     return nullptr;
 }
 
-
-int main()
-{
-    return run_all_tests();
-}
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

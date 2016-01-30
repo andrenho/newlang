@@ -34,8 +34,10 @@
 # aux files
 depend
 zoe
-lib/lex.yy.*
-lib/parser.tab.*
+lib/lexer.h
+lib/lexer.cc
+lib/parser.h
+lib/parser.cc
 lib/parser.output
 libzoe.so.*
 runtests

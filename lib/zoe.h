@@ -10,6 +10,7 @@ using namespace std;
 #include "lib/zvalue.h"
 
 typedef vector<shared_ptr<ZValue>> ZStack;
+typedef int16_t STPOS;
 
 class Zoe {
 public:
@@ -18,16 +19,24 @@ public:
     // 
     // STACK ACCESS
     //
-    template<class T> void Push(T const& t);
-    template<class T> T const& Peek() const;
-    template<class T> typename enable_if<is_same<T, nullptr_t>::value, T>::type Pop();
-    template<class T> typename enable_if<!is_same<T, nullptr_t>::value, T>::type Pop();
-    void Pop();
+    template<typename T> void     Push(T const& t);
+    ZType                         PeekType() const;
+    template<typename T> T const& Peek() const;      // return a reference
+    template<typename T> T        Pop();             // return a copy
+    void                          Pop();             // return nothing
+
+    // 
+    // VM EXECUTION
+    //
+    void Eval(string const& code);
+    void Call(int n_args);
 
     inline ZStack const& Stack() const { return stack; }
 
 private:
     ZStack stack = {};
+
+    void Execute(vector<uint8_t> const& data);
 };
 
 #include "lib/zoe.inl.h"

@@ -1,7 +1,9 @@
 #ifndef ZOE_OPCODE_H_
 #define ZOE_OPCODE_H_
 
-typedef enum Opcode {
+#include <cstdint>
+
+enum Opcode : uint8_t {
     // stack
     PUSH_Nil, PUSH_Bt, PUSH_Bf, PUSH_N, PUSH_S, POP,
 
@@ -38,7 +40,7 @@ typedef enum Opcode {
     // others
     END,
 
-} Opcode;
+};
 
 #endif
 

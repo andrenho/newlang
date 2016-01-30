@@ -1,6 +1,8 @@
 #ifndef LIB_ZVALUE_H_
 #define LIB_ZVALUE_H_
 
+#include <cstdio>   // TODO - remove
+
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -28,6 +30,17 @@ struct ZFunction {
     union {
         vector<uint8_t> bytecode;
     };
+
+    // {{{ CONSTRUCTORS/DESTRUCTORS
+
+    ZFunction(vector<uint8_t> const& bytecode) : type(BYTECODE), bytecode(bytecode) {}
+
+    // NOTE: this is required for using in a anonymous union
+    ~ZFunction() {
+        bytecode.~vector<uint8_t>();
+    }
+
+    // }}}
 };
 
 // 
@@ -51,25 +64,48 @@ struct ZValue {
         ZTable    table;
     };
 
-    ~ZValue() {} // TODO - why?
+    // {{{ CONSTRUCTORS/DESTRUCTORS
 
     ZValue(nullptr_t const&) : type(NIL) {}
-    ZValue(double const& d) : type(NUMBER), number(d) {}
+    ZValue(bool const& b)    : type(BOOLEAN), boolean(b) {}
+    ZValue(double const& d)  : type(NUMBER), number(d) {}
+    ZValue(string const& s)  : type(STRING), str(s) {}
+    ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
 
-    template<class T> inline typename enable_if<is_same<T, nullptr_t>::value, T>::type const& Value() const { 
-        ExpectType(NIL);
-        return nullptr; 
-    }
-    template<class T> inline typename enable_if<is_same<T, bool>::value, T>::type const& Value() const { 
-        ExpectType(BOOLEAN);
-        return boolean; 
-    }
-    template<class T> inline typename enable_if<is_same<T, double>::value, T>::type const& Value() const { 
-        ExpectType(NUMBER);
-        return number; 
+    // helper constructors
+    ZValue(int const& i) : ZValue(static_cast<double>(i)) {}
+    ZValue(const char s[]) : ZValue(string(s)) {}
+
+    // NOTE: this is required for using in a anonymous union
+    ~ZValue() { 
+        if(type == FUNCTION) {
+            func.~ZFunction();
+        }
     }
 
-private:
+    // }}}
+
+    /* 
+     * Methods:
+     *   ValueRef  -> returns a reference to the value in C++ type
+     *   ValueCopy -> returns a copy of the value in C++ type
+     */
+    // {{{
+#define VALUE(cpp_type, zoe_type, member) \
+    template<typename T> inline typename enable_if<is_same<T, cpp_type>::value, T>::type const& ValueRef() const { \
+        ExpectType(zoe_type);                                                                                      \
+        return member;                                                                                             \
+    }                                                                                                              \
+    template<typename T> inline typename enable_if<is_same<T, cpp_type>::value, T>::type ValueCopy() const {       \
+        ExpectType(zoe_type);                                                                                      \
+        return member;                                                                                             \
+    }
+    VALUE(nullptr_t, NIL,     nullptr);
+    VALUE(bool,      BOOLEAN, boolean);
+    VALUE(double,    NUMBER,  number);
+    VALUE(string,    STRING,  str);
+    // }}}
+
     void ExpectType(ZType expect) const;
 };
 

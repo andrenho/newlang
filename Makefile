@@ -40,7 +40,7 @@ ifdef COV
 endif
 
 ifdef DEBUG
-  CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG
+  CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG -fno-inline-functions -fno-inline-small-functions
   LDFLAGS+=-g
   BISON_FLAGS+=--debug
   FLEX_FLAGS+=--debug
