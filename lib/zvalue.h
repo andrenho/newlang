@@ -71,9 +71,8 @@ struct ZValue {
     explicit ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
 
     // helper constructors
-    explicit ZValue(int const& i)      : ZValue(static_cast<double>(i)) {}
-    explicit ZValue(long int const& i) : ZValue(static_cast<double>(i)) {}   // NOLINT runtime/int
-    explicit ZValue(const char s[])    : ZValue(string(s)) {}
+    template<class T, class = typename enable_if<is_scalar<T>::value, T>::type> explicit ZValue(T const& i) : ZValue(static_cast<double>(i)) {}
+    explicit ZValue(const char s[]) : ZValue(string(s)) {}
 
     // NOTE: this is required for using in a anonymous union
     ~ZValue() { 
@@ -113,9 +112,10 @@ struct ZValue {
 
     // }}}
 
-    bool   operator==(ZValue const& other) const;
-    string Inspect() const;
-    void   ExpectType(ZType expect) const;
+    bool     operator==(ZValue const& other) const;
+    string   Inspect() const;
+    void     ExpectType(ZType expect) const;
+    uint64_t Len() const;
 };
 
 #endif

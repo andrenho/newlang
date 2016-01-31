@@ -11,6 +11,17 @@ Zoe::Push(T const& t)
 
 
 template<typename T> T const& 
+Zoe::Get(STPOS idx) const
+{
+    STPOS p = AbsIndex(idx);
+    if(p >= static_cast<STPOS>(stack.size())) {
+        throw "Index greater than stack size.";
+    }
+    return stack.at(p)->ValueRef<T>();
+}
+
+
+template<typename T> T const& 
 Zoe::Peek() const
 {
     if(stack.empty()) {

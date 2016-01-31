@@ -509,7 +509,6 @@ static const char* strings()
     sassert("'a\\nb'", "a\nb");
     sassert("'a\\x41b'", "aAb");
     sassert("'a\\x41b'", "aAb");
-    /*
     sassert("'ab'..'cd'", "abcd");
     sassert("'ab'..'cd'..'ef'", "abcdef");
     sassert("'a\nf'", "a\nf");   // multiline string
@@ -519,27 +518,25 @@ static const char* strings()
     sassert("'ab${'cd'}ef'", "abcdef");
     sassert("'ab${'cd'}ef'\n", "abcdef");
     sassert("'ab${'cd'..'xx'}ef'", "abcdxxef");
-    sassert("#'abcd'", 4);
-    sassert("#''", 0);
-    sassert("#'ab${'cd'..'xx'}ef'", 8);
-    */
+    zassert("#'abcd'", 4);
+    zassert("#''", 0);
+    zassert("#'ab${'cd'..'xx'}ef'", 8);
 
     return nullptr;
 }
 
-/*
-static char* test_zoe_string_subscripts(void)
+static const char* string_subscripts(void)
 {
-    zassert("'abcd'[1]", "b");
-    zassert("'abcd'[-1]", "d");
-    zassert("'abcd'[1:2]", "b");
-    zassert("'abcd'[1:3]", "bc");
-    zassert("'abcd'[1:]", "bcd");
-    zassert("'abcd'[:3]", "abc");
-    zassert("'abcd'[-3:-1]", "bc");
-    return 0;
+    sassert("'abcd'[1]", "b");
+    sassert("'abcd'[-1]", "d");
+    sassert("'abcd'[1:2]", "b");
+    sassert("'abcd'[1:3]", "bc");
+    sassert("'abcd'[1:]", "bcd");
+    sassert("'abcd'[:3]", "abc");
+    sassert("'abcd'[-3:-1]", "bc");
+
+    return nullptr;
 }
-*/
 
 // }}}
 
@@ -570,6 +567,7 @@ static const char* all_tests()
     run_test(math_expressions);
     run_test(shortcircuit_expressions);
     run_test(strings);
+    run_test(string_subscripts);
 
     return nullptr;
 }

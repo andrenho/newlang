@@ -69,15 +69,15 @@ let             { return LET; }
 <STR>\\x{HEXDIGIT}{2} { (*yylval->str) += (char)strtol(&yytext[2], NULL, 16); }
 <STR>\\               { (*yylval->str) += '\\'; }
 <STR>[^'\\\$]*        { (*yylval->str) += yytext; }
-<STR>\$'              { /* str_addstr(&yylval->_string, "$"); 
+<STR>\$'              { (*yylval->str) += '$';
                         yy_pop_state(yyscanner); 
-                        return STRING; */ }
-<STR>\$[^\{]          { /* str_addstr(&yylval->_string, yytext); */ }
-<STR>\$\{             { /* yy_push_state(SB, yyscanner); return STRING; */ }
+                        return STRING; }
+<STR>\$[^\{]          { (*yylval->str) += yytext; }
+<STR>\$\{             { yy_push_state(SB, yyscanner); return STRING; }
 <STR>'                { yy_pop_state(yyscanner); return STRING; }
 
-<SB>\}                { /* yy_pop_state(yyscanner);
-                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; */ }
+<SB>\}                { yy_pop_state(yyscanner);
+                        yylval->str = new string(); }
 
 {SPECIALCHARS}  { return yytext[0]; }
 

@@ -39,6 +39,12 @@ ZValue const& Zoe::Get(STPOS idx) const
 }
 
 
+ZType Zoe::GetType(STPOS p) const
+{
+    return Get(p).type;
+}
+
+
 ZType Zoe::PeekType() const
 {
     if(stack.empty()) {
@@ -56,6 +62,15 @@ void Zoe::Pop(int n)
     for(int i=0; i<n; ++i) {
         stack.pop_back();
     }
+}
+
+void Zoe::Remove(STPOS idx)
+{
+    STPOS p = AbsIndex(idx);
+    if(p >= static_cast<STPOS>(stack.size())) {
+        throw "Index greater than stack size.";
+    }
+    stack.erase(begin(stack) + p);
 }
 
 // }}}
@@ -147,6 +162,14 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case EQ:     Op(ZOE_EQ);   ++p; break;
 
             //
+            // complex operators
+            //
+            case CAT:    Concat(); ++p; break;
+            case LEN:    Len();    ++p; break;
+            case LOOKUP: Lookup(); ++p; break;
+            case SLICE:  Slice();  ++p; break;
+
+            //
             // branches
             //
             case JMP: p = bc.Get64<uint64_t>(p+1); break;
@@ -166,9 +189,11 @@ void Zoe::Execute(vector<uint8_t> const& data)
     }
 }
 
+// }}}
 
-void
-Zoe::Op(Operator op)
+// {{{ OPERATORS
+
+void Zoe::Op(Operator op)
 {
     // exceptions
     if(op == ZOE_NEG) {
@@ -211,6 +236,82 @@ Zoe::Op(Operator op)
             default:
                 throw "Invalid operator code " + to_string(static_cast<int>(op)) + ".";
         }
+    }
+}
+
+void Zoe::Concat()
+{
+    ZType t = GetType(-2);
+    if(t == STRING) {
+        string b = Pop<string>(),
+               a = Pop<string>();
+        Push(a + b);
+    } else if(t == ARRAY) {
+        abort();  // TODO
+    } else {
+        throw "Expected string or array, found " + Typename(t) + ".";
+    }
+}
+
+void Zoe::Len()
+{
+    Push(Get(-1).Len());
+    Remove(-2);
+}
+
+void Zoe::Lookup()
+{
+    ZType t = GetType(-2);
+    if(t == STRING) {
+        int64_t i = static_cast<int64_t>(Pop<double>());
+        string str = Pop<string>();
+        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : str.size() + i;
+        // TODO - raise error if number is higher than the number of characters in the string
+        Push(string(1, str[k]));
+    } else if(t == ARRAY) {
+        abort();  // TODO
+    } else if(t == TABLE) {
+        abort();  // TODO
+    } else {
+        throw "Expected string, array or table, found " + Typename(t) + ".";
+    }
+}
+
+void Zoe::Slice()
+{
+    ZType t = GetType(-3);
+
+    // find full size
+    int64_t sz;
+    if(t == STRING) {
+        sz = static_cast<int64_t>(Get<string>(-3).size());
+    } else if(t == ARRAY) {
+        abort();  // TODO
+    } else if(t == TABLE) {
+        abort();  // TODO
+    } else {
+        throw "Expected string, array or table, found " + Typename(t) + ".";
+    }
+
+    // find start & end
+    int64_t end   = static_cast<int64_t>(GetType(-1) == NIL ? Pop(), sz : Pop<double>()),
+            start = static_cast<int64_t>(Pop<double>());
+    start = (start >= 0) ? start : (sz + start);
+    end = (end >= 0) ? end : (sz + end);
+
+    if(start > sz || end > sz) {
+        throw "Subscript out of range";
+    } else if(start >= end) {
+        throw "start <= end";
+    }
+
+    // slice
+    if(t == STRING) {
+        Push(Pop<string>().substr(start, end-1));
+    } else if(t == ARRAY) {
+        abort();  // TODO
+    } else if(t == TABLE) {
+        abort();  // TODO
     }
 }
 

@@ -20,11 +20,14 @@ public:
     // STACK ACCESS
     //
     STPOS                         AbsIndex(STPOS pos) const;
+    template<typename T> T const& Get(STPOS pos) const;
+    ZType                         GetType(STPOS pos) const;
     template<typename T> void     Push(T const& t);
     ZType                         PeekType() const;
     template<typename T> T const& Peek() const;      // return a reference
     template<typename T> T        Pop();             // return a copy
     void                          Pop(int n=1);      // return nothing
+    void                          Remove(STPOS pos);
 private:
     ZValue const& Get(STPOS idx) const;
 public:
@@ -42,6 +45,10 @@ public:
     void Eval(string const& code);
     void Call(int n_args);
     void Op(Operator op);
+    void Concat();
+    void Len();
+    void Lookup();
+    void Slice();
 private:
     void Execute(vector<uint8_t> const& data);
 public:

@@ -31,6 +31,18 @@ string ZValue::Inspect() const
 }
 
 
+uint64_t ZValue::Len() const
+{
+    if(type == STRING) {
+        return str.size();
+    } else if(type == ARRAY) {
+        abort(); // TODO
+    } else {
+        throw "Expected 'string' or 'array', found '" + Typename(type) + "'.";
+    }
+}
+
+
 bool ZValue::operator==(ZValue const& other) const
 {
     if(type != other.type) {
