@@ -72,6 +72,27 @@ string ZValue::Inspect() const
                 s.append("]");
                 return s;
             }
+        case TABLE: {
+                string s = "%{";
+                bool fst = true;
+                for(auto const& kv: table.items) {
+                    if(!fst) {
+                        s.append(", ");
+                    } else {
+                        fst = false;
+                    }
+                    if(kv.first->type == STRING) {
+                        s.append(kv.first->str);
+                    } else {
+                        s.append("[" + kv.first->Inspect() + "]");
+                    }
+                    s.append(": " + kv.second->Inspect());
+                }
+                s.append("}");
+                return s;
+            }
+        case FUNCTION:
+            return "[function]";  // TODO
     }
     return "[invalid value]";
 }
@@ -114,6 +135,8 @@ bool ZValue::operator==(ZValue const& other) const
                 }
             }
             return true;
+        case FUNCTION:
+            throw "Functions can't be compared.";  // TODO
     }
     
     return false;

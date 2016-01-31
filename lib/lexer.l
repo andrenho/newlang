@@ -81,7 +81,7 @@ let             { return LET; }
 
 {SPECIALCHARS}  { return yytext[0]; }
 
-{IDENTIFIER}    { /* yylval->str = strdup(yytext); return IDENTIFIER; */ }
+{IDENTIFIER}    { yylval->str = new string(yytext); return IDENTIFIER; }
 
 \%\/            { return _IDIV;  }
 \*\*            { return _POW;   }
@@ -105,20 +105,6 @@ let             { return LET; }
 .               return 1;
 
 %%
-
-
-/*
-static void str_addstr(String* str, char* s)
-{
-    size_t len = strlen(s);
-    size_t new_size = str->sz + len + 1;
-    if(new_size > str->alloc) {
-        size_t new_alloc = (new_size > (str->alloc * 2)) ? new_size : (str->alloc * 2);
-        str->str = realloc(str->str, new_alloc);
-    }
-    memcpy(&str->str[strlen(str->str)], s, len);
-}
-*/
 
 
 static char* remove_undersc(char* t)

@@ -59,6 +59,16 @@ ZArray& Zoe::GetArray(STPOS idx) const
 }
 
 
+ZTable& Zoe::GetTable(STPOS idx) const
+{
+    auto ptr = GetPtr(idx);
+    if(ptr->type != TABLE) {
+        throw "Expected table, found " + Typename(ptr->type) + ".";
+    }
+    return ptr->table;
+}
+
+
 ZType Zoe::GetType(STPOS p) const
 {
     return Get(p).type;
@@ -118,11 +128,13 @@ void Zoe::ArrayAppend()
 
 void Zoe::ArrayMul()
 {
-    uint64_t mul = static_cast<uint64_t>(Pop<double>());
-    ZArray const& ary = GetArray(-1);
-    if(mul < 0) {
+    double d = Pop<double>();
+    if(d < 0) {
         throw "Arrays can only be multiplied by positive values.";
     }
+
+    uint64_t mul = static_cast<uint64_t>(d);
+    ZArray const& ary = GetArray(-1);
 
     // create new array
     ZArray& new_ary = PushArray();
@@ -131,6 +143,25 @@ void Zoe::ArrayMul()
     }
 
     Remove(-2);
+}
+
+// }}}
+
+// {{{ TABLES
+
+ZTable& Zoe::PushTable()
+{
+    auto tbl_ptr = make_shared<ZValue>(TABLE);
+    stack.emplace_back(tbl_ptr);
+    return tbl_ptr->table;
+}
+
+
+void Zoe::TableSet()
+{
+    ZTable& tbl = GetTable(-3);
+    tbl.items[GetPtr(-2)] = GetPtr(-1);
+    Pop(2);
 }
 
 // }}}
@@ -242,6 +273,12 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case PUSHARY: PushArray();   ++p; break;
             case APPEND:  ArrayAppend(); ++p; break;
 
+            // 
+            // tables
+            //
+            case PUSHTBL: PushTable(); ++p; break;
+            case TBLSET:  TableSet();  ++p; break;
+
             //
             // others
             //
@@ -352,7 +389,9 @@ void Zoe::Lookup()
         stack.push_back(ary[k]);
         Remove(-2);
     } else if(t == TABLE) {
-        abort();  // TODO
+        ZTable const& tbl = GetTable(-2);
+        stack.push_back(tbl.items.at(GetPtr(-1)));  // TODO - look for prototypes
+        Remove(-2);
     } else {
         throw "Expected string, array or table, found " + Typename(t) + ".";
     }

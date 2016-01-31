@@ -32,6 +32,7 @@ private:
     ZValue const& Get(STPOS idx) const;
     shared_ptr<ZValue> GetPtr(STPOS idx) const;
     ZArray& GetArray(STPOS idx) const;
+    ZTable& GetTable(STPOS idx) const;
 public:
 
     //
@@ -42,6 +43,12 @@ public:
 private:
     void ArrayMul();
 public:
+
+    // 
+    // TABLES
+    //
+    ZTable& PushTable();
+    void    TableSet();
 
     // 
     // VM EXECUTION

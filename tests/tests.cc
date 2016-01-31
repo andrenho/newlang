@@ -432,7 +432,7 @@ static const char* zoe_string()
 
 // }}}
 
-// {{{ ZOE EXECUTION
+// {{{ EXECUTION
 
 static const char* execution()
 {
@@ -466,7 +466,7 @@ static const char* inspect()
 
 // }}}
 
-// {{{ ZOE EXPRESSIONS
+// {{{ EXPRESSIONS
 
 static const char* math_expressions()
 {
@@ -567,7 +567,7 @@ static const char* string_subscripts()
 
 // }}}
 
-// {{{ ZOE COMMENTS
+// {{{ COMMENTS
 
 static const char* comments()
 {
@@ -579,12 +579,12 @@ static const char* comments()
     zassert("2 + 3//test\n", 5);
     zassert("2 /* a /* b */ */", 2);  // nested comments
     zassert("2 /* /* / */ */", 2);  // nested comments
-    return 0;
+    return nullptr;
 }
 
 // }}}
 
-// {{{ ZOE ARRAYS
+// {{{ ARRAYS
 
 static const char* arrays()
 {
@@ -650,6 +650,44 @@ static const char* array_operators()
 
 // }}}
 
+// {{{ TABLES
+
+static const char* table()
+{
+    zinspect("%{}", "%{}");
+    zinspect("%{hello: 'world'}", "%{hello: 'world'}");
+    zinspect("%{hello: 'world',}", "%{hello: 'world'}");
+    zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
+    zinspect("%{hello: []}", "%{hello: []}");
+    zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
+
+    return nullptr;
+}
+
+static const char* table_access(void)
+{
+    zassert("%{[2]: 3}[2]", 3);
+    /*
+    sassert("%{hello: 'world', a: 42}['hello']", "world");
+    mu_assert_sexpr("%{hello: 'world', a: 42}['hello']", "world");
+    mu_assert_sexpr("%{hello: 'world', a: 42}.hello", "world");
+    mu_assert_nexpr("%{hello: 'world', a: 42}.a", 42);
+    mu_assert_nexpr("%{hello: %{world: 42}}.hello.world", 42);
+    mu_assert_nexpr("%{hello: %{world: 42}}['hello']['world']", 42);
+
+    Zoe* Z = zoe_createvm(test_error);
+    error_found = false;
+    zoe_eval(Z, "%{hello: 'world'}.a");
+    zoe_call(Z, 0);
+    mu_assert("key error", error_found);
+    zoe_free(Z);
+    */
+
+    return nullptr;
+}
+
+// }}}
+
 static const char* all_tests()
 {
     // test tool
@@ -686,6 +724,10 @@ static const char* all_tests()
     run_test(array_lookup);
     run_test(array_slices);
     run_test(array_operators);
+    
+    // tables
+    run_test(table);
+    run_test(table_access);
 
     return nullptr;
 }
