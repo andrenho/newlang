@@ -176,6 +176,8 @@ check: runtests
 lint:
 	${MAKE} maintainer-clean
 	cpplint --filter=${CPPLINT_FILTERS} --linelength=120 lib/*.h lib/*.cc src/*.h src/*.cc tests/*.cc
+	@echo -------------------------------------------------
+	cppcheck --std=c++11 --enable=all --inconclusive lib/*.h lib/*.cc src/*.h src/*.cc tests/*.cc
 
 check-leaks: zoe
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe -D

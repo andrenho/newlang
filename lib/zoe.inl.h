@@ -17,7 +17,7 @@ Zoe::Get(STPOS idx) const
     if(p >= static_cast<STPOS>(stack.size())) {
         throw "Index greater than stack size.";
     }
-    return stack.at(p)->ValueRef<T>();
+    return stack.at(static_cast<size_t>(p))->ValueRef<T>();
 }
 
 

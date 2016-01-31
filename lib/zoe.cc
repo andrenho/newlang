@@ -49,6 +49,16 @@ shared_ptr<ZValue> Zoe::GetPtr(STPOS idx) const
 }
 
 
+ZArray& Zoe::GetArray(STPOS idx) const
+{
+    auto ptr = GetPtr(idx);
+    if(ptr->type != ARRAY) {
+        throw "Expected array, found " + Typename(ptr->type) + ".";
+    }
+    return ptr->ary;
+}
+
+
 ZType Zoe::GetType(STPOS p) const
 {
     return Get(p).type;
@@ -87,9 +97,11 @@ void Zoe::Remove(STPOS idx)
 
 // {{{ ARRAYS
 
-void Zoe::PushArray()
+ZArray& Zoe::PushArray()
 {
-    stack.emplace_back(make_shared<ZValue>(ARRAY));
+    auto ary_ptr = make_shared<ZValue>(ARRAY);
+    stack.emplace_back(ary_ptr);
+    return ary_ptr->ary;
 }
 
 
@@ -101,6 +113,24 @@ void Zoe::ArrayAppend()
 
     GetPtr(-2)->ary.emplace_back(GetPtr(-1));
     Pop();
+}
+
+
+void Zoe::ArrayMul()
+{
+    uint64_t mul = static_cast<uint64_t>(Pop<double>());
+    ZArray const& ary = GetArray(-1);
+    if(mul < 0) {
+        throw "Arrays can only be multiplied by positive values.";
+    }
+
+    // create new array
+    ZArray& new_ary = PushArray();
+    for(uint64_t i=0; i<mul; ++i) {
+        copy(begin(ary), end(ary), back_inserter(new_ary));
+    }
+
+    Remove(-2);
 }
 
 // }}}
@@ -242,6 +272,8 @@ void Zoe::Op(Operator op)
         bool eq = Get(-1) == Get(-2);
         Pop(2);
         Push(eq);
+    } else if(op == ZOE_MUL && GetType(-2) == ARRAY) {
+        ArrayMul();
     } else {
         // general case
         double b = Pop<double>(),
@@ -283,7 +315,13 @@ void Zoe::Concat()
                a = Pop<string>();
         Push(a + b);
     } else if(t == ARRAY) {
-        abort();  // TODO
+        ZArray const& a1 = GetArray(-2);
+        ZArray const& a2 = GetArray(-1);
+        ZArray& anew = PushArray();
+        copy(begin(a1), end(a1), back_inserter(anew));
+        copy(begin(a2), end(a2), back_inserter(anew));
+        Remove(-3);
+        Remove(-2);
     } else {
         throw "Expected string or array, found " + Typename(t) + ".";
     }
@@ -301,13 +339,13 @@ void Zoe::Lookup()
     if(t == STRING) {
         int64_t i = static_cast<int64_t>(Pop<double>());
         string str = Pop<string>();
-        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : str.size() + i;
+        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : str.size() + static_cast<uint64_t>(i);
         // TODO - raise error if number is higher than the number of characters in the string
         Push(string(1, str[k]));
     } else if(t == ARRAY) {
         int64_t i = static_cast<int64_t>(Pop<double>());
-        ZArray const& ary = Get(-1).ary;
-        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : ary.size() + i;
+        ZArray const& ary = GetArray(-1);
+        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : ary.size() + static_cast<uint64_t>(i);
         if(k >= ary.size()) {
             throw "Subscript out of range.";
         }
@@ -329,32 +367,33 @@ void Zoe::Slice()
     if(t == STRING) {
         sz = static_cast<int64_t>(Get<string>(-3).size());
     } else if(t == ARRAY) {
-        abort();  // TODO
+        sz = static_cast<int64_t>(GetArray(-3).size());
     } else if(t == TABLE) {
         abort();  // TODO
     } else {
-        throw "Expected string, array or table, found " + Typename(t) + ".";
+        throw "Expected string or array, found " + Typename(t) + ".";
     }
 
-    // find start & end
-    int64_t end   = static_cast<int64_t>(GetType(-1) == NIL ? Pop(), sz : Pop<double>()),
-            start = static_cast<int64_t>(Pop<double>());
+    // find start & finish
+    int64_t finish = GetType(-1) == NIL ? (Pop(), sz) : static_cast<int64_t>(Pop<double>()),
+            start  = static_cast<int64_t>(Pop<double>());
     start = (start >= 0) ? start : (sz + start);
-    end = (end >= 0) ? end : (sz + end);
+    finish = (finish >= 0) ? finish : (sz + finish);
 
-    if(start > sz || end > sz) {
+    if(start > sz || finish > sz) {
         throw "Subscript out of range";
-    } else if(start >= end) {
-        throw "start <= end";
+    } else if(start >= finish) {
+        throw "start <= finish";
     }
 
     // slice
     if(t == STRING) {
-        Push(Pop<string>().substr(start, end-start));
+        Push(Pop<string>().substr(static_cast<size_t>(start), static_cast<size_t>(finish-start)));
     } else if(t == ARRAY) {
-        abort();  // TODO
-    } else if(t == TABLE) {
-        abort();  // TODO
+        ZArray& new_ary = PushArray();
+        ZArray const& old_ary = GetArray(-2);
+        copy(begin(old_ary)+start, begin(old_ary)+finish, back_inserter(new_ary));
+        Remove(-2);
     }
 }
 

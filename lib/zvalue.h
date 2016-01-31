@@ -46,7 +46,10 @@ struct ZFunction {
 // 
 struct ZValue;
 typedef vector<shared_ptr<ZValue>> ZArray;
-typedef unordered_map<shared_ptr<ZValue>,shared_ptr<ZValue>> ZTable;
+
+struct ZTable {
+    unordered_map<shared_ptr<ZValue>,shared_ptr<ZValue>> items = {};
+};
 
 //
 // ZVALUE

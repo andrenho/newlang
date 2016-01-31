@@ -63,7 +63,7 @@ string ZValue::Inspect() const
             return "'" + str + "'";
         case ARRAY: {
                 string s = "[";
-                for(int i=0; i<ary.size(); ++i) {
+                for(size_t i=0; i<ary.size(); ++i) {
                     if(i != 0) {
                         s.append(", ");
                     }
@@ -82,7 +82,7 @@ uint64_t ZValue::Len() const
     if(type == STRING) {
         return str.size();
     } else if(type == ARRAY) {
-        abort(); // TODO
+        return ary.size();
     } else {
         throw "Expected 'string' or 'array', found '" + Typename(type) + "'.";
     }
@@ -108,7 +108,7 @@ bool ZValue::operator==(ZValue const& other) const
             if(ary.size() != other.ary.size()) {
                 return false;
             }
-            for(int i=0; i<ary.size(); ++i) {
+            for(size_t i=0; i<ary.size(); ++i) {
                 if(!(*ary[i] == *other.ary[i])) {
                     return false;
                 }

@@ -31,13 +31,17 @@ public:
 private:
     ZValue const& Get(STPOS idx) const;
     shared_ptr<ZValue> GetPtr(STPOS idx) const;
+    ZArray& GetArray(STPOS idx) const;
 public:
 
     //
     // ARRAY
     //
-    void PushArray();
+    ZArray& PushArray();
     void ArrayAppend();
+private:
+    void ArrayMul();
+public:
 
     // 
     // VM EXECUTION

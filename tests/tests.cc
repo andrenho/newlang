@@ -552,7 +552,7 @@ static const char* strings()
     return nullptr;
 }
 
-static const char* string_subscripts(void)
+static const char* string_subscripts()
 {
     sassert("'abcd'[1]", "b");
     sassert("'abcd'[-1]", "d");
@@ -569,7 +569,7 @@ static const char* string_subscripts(void)
 
 // {{{ ZOE COMMENTS
 
-static const char* comments(void)
+static const char* comments()
 {
     zassert("2 + 3 /* test */", 5);
     zassert("/* test */ 2 + 3", 5);
@@ -623,32 +623,30 @@ static const char* array_lookup()
     return nullptr;
 }
 
-/*
-static char* test_array_slices(void)
+static const char* array_slices()
 {
-    mu_assert_inspect("[2,3,4][0:1]", "[2]");
-    mu_assert_inspect("[2,3,4][0:2]", "[2, 3]");
-    mu_assert_inspect("[2,3,4][1:3]", "[3, 4]");
-    mu_assert_inspect("[2,3,4][1:]", "[3, 4]");
-    mu_assert_inspect("[2,3,4][:2]", "[2, 3]");
-    mu_assert_inspect("[2,3,4][:]", "[2, 3, 4]");
-    mu_assert_inspect("[2,3,4][-1:]", "[4]");
-    mu_assert_inspect("[2,3,4][-2:-1]", "[3]");
-    mu_assert_inspect("[2,3,4][:-2]", "[2]");
+    zinspect("[2,3,4][0:1]", "[2]");
+    zinspect("[2,3,4][0:2]", "[2, 3]");
+    zinspect("[2,3,4][1:3]", "[3, 4]");
+    zinspect("[2,3,4][1:]", "[3, 4]");
+    zinspect("[2,3,4][:2]", "[2, 3]");
+    zinspect("[2,3,4][:]", "[2, 3, 4]");
+    zinspect("[2,3,4][-1:]", "[4]");
+    zinspect("[2,3,4][-2:-1]", "[3]");
+    zinspect("[2,3,4][:-2]", "[2]");
 
-    return 0;
+    return nullptr;
 }
 
-static char* test_array_operators(void)
+static const char* array_operators()
 {
     zassert("#[2, 3, 4]", 3);
     zassert("#[]", 0);
-    mu_assert_inspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
-    mu_assert_inspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
+    zinspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
+    zinspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
 
-    return 0;
+    return nullptr;
 }
-*/
 
 // }}}
 
@@ -673,7 +671,7 @@ static const char* all_tests()
     run_test(zoe_stack_order);
     run_test(zoe_string);
 
-    // expressions
+    // expressions & syntax
     run_test(execution);
     run_test(inspect);
     run_test(math_expressions);
@@ -681,9 +679,13 @@ static const char* all_tests()
     run_test(strings);
     run_test(string_subscripts);
     run_test(comments);
+
+    // arrays
     run_test(arrays);
     run_test(array_equality);
     run_test(array_lookup);
+    run_test(array_slices);
+    run_test(array_operators);
 
     return nullptr;
 }
