@@ -46,13 +46,23 @@ public:
     // ADD TO CODE
     //
     void Add(uint8_t code);
-    void AddF64(double code);
+    template<typename T> void Add64(T data) {
+        static_assert(sizeof(T) == 8, "use this method only for data types with 64 bits");
+        uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+        copy(bytes, bytes+8, back_inserter(code));
+    }
     void AddString(string const& str);
 
     //
     // READ CODE
     //
-    double GetF64(uint64_t pos) const;
+    template<typename T> T Get64(uint64_t pos) const {
+        static_assert(sizeof(T) == 8, "use this method only for data types with 64 bits");
+        uint8_t bytes[8];
+        ssize_t p = static_cast<ssize_t>(pos);
+        copy(begin(code)+p, begin(code)+p+8, bytes);
+        return *reinterpret_cast<T*>(bytes);
+    }
 
     // 
     // LABELS

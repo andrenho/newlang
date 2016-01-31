@@ -112,7 +112,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case PUSH_Nil: Push(nullptr);        ++p;    break;
             case PUSH_Bt:  Push(true);           ++p;    break;
             case PUSH_Bf:  Push(false);          ++p;    break;
-            case PUSH_N:   Push(bc.GetF64(p+1)); p += 9; break;
+            case PUSH_N:   Push(bc.Get64<double>(p+1)); p += 9; break;
             case POP:      Pop();                ++p;    break;
 
             //
@@ -138,6 +138,13 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case GT:     Op(ZOE_GT);   ++p; break;
             case GTE:    Op(ZOE_GTE);  ++p; break;
             case EQ:     Op(ZOE_EQ);   ++p; break;
+
+            //
+            // branches
+            //
+            case JMP: p = bc.Get64<uint64_t>(p+1); break;
+            case Bfalse: p = Pop<bool>() ? p+9 : bc.Get64<uint64_t>(p+1); break;
+            case Btrue: p = Pop<bool>() ? bc.Get64<uint64_t>(p+1) : p+9; break;
 
             //
             // others

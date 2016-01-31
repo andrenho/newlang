@@ -60,29 +60,10 @@ void Bytecode::Add(uint8_t data)
 }
 
 
-void Bytecode::AddF64(double data)
-{
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
-    copy(bytes, bytes+8, back_inserter(code));
-}
-
-
 void Bytecode::AddString(string const& str)
 {
     copy(begin(str), end(str), back_inserter(code));
     Add(0);
-}
-
-// }}}
-
-// {{{ READ CODE
-
-double Bytecode::GetF64(uint64_t pos) const
-{
-    uint8_t bytes[8];
-    ssize_t p = static_cast<ssize_t>(pos);
-    copy(begin(code)+p, begin(code)+p+8, bytes);
-    return *reinterpret_cast<double*>(bytes);
 }
 
 // }}}
@@ -120,7 +101,7 @@ void Bytecode::AdjustLabels()
         for(auto const& ref: label.refs) {
             assert(ref <= (code.size() + 8)); 
             // overwrite 8 bytes of code with address
-            memcpy(&code[ref], &label.address, __SIZEOF_DOUBLE__);
+            memcpy(&code[ref], &label.address, 8);
         }
     }
 }
@@ -140,9 +121,8 @@ void Bytecode::AddVariable(string const& varname)
 {
     for(ssize_t j=static_cast<ssize_t>(vars.size())-1; j >= 0; --j) {
         if(vars[static_cast<size_t>(j)].name == varname) {
-            double idx = static_cast<double>(-1 - j);
             Add(PUSH_N);
-            AddF64(idx);   // TODO - don't use floating point here
+            Add64<int64_t>(-1 - j);  // TODO
             Add(GETLOCAL);
             return;
         }

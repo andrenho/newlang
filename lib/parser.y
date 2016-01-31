@@ -93,10 +93,10 @@ exps: exps SEP { b.Add(POP); } exp
     |          { b.Add(POP); } exp
     ;
 
-exp: NUMBER             { b.Add(PUSH_N); b.AddF64($1);   }
-   | BOOLEAN            { b.Add($1 ? PUSH_Bt : PUSH_Bf); }
-   | NIL                { b.Add(PUSH_Nil);               }
-   | IDENTIFIER         { b.AddVariable(*$1);            }
+exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
+   | BOOLEAN            { b.Add($1 ? PUSH_Bt : PUSH_Bf);      }
+   | NIL                { b.Add(PUSH_Nil);                    }
+   | IDENTIFIER         { b.AddVariable(*$1);                 }
    | strings
    | array
    | table
@@ -202,11 +202,11 @@ tbl_item: IDENTIFIER {
         ;
 
 // lookup position
-lookup_pos: exp ':' exp  { b.Add(SLICE);                  }
-          | ':'          { b.Add(PUSH_N); b.AddF64(0);    } 
-            exp          { b.Add(SLICE);                  }
-          | exp ':'      { b.Add(PUSH_Nil); b.Add(SLICE); }
-          | ':'          { b.Add(PUSH_N); b.AddF64(0); 
+lookup_pos: exp ':' exp  { b.Add(SLICE);                      }
+          | ':'          { b.Add(PUSH_N); b.Add64<double>(0); } 
+            exp          { b.Add(SLICE);                      }
+          | exp ':'      { b.Add(PUSH_Nil); b.Add(SLICE);     }
+          | ':'          { b.Add(PUSH_N); b.Add64<double>(0); 
                            b.Add(PUSH_Nil);
                            b.Add(SLICE); }
           ;

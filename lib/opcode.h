@@ -5,40 +5,40 @@
 
 enum Opcode : uint8_t {
     // stack
-    PUSH_Nil, PUSH_Bt, PUSH_Bf, PUSH_N, PUSH_S, POP,
+    PUSH_Nil=0x0, PUSH_Bt, PUSH_Bf, PUSH_N, PUSH_S, POP,
 
     // arithmetic
-    ADD, SUB, MUL, DIV, IDIV, MOD, POW, NEG,
+    ADD=0x10, SUB, MUL, DIV, IDIV, MOD, POW, NEG,
 
     // bitwise
-    AND, XOR, OR, SHL, SHR, NOT,
+    AND=0x20, XOR, OR, SHL, SHR, NOT,
 
     // relational
-    LT, LTE, GT, GTE, EQ,
+    LT=0x30, LTE, GT, GTE, EQ,
 
     // string / array
-    CAT, LEN, LOOKUP, SLICE,
+    CAT=0x40, LEN, LOOKUP, SLICE,
 
     // binary
-    BNOT,
+    BNOT=0x50,
 
     // branches
-    JMP, Bfalse, Btrue,
+    JMP=0x60, Bfalse, Btrue,
 
     // arrays
-    PUSHARY, APPEND,
+    PUSHARY=0x70, APPEND,
 
     // tables
-    PUSHTBL, TBLSET,
+    PUSHTBL=0x80, TBLSET,
 
     // local variables
-    ADDCNST, ADDMCNST, GETLOCAL,
+    ADDCNST=0x90, ADDMCNST, GETLOCAL,
 
     // scopes
-    PUSH_Sc, POP_Sc,
+    PUSH_Sc=0xA0, POP_Sc,
 
     // others
-    END,
+    END=0xFF,
 
 };
 

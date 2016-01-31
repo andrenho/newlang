@@ -191,7 +191,7 @@ static const char* bytecode_gen()
 
     bc.Add(POP);
     bc.Add(PUSH_N);
-    bc.AddF64(3.1416);
+    bc.Add64<double>(3.1416);
     bc.Add(END);
 
     vector<uint8_t> found = bc.GenerateZB();
@@ -267,8 +267,8 @@ static const char* bytecode_variables()
     bc.AddVariable("a");
     bc.AddVariable("b");
 
-    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
-    massert(bc.GetF64(0x0B) == -2, "Variable 'b'");
+    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
+    massert(bc.Get64<int64_t>(0x0B) == -2, "Variable 'b'");
 
     mthrows([&](){ bc.AddVariable("c"); });
 
@@ -287,8 +287,8 @@ static const char* bytecode_multivar()
     bc.AddMultivarAssignment(false);
     bc.AddVariable("a");
     bc.AddVariable("b");
-    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
-    massert(bc.GetF64(0x0B) == -2, "Variable 'b'");
+    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
+    massert(bc.Get64<int64_t>(0x0B) == -2, "Variable 'b'");
 
     bc.AddMultivarCounter();
     massert(bc.Code()[0x14] == 3, "Multivar counter before reset");
@@ -315,9 +315,9 @@ static const char* bytecode_scopes()
 
     bc.AddVariable("a");
 
-    massert(bc.GetF64(0x01) == -1, "Variable 'a'");
-    massert(bc.GetF64(0x0C) == -2, "Variable 'a' (inside scope)");
-    massert(bc.GetF64(0x17) == -1, "Variable 'a' (outside scope)");
+    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
+    massert(bc.Get64<int64_t>(0x0C) == -2, "Variable 'a' (inside scope)");
+    massert(bc.Get64<int64_t>(0x17) == -1, "Variable 'a' (outside scope)");
 
     mthrows([&](){ bc.PopScope(); }, "Stack underflow");
     
@@ -472,6 +472,33 @@ static const char* math_expressions()
     return nullptr;
 }
 
+
+static const char* shortcircuit_expressions()
+{
+    // &&
+    zassert("true && true", true);
+    zassert("true && false", false);
+    zassert("false && true", false);
+    zassert("false && false", false);
+    zassert("true && true && true", true);
+    zassert("true && true && false", false);
+
+    // ||
+    zassert("true || true", true);
+    zassert("true || false", true);
+    zassert("false || true", true);
+    zassert("false || false", false);
+    zassert("true || true || true", true);
+    zassert("true || true || false", true);
+    zassert("false || false || false", false);
+
+    // ternary
+    zassert("2 < 3 ? 4 : 5", 4);
+    zassert("2 >= 3 ? 4 : 5", 5);
+
+    return nullptr;
+}
+
 // }}}
 
 static const char* all_tests()
@@ -499,6 +526,7 @@ static const char* all_tests()
     run_test(execution);
     run_test(inspect);
     run_test(math_expressions);
+    run_test(shortcircuit_expressions);
 
     return nullptr;
 }
