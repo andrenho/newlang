@@ -31,7 +31,7 @@ struct ZFunction {
 
     // {{{ CONSTRUCTORS/DESTRUCTORS
 
-    ZFunction(vector<uint8_t> const& bytecode) : type(BYTECODE), bytecode(bytecode) {}
+    explicit ZFunction(vector<uint8_t> const& bytecode) : type(BYTECODE), bytecode(bytecode) {}
 
     // NOTE: this is required for using in a anonymous union
     ~ZFunction() {
@@ -64,16 +64,16 @@ struct ZValue {
 
     // {{{ CONSTRUCTORS/DESTRUCTORS
 
-    ZValue(nullptr_t const&) : type(NIL) {}
-    ZValue(bool const& b)    : type(BOOLEAN), boolean(b) {}
-    ZValue(double const& d)  : type(NUMBER), number(d) {}
-    ZValue(string const& s)  : type(STRING), str(s) {}
-    ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
+    explicit ZValue(nullptr_t const&) : type(NIL) {}
+    explicit ZValue(bool const& b)    : type(BOOLEAN), boolean(b) {}
+    explicit ZValue(double const& d)  : type(NUMBER), number(d) {}
+    explicit ZValue(string const& s)  : type(STRING), str(s) {}
+    explicit ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
 
     // helper constructors
-    ZValue(int const& i)      : ZValue(static_cast<double>(i)) {}
-    ZValue(long int const& i) : ZValue(static_cast<double>(i)) {}
-    ZValue(const char s[])    : ZValue(string(s)) {}
+    explicit ZValue(int const& i)      : ZValue(static_cast<double>(i)) {}
+    explicit ZValue(long int const& i) : ZValue(static_cast<double>(i)) {}   // NOLINT runtime/int
+    explicit ZValue(const char s[])    : ZValue(string(s)) {}
 
     // NOTE: this is required for using in a anonymous union
     ~ZValue() { 
@@ -105,7 +105,10 @@ struct ZValue {
     VALUE(string,    STRING,  str);
 
     // helper types
-    VALUE(int,       NUMBER,  number);
+    template<typename T> inline typename enable_if<is_same<T, int>::value, T>::type ValueCopy() const {
+        ExpectType(NUMBER);
+        return static_cast<int>(number);
+    }
     // }}}
 
     bool   operator==(ZValue const& other) const;

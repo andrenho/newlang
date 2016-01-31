@@ -10,6 +10,7 @@ using namespace std;
 // {{{ TEST INFRASTRUCTURE
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic ignored "-Wsign-promo"
 
 #define RED      "\033[1;31m"
 #define DIMRED   "\033[2;31m"

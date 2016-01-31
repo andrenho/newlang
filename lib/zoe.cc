@@ -21,7 +21,8 @@ Zoe::Zoe()
 
 inline STPOS Zoe::AbsIndex(STPOS pos) const
 {
-    STPOS i = (pos >= 0) ? pos : static_cast<STPOS>(stack.size()) + pos;
+    STPOS sz = static_cast<STPOS>(stack.size());
+    STPOS i = (pos >= 0) ? pos : static_cast<STPOS>(sz + pos);
     assert(i >= 0);
     return i;
 }
@@ -144,7 +145,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case END: p = bc.Code().size(); break;
             default: {
                     stringstream s;
-                    s << "Invalid opcode 0x" << setfill('0') << setw(2) << hex << op << '.';
+                    s << "Invalid opcode 0x" << setfill('0') << setw(2) << hex << static_cast<int>(op) << '.';
                     throw s.str();
                 }
         }
@@ -194,7 +195,7 @@ Zoe::Op(Operator op)
             case ZOE_NOT:
             case ZOE_BNOT:
             default:
-                throw "Invalid operator code " + to_string(op) + ".";
+                throw "Invalid operator code " + to_string(static_cast<int>(op)) + ".";
         }
     }
 }

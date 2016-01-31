@@ -80,7 +80,8 @@ void Bytecode::AddString(string const& str)
 double Bytecode::GetF64(uint64_t pos) const
 {
     uint8_t bytes[8];
-    copy(begin(code)+pos, begin(code)+pos+8, bytes);
+    ssize_t p = static_cast<ssize_t>(pos);
+    copy(begin(code)+p, begin(code)+p+8, bytes);
     return *reinterpret_cast<double*>(bytes);
 }
 
