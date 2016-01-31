@@ -132,7 +132,7 @@ exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
    | exp '[' lookup_pos ']'
    | '?' exp %prec ISNIL { b.Add(PUSH_Nil); b.Add(EQ); }
    | exp '.' IDENTIFIER  { b.Add(PUSH_S);
-                           b.AddString(*$3);
+                           b.AddString(*$3); delete $3;
                            b.Add(LOOKUP); }
    | '(' exp ')'
    | '{' { b.PushScope(); b.Add(PUSH_Nil); } code '}' { b.PopScope(); }
@@ -166,7 +166,7 @@ single_identifier: IDENTIFIER { b.MultivarCreate(*$1); }
                  ;
 
 // strings
-string: STRING { b.Add(PUSH_S); b.AddString(*$1); }
+string: STRING { b.Add(PUSH_S); b.AddString(*$1); delete $1; }
       ;
 
 strings: string
@@ -196,7 +196,7 @@ tbl_items: %empty
 
 tbl_item: IDENTIFIER { 
               b.Add(PUSH_S);
-              b.AddString(*$1);
+              b.AddString(*$1); delete $1;
            } ':' exp { b.Add(TBLSET); }
         | '[' exp ']' ':' exp { b.Add(TBLSET); }
         ;

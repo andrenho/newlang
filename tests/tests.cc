@@ -91,34 +91,34 @@ static int tests_run = 0;
 }
 
 
-#define zassert(code, expected) {                                        \
-    do {                                                                 \
-        Zoe Z;                                                           \
-        decltype(expected) r;                                            \
-        try {                                                            \
-            Z.Eval(code);                                                \
-            Z.Call(0);                                                   \
-            r = Z.Pop<decltype(expected)>();                             \
-        } catch(const exception& e) {                                    \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "         \
-                 << e.what() << endl;                                    \
-            throw;                                                       \
-        } catch(const string& e) {                                       \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "         \
-                 << e << endl;                                           \
-            throw;                                                       \
-        }                                                                \
-        if(r == expected) {                                              \
-            cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
-                 << to_string(expected) << endl;                         \
-        } else {                                                         \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
-                 << to_string(r) << ", expected " << to_string(expected) \
-                 << endl;                                                \
-            return code;                                                 \
-        }                                                                \
-    } while(0);                                                          \
+#define zassert(code, expected) {                                            \
+    do {                                                                     \
+        Zoe Z;                                                               \
+        try {                                                                \
+            Z.Eval(code);                                                    \
+            Z.Call(0);                                                       \
+            decltype(expected) r = Z.Pop<decltype(expected)>();              \
+            if(r == expected) {                                              \
+                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
+                     << expected << endl;                                    \
+            } else {                                                         \
+                cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
+                     << r << ", expected " << expected << endl;              \
+                return code;                                                 \
+            }                                                                \
+        } catch(const exception& e) {                                        \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
+                 << e.what() << endl;                                        \
+            throw;                                                           \
+        } catch(const string& e) {                                           \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
+                 << e << endl;                                               \
+            throw;                                                           \
+        }                                                                    \
+    } while(0);                                                              \
 }
+
+#define sassert(code, expected) zassert(code, string(expected))
         
 
 static const char* all_tests();
@@ -501,6 +501,48 @@ static const char* shortcircuit_expressions()
 
 // }}}
 
+// {{{ STRINGS
+
+static const char* strings()
+{
+    sassert("'abc'", "abc");
+    sassert("'a\\nb'", "a\nb");
+    sassert("'a\\x41b'", "aAb");
+    sassert("'a\\x41b'", "aAb");
+    /*
+    sassert("'ab'..'cd'", "abcd");
+    sassert("'ab'..'cd'..'ef'", "abcdef");
+    sassert("'a\nf'", "a\nf");   // multiline string
+    sassert("'a' 'b' 'cd'", "abcd");
+    sassert("'ab$e'", "ab$e");
+    sassert("'ab$'", "ab$");
+    sassert("'ab${'cd'}ef'", "abcdef");
+    sassert("'ab${'cd'}ef'\n", "abcdef");
+    sassert("'ab${'cd'..'xx'}ef'", "abcdxxef");
+    sassert("#'abcd'", 4);
+    sassert("#''", 0);
+    sassert("#'ab${'cd'..'xx'}ef'", 8);
+    */
+
+    return nullptr;
+}
+
+/*
+static char* test_zoe_string_subscripts(void)
+{
+    zassert("'abcd'[1]", "b");
+    zassert("'abcd'[-1]", "d");
+    zassert("'abcd'[1:2]", "b");
+    zassert("'abcd'[1:3]", "bc");
+    zassert("'abcd'[1:]", "bcd");
+    zassert("'abcd'[:3]", "abc");
+    zassert("'abcd'[-3:-1]", "bc");
+    return 0;
+}
+*/
+
+// }}}
+
 static const char* all_tests()
 {
     // test tool
@@ -522,11 +564,12 @@ static const char* all_tests()
     run_test(zoe_stack_order);
     run_test(zoe_string);
 
-    // Execution
+    // expressions
     run_test(execution);
     run_test(inspect);
     run_test(math_expressions);
     run_test(shortcircuit_expressions);
+    run_test(strings);
 
     return nullptr;
 }

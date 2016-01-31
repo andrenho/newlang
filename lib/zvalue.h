@@ -90,12 +90,13 @@ struct ZValue {
      *   ValueCopy -> returns a copy of the value in C++ type
      */
     // {{{
+
 #define VALUE(cpp_type, zoe_type, member) \
-    template<typename T> inline typename enable_if<is_same<T, cpp_type>::value, T>::type const& ValueRef() const { \
+    template<typename T> typename enable_if<is_same<T, cpp_type>::value, T>::type const& ValueRef() const { \
         ExpectType(zoe_type);                                                                                      \
         return member;                                                                                             \
     }                                                                                                              \
-    template<typename T> inline typename enable_if<is_same<T, cpp_type>::value, T>::type ValueCopy() const {       \
+    template<typename T> typename enable_if<is_same<T, cpp_type>::value, T>::type ValueCopy() const {       \
         ExpectType(zoe_type);                                                                                      \
         return member;                                                                                             \
     }
@@ -105,10 +106,11 @@ struct ZValue {
     VALUE(string,    STRING,  str);
 
     // helper types
-    template<typename T> inline typename enable_if<is_same<T, int>::value, T>::type ValueCopy() const {
+    template<typename T> typename enable_if<is_same<T, int>::value, T>::type ValueCopy() const {
         ExpectType(NUMBER);
         return static_cast<int>(number);
     }
+
     // }}}
 
     bool   operator==(ZValue const& other) const;

@@ -68,6 +68,15 @@ void Bytecode::AddString(string const& str)
 
 // }}}
 
+// {{{ READ CODE
+
+string Bytecode::GetString(uint64_t pos) const
+{
+    return string(reinterpret_cast<const char*>(&code[pos]));
+}
+
+// }}}
+
 // {{{ LABELS
 
 Label Bytecode::CreateLabel()

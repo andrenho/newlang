@@ -62,20 +62,19 @@ false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 let             { return LET; }
 
-'                     { /* yy_push_state(STR, yyscanner);
-                        yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 };*/ }
-<STR>\\n              { /* str_addstr(&yylval->_string, "\n"); */ }
-<STR>\\r              { /* str_addstr(&yylval->_string, "\r"); */ }
-<STR>\\\\             { /* str_addstr(&yylval->_string, "\\"); */ }
-<STR>\\x{HEXDIGIT}{2} { /* str_addstr(&yylval->_string, (char[]) { (char)strtol(&yytext[2], NULL, 16), 0 }); */ }
-<STR>\\               { /* str_addstr(&yylval->_string, "\\"); */ }
-<STR>[^'\\\$]*        { /* str_addstr(&yylval->_string, yytext); */ }
+'                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }
+<STR>\\n              { (*yylval->str) += '\n'; }
+<STR>\\r              { (*yylval->str) += '\r'; }
+<STR>\\\\             { (*yylval->str) += '\\'; }
+<STR>\\x{HEXDIGIT}{2} { (*yylval->str) += (char)strtol(&yytext[2], NULL, 16); }
+<STR>\\               { (*yylval->str) += '\\'; }
+<STR>[^'\\\$]*        { (*yylval->str) += yytext; }
 <STR>\$'              { /* str_addstr(&yylval->_string, "$"); 
                         yy_pop_state(yyscanner); 
                         return STRING; */ }
 <STR>\$[^\{]          { /* str_addstr(&yylval->_string, yytext); */ }
 <STR>\$\{             { /* yy_push_state(SB, yyscanner); return STRING; */ }
-<STR>'                { /* yy_pop_state(yyscanner); return STRING; */ }
+<STR>'                { yy_pop_state(yyscanner); return STRING; }
 
 <SB>\}                { /* yy_pop_state(yyscanner);
                         yylval->_string = (String) { .str=calloc(20, 1), .sz = 0, .alloc = 20 }; */ }

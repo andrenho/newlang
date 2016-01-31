@@ -63,6 +63,7 @@ public:
         copy(begin(code)+p, begin(code)+p+8, bytes);
         return *reinterpret_cast<T*>(bytes);
     }
+    string GetString(uint64_t pos) const;
 
     // 
     // LABELS

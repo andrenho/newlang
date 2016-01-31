@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <iomanip>
+#include <iostream>   // TODO
 #include <sstream>
 
 #include "lib/bytecode.h"
@@ -113,6 +114,12 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case PUSH_Bt:  Push(true);           ++p;    break;
             case PUSH_Bf:  Push(false);          ++p;    break;
             case PUSH_N:   Push(bc.Get64<double>(p+1)); p += 9; break;
+            case PUSH_S: {
+                    string s = bc.GetString(p+1);
+                    Push(s); 
+                    p += s.size() + 2;
+                }
+                break;
             case POP:      Pop();                ++p;    break;
 
             //
