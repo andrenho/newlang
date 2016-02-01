@@ -667,23 +667,34 @@ static const char* table()
 static const char* table_access(void)
 {
     zassert("%{[2]: 3}[2]", 3);
-    /*
     sassert("%{hello: 'world', a: 42}['hello']", "world");
-    mu_assert_sexpr("%{hello: 'world', a: 42}['hello']", "world");
-    mu_assert_sexpr("%{hello: 'world', a: 42}.hello", "world");
-    mu_assert_nexpr("%{hello: 'world', a: 42}.a", 42);
-    mu_assert_nexpr("%{hello: %{world: 42}}.hello.world", 42);
-    mu_assert_nexpr("%{hello: %{world: 42}}['hello']['world']", 42);
+    sassert("%{hello: 'world', a: 42}['hello']", "world");
+    sassert("%{hello: 'world', a: 42}.hello", "world");
+    zassert("%{hello: 'world', a: 42}.a", 42);
+    zassert("%{hello: %{world: 42}}.hello.world", 42);
+    zassert("%{hello: %{world: 42}}['hello']['world']", 42);
 
-    Zoe* Z = zoe_createvm(test_error);
-    error_found = false;
-    zoe_eval(Z, "%{hello: 'world'}.a");
-    zoe_call(Z, 0);
-    mu_assert("key error", error_found);
-    zoe_free(Z);
-    */
+    Zoe Z;
+    Z.Eval("%{hello: 'world'}.a");
+    mthrows([&]() { Z.Call(0); }, "Key error");
 
     return nullptr;
+}
+
+static char* test_table_equality(void)
+{
+    mu_assert_bexpr("%{}==%{}", true);
+    mu_assert_bexpr("%{hello: 'world'}==%{hello: 'world'}", true);
+    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{a:1}}", true);
+    mu_assert_bexpr("%{[2]: 3, abc: %{d: %{e: 42}} }==%{[2]: 3, abc: %{d: %{e: 42} }}", true);
+    mu_assert_bexpr("%{a: 1, b: 2} == %{b: 2, a: 1}", true);
+    mu_assert_bexpr("%{}==%{hello: 'world'}", false);
+    mu_assert_bexpr("%{hello: 'world'}==%{}", false);
+    mu_assert_bexpr("%{b: %{a:1}}==%{b: 1}", false);
+    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{a:2}}", false);
+    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{c:1}}", false);
+
+    return 0;
 }
 
 // }}}

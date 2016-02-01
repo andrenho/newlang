@@ -42,13 +42,21 @@ struct ZFunction {
 };
 
 // 
-// ZARRAY / ZTABLE
+// ZARRAY
 // 
 struct ZValue;
 typedef vector<shared_ptr<ZValue>> ZArray;
 
+//
+// ZTABLE
+//
+struct ZValueHash {
+    size_t operator()(shared_ptr<ZValue> const& k) const;
+    bool operator()(shared_ptr<ZValue> const& a, shared_ptr<ZValue> const& b) const;
+};
+
 struct ZTable {
-    unordered_map<shared_ptr<ZValue>,shared_ptr<ZValue>> items = {};
+    unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZValueHash, ZValueHash> items = {};
 };
 
 //

@@ -3,6 +3,8 @@
 #include <cmath>
 #include <limits>
 
+// {{{ ZVALUE CONSTRUCTOR/DESTRUCTOR
+
 /* A brief explanation about this constructor and destructor:
  *
  * When initializing a C++ anonymous union, the compiler doesn't know which one
@@ -37,6 +39,10 @@ ZValue::~ZValue() {
         table.~ZTable();
     }
 }
+
+// }}}
+
+// {{{ ZVALUE METHODS
 
 void ZValue::ExpectType(ZType expect) const
 {
@@ -142,6 +148,41 @@ bool ZValue::operator==(ZValue const& other) const
     return false;
 }
 
+// }}}
+
+// {{{ HASH
+
+size_t ZValueHash::operator()(shared_ptr<ZValue> const& k) const 
+{
+    switch(k->type) {
+        case NIL:
+            return 0;
+        case BOOLEAN:
+            return hash<bool>()(k->boolean);
+        case NUMBER:
+            return hash<double>()(k->number);
+        case STRING:
+            return hash<string>()(k->str);
+        case TABLE:
+            // TODO - look for hash function
+            throw "No hash function for this value.";
+        case FUNCTION:
+        case ARRAY:
+            throw "No hash function for this value.";
+        default:
+            abort();
+    }
+}
+
+
+bool ZValueHash::operator()(shared_ptr<ZValue> const& a, shared_ptr<ZValue> const& b) const 
+{
+    return *a == *b;
+}
+
+// }}}
+
+// {{{ LOOSE FUNCTIONS (Typename)
 
 string Typename(ZType type)
 {
@@ -157,5 +198,6 @@ string Typename(ZType type)
     }
 }
 
+// }}}
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

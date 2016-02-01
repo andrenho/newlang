@@ -391,6 +391,7 @@ void Zoe::Lookup()
     } else if(t == TABLE) {
         ZTable const& tbl = GetTable(-2);
         stack.push_back(tbl.items.at(GetPtr(-1)));  // TODO - look for prototypes
+        Remove(-3);
         Remove(-2);
     } else {
         throw "Expected string, array or table, found " + Typename(t) + ".";
