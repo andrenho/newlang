@@ -33,6 +33,12 @@ Other:
    - equality (ok)
    - insert an existing record (ok)
 
+Migration to C++
+ - advanced REPL
+ - inspection/debugging
+ - asserts/review
+ - HACKING documentation
+
 Other steps:
 
  - local variables

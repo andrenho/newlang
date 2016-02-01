@@ -294,8 +294,8 @@ static const char* bytecode_variables()
     bc.AddVariable("a");
     bc.AddVariable("b");
 
-    massert(bc.Get64<double>(0x01) == 0, "Variable 'a'");
-    massert(bc.Get64<double>(0x0B) == 1, "Variable 'b'");
+    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
+    massert(bc.Get64<uint64_t>(0x0A) == 1, "Variable 'b'");
 
     mthrows([&](){ bc.AddVariable("c"); });
 
@@ -314,15 +314,15 @@ static const char* bytecode_multivar()
     bc.AddMultivarAssignment(false);
     bc.AddVariable("a");
     bc.AddVariable("b");
-    massert(bc.Get64<double>(0x01) == -1, "Variable 'a'");
-    massert(bc.Get64<double>(0x0B) == -2, "Variable 'b'");
+    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
+    massert(bc.Get64<uint64_t>(0x0A) == 1, "Variable 'b'");
 
     bc.AddMultivarCounter();
-    massert(bc.Code()[0x14] == 3, "Multivar counter before reset");
+    massert(bc.Code()[0x12] == 3, "Multivar counter before reset");
 
     bc.MultivarReset();
     bc.AddMultivarCounter();
-    massert(bc.Code()[0x15] == 0, "Multivar counter after reset");
+    massert(bc.Code()[0x13] == 0, "Multivar counter after reset");
 
     return nullptr;
 }
@@ -342,9 +342,9 @@ static const char* bytecode_scopes()
 
     bc.AddVariable("a");
 
-    massert(bc.Get64<double>(0x01) == -1, "Variable 'a'");
-    massert(bc.Get64<double>(0x0C) == -2, "Variable 'a' (inside scope)");
-    massert(bc.Get64<double>(0x17) == -1, "Variable 'a' (outside scope)");
+    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
+    massert(bc.Get64<uint64_t>(0x0B) == 1, "Variable 'a' (inside scope)");
+    massert(bc.Get64<uint64_t>(0x15) == 0, "Variable 'a' (outside scope)");
 
     mthrows([&](){ bc.PopScope(); }, "Stack underflow");
     
@@ -726,6 +726,36 @@ static const char* multiple_assignment(void)
     zassert("let [a, b, c] = [3, 4, 5], x = b; x", 4);
     
     // TODO - test errors
+
+    return nullptr;
+}
+
+// }}}
+
+// {{{ SCOPES
+
+static const char* scopes(void)
+{
+    zassert("{ 4 }", 4);
+    zassert("{ 4; 5 }", 5);
+    zassert("{ 4; 5; }", 5);
+    zassert("{ 4\n 5 }", 5);
+    zassert("{ 4; { 5; } }", 5);
+    zassert("{ 4; { 5; { 6; 7 } } }", 7);
+    zassert("{ 4; { 5; { 6; 7 } } }", 7);
+    zassert("{ 4; { 5; { 6; 7 } } }", 7);
+    // zassert("{ 4\n { 5; { 6; 7;; } } } 8", 8);
+    //zassert("{ 4 } 5", 5);
+    zassert("{ 4 }; 5", 5);
+    zassert("{ \n 4 \n }\n 5", 5);
+
+    return nullptr;
+}
+
+static const char* scope_vars(void)
+{
+    // TODO
+    //zassert("let a = 4; { 4 }; a", 4);
 
     return nullptr;
 }

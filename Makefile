@@ -11,7 +11,7 @@ SRC_LIB=lib/zoe.cc		\
 	lib/parser.cc 		\
 	lib/zvalue.cc
 
-SRC_EXE=src/main.cc	#	\
+SRC_EXE=src/main.cc		\
 	src/options.cc		\
 	src/repl.cc
 
@@ -45,7 +45,7 @@ ifdef DEBUG
   BISON_FLAGS+=--debug
   FLEX_FLAGS+=--debug
 else
-  CPPFLAGS+=-Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
+  CPPFLAGS+=-DNDEBUG -Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
   LDFLAGS+=-flto
 endif
 

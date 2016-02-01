@@ -670,6 +670,7 @@ static char* test_multiple_assignment(void)
 
 // {{{ SCOPES
 
+/*
 static char* test_scopes(void)
 {
     mu_assert_nexpr("{ 4 }", 4);
@@ -694,6 +695,7 @@ static char* test_scope_vars(void)
 
     return 0;
 }
+*/
 
 // }}}
 

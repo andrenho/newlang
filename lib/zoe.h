@@ -58,7 +58,7 @@ public:
     //
     void AddVariable(bool _mutable);
     void AddMultipleVariables(uint8_t count, bool _mutable);
-    void PushVariableContents();
+    void PushVariableContents(uint64_t idx);
 private:
     struct Variable {
         shared_ptr<ZValue> value;

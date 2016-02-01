@@ -176,13 +176,23 @@ void Zoe::AddVariable(bool _mutable)
 
 void Zoe::AddMultipleVariables(uint8_t count, bool _mutable)
 {
-    abort();
+    ZArray const& ary = GetArray(-1);
+    if(ary.size() != count) {
+        throw "The number of assignment elements doesn't match the number of "
+              "items in the array (" + to_string(ary.size()) + " found, "
+              "expected " + to_string(count) + ".";
+    }
+
+    for(auto const& item: ary) {
+        stack.push_back(item);
+        AddVariable(_mutable);
+        stack.pop_back();
+    }
 }
 
 
-void Zoe::PushVariableContents()
+void Zoe::PushVariableContents(uint64_t idx)
 {
-    uint64_t idx = static_cast<uint64_t>(Pop<double>());
     stack.push_back(variables[idx].value);
 }
 
@@ -307,7 +317,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             //
             case ADDCNST:  AddVariable(false); ++p; break;
             case ADDMCNST: AddMultipleVariables(bc.Code()[p+1], false); p += 2; break;
-            case GETLOCAL: PushVariableContents(); ++p; break;
+            case GETLOCAL: PushVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
 
             //
             // others
@@ -478,5 +488,249 @@ Zoe::Inspect(STPOS pos)
 }
 
 // }}}
+
+
+#if 0
+// {{{ OLD C CODE
+
+// {{{ STRING ESCAPING
+
+static char* zoe_escapestring(const char* s)
+{
+    char* buf = calloc((strlen(s) * 2) + 3, 1);
+    int a = 0, b = 0;
+    buf[b++] = '\'';
+    while(s[a]) {
+        if(s[a] == 10) {
+            buf[b++] = '\\'; buf[b++] = 'n';
+            ++a;
+        } else if(s[a] == 13) {
+            buf[b++] = '\\'; buf[b++] = 'r';
+            ++a;
+        } else if(s[a] == '\\' || s[a] == '\'') {
+            buf[b++] = '\\';
+            buf[b++] = s[a++];
+        } else if(s[a] >= 32 && s[a] < 127) {
+            buf[b++] = s[a++];
+        } else {
+            snprintf(&buf[b], 5, "\\x%02X", (uint8_t)s[a]);
+            b += 4;
+            ++a;
+        }
+    }
+    buf[b++] = '\'';
+    buf[b++] = 0;
+    return buf;
+}
+
+// }}}
+
+#ifdef DEBUG
+
+// {{{ FORMATTING
+
+static int aprintf(char** ptr, const char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
+static int aprintf(char** ptr, const char* fmt, ...)
+{
+    va_list ap;
+
+    size_t cur_sz = (*ptr ? strlen(*ptr) : 0);
+
+    va_start(ap, fmt);
+    int new_sz = cur_sz + vsnprintf(NULL, 0, fmt, ap) + 1;
+    va_end(ap);
+    *ptr = realloc(*ptr, new_sz);
+    va_start(ap, fmt);
+    int r = vsnprintf((*ptr) + cur_sz, new_sz, fmt, ap);
+    va_end(ap);
+
+    return r;
+}
+
+
+static int sprint_dbl(char* buf, size_t nbuf, uint8_t* array, size_t pos)
+{
+    double d;
+    memcpy(&d, &array[pos], __SIZEOF_DOUBLE__);
+    int r = snprintf(buf, nbuf, "%0.14f", d);
+    int lg;
+    while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
+        buf[lg] = '\0';
+        --r;
+    }
+    return r;
+}
+
+
+static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
+{
+    uint64_t n;
+    memcpy(&n, &array[pos], 8);
+    return snprintf(buf, nbuf, "0x%" PRIx64, n);
+}
+
+// }}}
+
+// {{{ OPCODE DISASSEMBLY
+
+static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
+    Opcode op = (Opcode)code[p];
+    switch(op) {
+        case PUSH_Nil: snprintf(buf, nbuf, "PUSH_Nil"); return 1;
+        case PUSH_Bt:  snprintf(buf, nbuf, "PUSH_Bt"); return 1;
+        case PUSH_Bf:  snprintf(buf, nbuf, "PUSH_Bf"); return 1;
+        case PUSH_N: {
+                char xbuf[128]; sprint_dbl(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "PUSH_N  %s", xbuf);
+                return 9;
+            }
+        case PUSH_S: {
+                char* sbuf = zoe_escapestring((char*)&code[p+1]);
+                snprintf(buf, nbuf, "PUSH_S  %s", sbuf);
+                free(sbuf);
+                return 2 + strlen((char*)&code[p+1]);
+            }
+        case POP:  snprintf(buf, nbuf, "POP");  return 1;
+        case ADD:  snprintf(buf, nbuf, "ADD");  return 1;
+        case SUB:  snprintf(buf, nbuf, "SUB");  return 1;
+        case MUL:  snprintf(buf, nbuf, "MUL");  return 1;
+        case DIV:  snprintf(buf, nbuf, "DIV");  return 1;
+        case IDIV: snprintf(buf, nbuf, "IDIV"); return 1;
+        case MOD:  snprintf(buf, nbuf, "MOD");  return 1;
+        case POW:  snprintf(buf, nbuf, "POW");  return 1;
+        case NEG:  snprintf(buf, nbuf, "NEG");  return 1;
+        case AND:  snprintf(buf, nbuf, "AND");  return 1;
+        case XOR:  snprintf(buf, nbuf, "XOR");  return 1;
+        case OR:   snprintf(buf, nbuf, "OR") ;  return 1;
+        case SHL:  snprintf(buf, nbuf, "SHL");  return 1;
+        case SHR:  snprintf(buf, nbuf, "SHR");  return 1;
+        case NOT:  snprintf(buf, nbuf, "NOT");  return 1;
+        case BNOT: snprintf(buf, nbuf, "BNOT"); return 1;
+        case LT:   snprintf(buf, nbuf, "LT");   return 1;
+        case LTE:  snprintf(buf, nbuf, "LTE");  return 1;
+        case GT:   snprintf(buf, nbuf, "GT");   return 1;
+        case GTE:  snprintf(buf, nbuf, "GTE");  return 1;
+        case EQ:   snprintf(buf, nbuf, "EQ");   return 1;
+        case CAT:  snprintf(buf, nbuf, "CAT");  return 1;
+        case LEN:  snprintf(buf, nbuf, "LEN");  return 1;
+        case LOOKUP: snprintf(buf, nbuf, "LOOKUP");  return 1;
+        case JMP: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "JMP     %s", xbuf);
+                return 9;
+            }
+        case Bfalse: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "Bfalse  %s", xbuf);
+                return 9;
+            }
+        case Btrue: {
+                char xbuf[128]; sprint_uint64(xbuf, sizeof xbuf, code, p+1);
+                snprintf(buf, nbuf, "Btrue   %s", xbuf);
+                return 9;
+            }
+        case PUSHARY:  snprintf(buf, nbuf, "PUSHARY");  return 1;
+        case APPEND:   snprintf(buf, nbuf, "APPEND");   return 1;
+        case PUSHTBL:  snprintf(buf, nbuf, "PUSHTBL");  return 1;
+        case TBLSET:   snprintf(buf, nbuf, "TBLSET");   return 1;
+        case SLICE:    snprintf(buf, nbuf, "SLICE");    return 1;
+        case ADDCNST:  snprintf(buf, nbuf, "ADDCNST");  return 1;
+        case ADDMCNST: snprintf(buf, nbuf, "ADDMCNST %d", code[p+1]); return 2;
+        case GETLOCAL: snprintf(buf, nbuf, "GETLOCAL"); return 1;
+        case END:      snprintf(buf, nbuf, "END");      return 1;
+        default:
+            snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);
+    }
+    return 1;
+}
+
+
+void zoe_disassemble(Zoe* Z)
+{
+    char* buf = NULL;
+
+    // load function
+    ZValue* value = zoe_stack_get(Z, -1);
+    if(value->type != FUNCTION) {
+        zoe_error(Z, "Expected function, found '%s'.\n", zvalue_typename(value->type));
+    }
+
+    ZFunction* f = &value->function;
+    if(f->type != BYTECODE) {
+        zoe_error(Z, "Can only execute code in ZB format.");
+    }
+
+    Bytecode* bc = bytecode_newfromzb(f->bytecode.data, f->bytecode.sz, Z->errorf);
+    uint64_t p = 0;
+
+    while(p < bc->code_sz) {
+        // address
+        int ns = aprintf(&buf, "%08" PRIx64 ":\t", p);
+        // code
+        static char cbuf[128];
+        int n = sprint_code(cbuf, sizeof cbuf, bc->code, p);
+        ns += aprintf(&buf, "%s", cbuf);
+        // spaces
+        aprintf(&buf, "%*s", 32-ns, " ");
+        // hex code
+        for(uint8_t i=0; i<n; ++i) {
+            aprintf(&buf, "%02X ", bc->code[p+i]);
+        }
+        aprintf(&buf, "\n");
+
+        p += n;
+    }
+
+    bytecode_free(bc);
+
+    if(buf) {
+        zoe_pushstring(Z, buf);
+    } else {
+        zoe_pushstring(Z, "");
+    }
+    free(buf);
+}
+
+// }}}
+
+// {{{ ASSEMBLY DEBUGGER
+
+void zoe_asmdebugger(Zoe* Z, bool value)
+{
+    Z->debug_asm = value;
+}
+
+
+static void zoe_dbgopcode(uint8_t* code, uint64_t p)
+{
+    int ns = printf("%08" PRIx64 ":\t", p);
+
+    char buf[128];
+    sprint_code(buf, sizeof buf, code, p);
+    ns += printf("%s", buf);
+    printf("%*s", 32-ns, " ");
+}
+
+
+static void zoe_dbgstack(Zoe* Z)
+{
+    printf("< ");
+    for(int i=zoe_stacksize(Z)-1; i >= 0; --i) {
+        if(i != (zoe_stacksize(Z)-1)) {
+            printf(", ");
+        }
+        zoe_inspect(Z, 0-1-i);
+        char* buf = zoe_popstring(Z);
+        printf("%s", buf);
+        free(buf);
+    }
+    printf(" >\n");
+}
+
+// }}}
+
+#endif
+
+#endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
