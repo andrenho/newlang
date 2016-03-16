@@ -1,6 +1,7 @@
 # newlang
 A new provisional language (name pending)
 
+
 ## Characteristics
 
 This language is a derivative of Lua, and tries to improve on it. From Lua, it maintains:
@@ -10,15 +11,21 @@ This language is a derivative of Lua, and tries to improve on it. From Lua, it m
 - small footprint
 - a single executable/DLL
 
-But, contrary to Lua, it also features:
+It copies from other languages:
 
-- more features
-- shorter syntax (less typing)
-- a more extensive standard library
-- a JIT engine
-- ability to distribute binaries
+- more features (like Python / Ruby)
+- shorter syntax (less typing - like C)
+- a more extensive standard library (like Python / Ruby)
+- a JIT engine (like LuaJIT)
+- ability to distribute binaries (like Java)
+- Rust-like case and enum
 
-Example syntax:
+It also innovates in that:
+
+- generates executables
+
+
+## Example syntax:
 
 ```
 fn fib(n: int) {
