@@ -5,7 +5,7 @@ AC_PREREQ(2.69)
 AC_INIT([zoe],		dnl Package name
 	[0.0.1],	dnl Version (TODO)
 	[https://github.com/andrenho/zoe/issues],  dnl Contact for issues
-	[],		dnl Tarname (?)
+	[zoe],		dnl Tarname (?)
 	[https://github.com/andrenho/zoe])
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
