@@ -1,4 +1,4 @@
-# newlang
+# zoe
 A new provisional language (name pending)
 
 
@@ -10,6 +10,8 @@ This language is a derivative of Lua, and tries to improve on it. From Lua, it m
 - VM
 - small footprint
 - a single executable/DLL
+- supports tail calls
+- allows manipulating environments (\_ENV)
 
 It copies from other languages:
 
@@ -18,20 +20,37 @@ It copies from other languages:
 - a more extensive standard library (like Python / Ruby)
 - a JIT engine (like LuaJIT)
 - ability to distribute binaries (like Java)
-- Rust-like case and enum
+- allow unsafe block, if explicit (like Rust)
+- encompassing case (like Rust)
+- const variables (like ES6)
+- advanced class management, with final methods, forced overwrite, etc (like C++)
+- a good REPL (like Ruby's IRB)
+- a good debugger (like gdb, or maybe accepting connections from gdb)
+- garbage collected (like most languages)
+- native POSIX support
+- generate documentation from code
+- native threading
+- unit testing
 
 It also innovates in that:
 
 - generates executables
 
 
-## Example syntax:
+## Syntax
+
+Basic example:
 
 ```
 fn fib(n: int) {
-   case(n) {
-     n < 2: ret n;
-     n:     ret fib(n-1) + fin(n-2);
+   match n {
+     n < 2: n
+     _:     fib(n-1) + fib(n-2)
    }
 }
 ```
+
+Syntax characteristics:
+- everything is an object
+- everything is a expression
+- 
