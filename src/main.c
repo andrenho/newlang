@@ -1,7 +1,7 @@
 extern void yylex();
 
 int main() { 
-  yylex();
+  //yylex();
   return 0; 
 }
 
