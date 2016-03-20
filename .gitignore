@@ -42,3 +42,8 @@ config.status
 .deps
 .dirstamp
 zoe
+config.h
+config.h.in
+*~
+config
+stamp-h1

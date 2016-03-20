@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects foreign
 
-INCLUDES = -I$(top_builddir)
+AM_CPPFLAGS = -I$(top_builddir)
 
 bin_PROGRAMS = zoe
 zoe_SOURCES = src/main.c
