@@ -10,3 +10,6 @@ Special make options
 
   $ make PREFIX=/usr       # choose a new prefix
   $ make DEBUG=1           # create a debuggable version
+  $ make CC=clang	   # use a different compiler
+
+Alteratively, you can edit any options in `build/config.mk`.

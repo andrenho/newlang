@@ -5,19 +5,22 @@ include build/config.mk
 # VARIABLES
 #
 SRC = src/main.c	\
-      src/bytecode.c	\
+      src/compiler.c	\
+      src/vm.c		\
       src/options.c	\
       src/repl.c	\
       src/lexer.c	\
       src/parser.c
 
+HEADERS = $(filter-out src/main.h, ${SRC:.c=.h})
+
 OBJ = ${SRC:.c=.o}
 DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
        build/version.mk zoe.1
 
-CPPFLAGS += -DVERSION=\"${VERSION}\" @build/warnings.txt -Isrc -std=c11 -march=native
+CPPFLAGS += -DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/warnings.txt -Isrc -std=c11 -march=native
 
-ifneq (${DEBUG}, no)
+ifdef DEBUG
   CPPFLAGS += -g -ggdb3 -O0 -DDEBUG
   LDFLAGS += -g
 else
@@ -51,7 +54,7 @@ src/parser.o: src/parser.c
 .y.c:
 	bison $<
 
-zoe: depend ${OBJ}
+zoe: depend ${OBJ} ${HEADERS}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 -include depend
 
@@ -126,6 +129,7 @@ check-leaks: all
 
 gen-suppressions: all
 	valgrind --leak-check=full --show-leak-kinds=all --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
+	sed -i -e '/^==.*$$/d' build/zoe.supp
 
 
 .PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip check-leaks

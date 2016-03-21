@@ -2,8 +2,8 @@
 PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
-# add debugging information
-DEBUG = no
+# to add debugging information, uncomment this line
+# DEBUG = 1
 
 # compiler and linker
 CC = gcc

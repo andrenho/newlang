@@ -2,8 +2,9 @@
 #define REPL_H_
 
 #include "options.h"
+#include "vm.h"
 
-void repl_exec(Options opt);
+void repl_exec(Options* opt, VM* vm);
 
 #endif
 

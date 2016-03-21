@@ -281,6 +281,16 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
+   fun:xmalloc
+   fun:add_history
+   fun:repl_exec
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
    fun:_nc_read_termtype
    obj:/usr/lib/libncursesw.so.6.0
    fun:_nc_read_entry
@@ -647,4 +657,3 @@
    fun:repl_exec
    fun:main
 }
-
