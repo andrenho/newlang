@@ -4,7 +4,9 @@ include build/config.mk
 # 
 # VARIABLES
 #
-SRC = src/main.c
+SRC = src/main.c	\
+      src/lexer.c	\
+      src/parser.c	
 
 OBJ = ${SRC:.c=.o}
 DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
@@ -38,9 +40,19 @@ options:
 	@echo ${CC} -c -o $@ $<
 	@${CC} -c ${CPPFLAGS} -o $@ $<
 
+.l.c:
+	flex $<
+
+.y.c:
+	bison $<
+
 zoe: depend ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 -include depend
+
+lexer.c: lexer.l
+
+parser.c: parser.y
 
 depend: ${SRC}
 	@echo checking dependencies
@@ -71,7 +83,7 @@ clean:
 
 distclean:
 	${MAKE} clean
-	rm depend
+	rm depend src/lexer.c src/lexer.h src/parser.h src/parser.c
 
 maintainer-clean:
 	${MAKE} distclean

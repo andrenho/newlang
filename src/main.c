@@ -1,9 +1,9 @@
-//extern void yylex();
+extern void yyparse(void);
 
 int main(void) { 
-  //yylex();
-  return 0; 
+    yyparse();
+    return 0; 
 }
 
 
-// vim: ts=2:sw=2:sts=2:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab
