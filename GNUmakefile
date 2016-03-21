@@ -8,7 +8,9 @@ SRC_EXE = src/main.c	\
           src/options.c	\
           src/repl.c
 
-SRC_LIB = lib/zoe.c
+SRC_LIB = lib/zoe.c	\
+	  lib/lexer.c	\
+	  lib/parser.c
 
 OBJ_EXE = ${SRC_EXE:.c=.o}
 OBJ_LIB = ${SRC_LIB:.c=.o}
@@ -37,20 +39,20 @@ LDFLAGS +=
 all: libzoe.so.${VERSION} zoe
 
 # relax warnings in generation of lexer/parser C units
-#src/lexer.o: src/lexer.c
-#	${CC} -c -o $@ $<
-#
-#src/parser.o: src/parser.c
-#	${CC} -c -o $@ $<
+lib/lexer.o: lib/lexer.c
+	${CC} -c -I. -o $@ $<
+
+lib/parser.o: lib/parser.c
+	${CC} -c -I. -o $@ $<
 
 %.o: %.c
 	${CC} -c -fPIC ${CPPFLAGS} -o $@ $<
 
-#.l.c:
-#	flex $<
-#
-#.y.c:
-#	bison $<
+.l.c: 
+	flex $<
+
+.y.c:
+	bison $<
 
 zoe: depend ${OBJ_EXE} libzoe.so.${VERSION}
 	${CC} -o $@ ${OBJ_EXE} libzoe.so.${VERSION} -Wl,-rpath,. ${LDFLAGS} -lreadline
@@ -60,10 +62,12 @@ libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $< ${LDFLAGS}
 	ln -s libzoe.so.${VERSION} libzoe.so.0
 
-#lexer.c: lexer.l
-#
-#parser.c: parser.y
-#
+lib/lexer.c: lib/lexer.l lib/parser.h
+
+lib/parser.c: lib/parser.y
+
+lib/parser.h: lib/parser.c
+
 #depend: ${SRC_EXE} ${SRC_LIB}
 #	@echo checking dependencies
 #	@${CC} -MM ${CPPFLAGS} ${SRC} >depend
@@ -113,7 +117,7 @@ distclean:
 
 maintainer-clean:
 	${MAKE} distclean
-	rm -f src/lexer.c src/lexer.h src/parser.h src/parser.c
+	rm -f lib/lexer.c lib/lexer.h lib/parser.h lib/parser.c
 
 # 
 # PACKAGING RULES
