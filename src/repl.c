@@ -6,13 +6,16 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "compiler.h"
+#include "zoe.h"
 
 static void 
-repl_run_line(char* code, Options* opt, Zoe* zoe)
+repl_run_line(char* code, Options* opt)
 {
     (void) opt;
 
+    printf("--> %s\n", code);
+
+    /*
     // compile
     uint8_t* buf = NULL;
     size_t buf_sz;
@@ -27,6 +30,7 @@ repl_run_line(char* code, Options* opt, Zoe* zoe)
     }
 
     zoe_run(zoe, buf, buf_sz);
+    */
 
     /*
     char* insp_buf;
@@ -38,7 +42,7 @@ repl_run_line(char* code, Options* opt, Zoe* zoe)
 
 
 void 
-repl_exec(Options* opt, Zoe* zoe)
+repl_exec(Options* opt)
 {
     (void) opt;
 
@@ -46,19 +50,23 @@ repl_exec(Options* opt, Zoe* zoe)
 
     rl_bind_key('\t', rl_abort);
 
+    Zoe* zoe = zoe_new();
+
     while((buf = readline("> ")) != NULL) {
         if(strcmp(buf, ".q") == 0) {
             free(buf);
             break;
         }
         
-        repl_run_line(buf, opt, zoe);
+        repl_run_line(buf, opt);
 
         if(buf[0] != '\0') {
             add_history(buf);
         }
         free(buf);
     }
+
+    zoe_terminate(&zoe);
 
 
     // free history

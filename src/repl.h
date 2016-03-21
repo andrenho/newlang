@@ -2,9 +2,8 @@
 #define REPL_H_
 
 #include "options.h"
-#include "zoe.h"
 
-void repl_exec(Options* opt, Zoe* zoe);
+void repl_exec(Options* opt);
 
 #endif
 

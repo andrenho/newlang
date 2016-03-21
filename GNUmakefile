@@ -4,21 +4,19 @@ include build/config.mk
 # 
 # VARIABLES
 #
-SRC = src/main.c	\
-      src/compiler.c	\
-      src/zoe.c		\
-      src/options.c	\
-      src/repl.c	\
-      src/lexer.c	\
-      src/parser.c
+SRC_EXE = src/main.c	\
+          src/options.c	\
+          src/repl.c
 
-HEADERS = $(filter-out src/main.h, ${SRC:.c=.h})
+SRC_LIB = lib/zoe.c
 
-OBJ = ${SRC:.c=.o}
+OBJ_EXE = ${SRC_EXE:.c=.o}
+OBJ_LIB = ${SRC_LIB:.c=.o}
+
 DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
        build/version.mk zoe.1
 
-CPPFLAGS += -DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/warnings.txt -Isrc -std=c11 -march=native
+CPPFLAGS += -DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/warnings.txt -Ilib -Isrc -std=c11 -march=native
 
 ifdef DEBUG
   CPPFLAGS += -g -ggdb3 -O0 -DDEBUG
@@ -30,41 +28,45 @@ else
 endif
 
 # libraries
-LDFLAGS += -lreadline
+LDFLAGS +=
 
 #
 # COMPILATION RULES
 #
 
-all: zoe
+all: libzoe.so.${VERSION} zoe
 
 # relax warnings in generation of lexer/parser C units
-src/lexer.o: src/lexer.c
-	${CC} -c -o $@ $<
-
-src/parser.o: src/parser.c
-	${CC} -c -o $@ $<
+#src/lexer.o: src/lexer.c
+#	${CC} -c -o $@ $<
+#
+#src/parser.o: src/parser.c
+#	${CC} -c -o $@ $<
 
 %.o: %.c
-	${CC} -c ${CPPFLAGS} -o $@ $<
+	${CC} -c -fPIC ${CPPFLAGS} -o $@ $<
 
-.l.c:
-	flex $<
+#.l.c:
+#	flex $<
+#
+#.y.c:
+#	bison $<
 
-.y.c:
-	bison $<
-
-zoe: depend ${OBJ} ${HEADERS}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+zoe: depend ${OBJ_EXE} libzoe.so.${VERSION}
+	${CC} -o $@ ${OBJ_EXE} libzoe.so.${VERSION} -Wl,-rpath,. ${LDFLAGS} -lreadline
 -include depend
 
-lexer.c: lexer.l
+libzoe.so.${VERSION}: ${OBJ_LIB}
+	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $< ${LDFLAGS}
+	ln -s libzoe.so.${VERSION} libzoe.so.0
 
-parser.c: parser.y
-
-depend: ${SRC}
-	@echo checking dependencies
-	@${CC} -MM ${CPPFLAGS} ${SRC} >depend
+#lexer.c: lexer.l
+#
+#parser.c: parser.y
+#
+#depend: ${SRC_EXE} ${SRC_LIB}
+#	@echo checking dependencies
+#	@${CC} -MM ${CPPFLAGS} ${SRC} >depend
 
 
 # 
@@ -84,30 +86,34 @@ options:
 
 install: all
 	install -p zoe ${PREFIX}/bin
+	install -p libzoe.so.${VERSION} ${PREFIX}/lib
+	ln -s ${PREFIX}/lib/libzoe.so.${VERSION} ${PREFIX}/lib/libzoe.so.0
 	cp zoe.1 ${MANPREFIX}/man1
 
 uninstall:
 	rm -f ${PREFIX}/bin/zoe
+	rm -f ${PREFIX}/lib/libzoe.so.${VERSION}
+	rm -f ${PREFIX}/lib/libzoe.so.0
 	rm -f ${MANPREFIX}/man1/zoe.1
 
 install-strip:
-	install -ps zoe ${PREFIX}/bin
-	cp zoe.1 ${MANPREFIX}/man1
+	${MAKE} install
+	strip ${PREFIX}/bin/zoe
 
 #
 # CLEANING RULES
 #
 
 clean:
-	rm -f zoe *.o src/*.o
+	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} *.o src/*.o lib/*.o
 
 distclean:
 	${MAKE} clean
-	rm depend
+	rm -f depend
 
 maintainer-clean:
 	${MAKE} distclean
-	rm src/lexer.c src/lexer.h src/parser.h src/parser.c
+	rm -f src/lexer.c src/lexer.h src/parser.h src/parser.c
 
 # 
 # PACKAGING RULES
@@ -132,4 +138,4 @@ gen-suppressions: all
 	sed -i -e '/^==.*$$/d' build/zoe.supp
 
 
-.PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip check-leaks
+.PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip check-leaks depend
