@@ -33,6 +33,11 @@
 
 # aux files
 depend
+zoe
+src/parser.c
+src/parser.h
+src/lexer.c
+src/lexer.h
 
 # vim files
 .*.swo
