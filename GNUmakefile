@@ -5,15 +5,17 @@ include build/config.mk
 # VARIABLES
 #
 SRC = src/main.c	\
+      src/bytecode.c	\
+      src/options.c	\
+      src/repl.c	\
       src/lexer.c	\
-      src/parser.c	
+      src/parser.c
 
 OBJ = ${SRC:.c=.o}
 DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
        build/version.mk zoe.1
 
-CPPFLAGS += -DVERSION=\"${VERSION}\" ${WARNINGS} -Isrc -std=c11 -march=native
-LDFLAGS +=
+CPPFLAGS += -DVERSION=\"${VERSION}\" @build/warnings.txt -Isrc -std=c11 -march=native
 
 ifneq (${DEBUG}, no)
   CPPFLAGS += -g -ggdb3 -O0 -DDEBUG
@@ -24,21 +26,24 @@ else
   LDFLAGS += -flto
 endif
 
+# libraries
+LDFLAGS += -lreadline
+
 #
 # COMPILATION RULES
 #
 
 all: zoe
 
-options:
-	@echo "zoe configuration options"
-	@echo "CPPFLAGS = ${CPPFLAGS}"
-	@echo "LDFLAGS  = ${LDFLAGS}"
-	@echo "CC       = ${CC}"
+# relax warnings in generation of lexer/parser C units
+src/lexer.o: src/lexer.c
+	${CC} -c -o $@ $<
 
-.c.o:
-	@echo ${CC} -c -o $@ $<
-	@${CC} -c ${CPPFLAGS} -o $@ $<
+src/parser.o: src/parser.c
+	${CC} -c -o $@ $<
+
+%.o: %.c
+	${CC} -c ${CPPFLAGS} -o $@ $<
 
 .l.c:
 	flex $<
@@ -57,6 +62,18 @@ parser.c: parser.y
 depend: ${SRC}
 	@echo checking dependencies
 	@${CC} -MM ${CPPFLAGS} ${SRC} >depend
+
+
+# 
+# DESCRIBE VARIABLES
+#
+
+options:
+	@echo "zoe configuration options"
+	@echo "CPPFLAGS = ${CPPFLAGS}"
+	@echo "LDFLAGS  = ${LDFLAGS}"
+	@echo "CC       = ${CC}"
+
 
 #
 # INSTALATION RULES
@@ -83,10 +100,11 @@ clean:
 
 distclean:
 	${MAKE} clean
-	rm depend src/lexer.c src/lexer.h src/parser.h src/parser.c
+	rm depend
 
 maintainer-clean:
 	${MAKE} distclean
+	rm src/lexer.c src/lexer.h src/parser.h src/parser.c
 
 # 
 # PACKAGING RULES
@@ -103,7 +121,11 @@ dist: distclean
 # TESTS
 #
 
-check:
+check-leaks: all
+	valgrind --leak-check=full --show-leak-kinds=all --suppressions=build/zoe.supp ./zoe
+
+gen-suppressions: all
+	valgrind --leak-check=full --show-leak-kinds=all --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
 
 
-.PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip
+.PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip check-leaks

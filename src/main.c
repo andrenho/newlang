@@ -1,7 +1,17 @@
+#include "options.h"
+#include "repl.h"
+
 extern void yyparse(void);
 
-int main(void) { 
-    yyparse();
+int main(int argc, char** argv) { 
+    Options opt = parse_args(argc, argv);
+
+    switch(opt.operation_mode) {
+        case REPL:
+            repl_exec(opt);
+            break;
+    }
+
     return 0; 
 }
 

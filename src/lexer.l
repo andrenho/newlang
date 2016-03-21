@@ -1,18 +1,20 @@
 %{
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "parser.h"
 
 %}
 
 %option outfile="src/lexer.c" header-file="src/lexer.h"
-%option warn nodefault noyywrap
+%option warn noyywrap yylineno
 
-NUMBER  [0-9]+
+NUMBER  [1-9][0-9]*
 
 %%
 
 {NUMBER}    { yylval.value = atoi(yytext); return NUM; }
+.           ;
 
 %%
 
