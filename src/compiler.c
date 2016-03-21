@@ -5,7 +5,7 @@
 
 
 bool
-cp_compile(const char* code, uint8_t** buf, size_t sz)
+cp_compile(const char* code, uint8_t** buf, size_t* sz)
 {
     (void) code;
     (void) buf;

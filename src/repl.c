@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "compiler.h"
 
 static void 
 repl_run_line(const char* code, Options* opt, VM* vm)
@@ -13,10 +14,10 @@ repl_run_line(const char* code, Options* opt, VM* vm)
     (void) opt;
 
     // compile
-    uint8_t** buf = NULL;
+    uint8_t* buf = NULL;
     size_t buf_sz;
     if(!cp_compile(code, &buf, &buf_sz)) {
-        fprintf(stderr, "repl: %s\n", buf);
+        fprintf(stderr, "repl: %s\n", (char*)buf);
         free(buf);
     }
 
@@ -25,7 +26,7 @@ repl_run_line(const char* code, Options* opt, VM* vm)
         vm_disassemble(vm, buf, buf_sz);
     }
 
-    vm_run(buf, buf_sz);
+    vm_run(vm, buf, buf_sz);
 
     /*
     char* insp_buf;

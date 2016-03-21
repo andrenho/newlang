@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 VM* 
-vm_init()
+vm_init(void)
 {
     VM* vm = calloc(sizeof(VM), 1);
     return vm;
@@ -21,12 +21,20 @@ vm_free(VM** vm)
 bool 
 vm_disassemble(VM* vm, uint8_t* data, size_t sz)
 {
+    (void) vm;
+    (void) data;
+    (void) sz;
+
+    return true;
 }
 
 
 void 
 vm_run(VM* vm, uint8_t* data, size_t sz)
 {
+    (void) vm;
+    (void) data;
+    (void) sz;
 }
 
 

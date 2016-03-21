@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-bool cp_compile(const char* code, uint8_t** buf, size_t sz);
+bool cp_compile(const char* code, uint8_t** buf, size_t* sz);
 
 #endif
 
