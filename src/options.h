@@ -10,7 +10,7 @@ typedef enum {
 typedef struct Options {
     OperationMode operation_mode;
     struct { 
-        bool show_opcodes;
+        bool disassemble;
     } repl_options;
 } Options;
 

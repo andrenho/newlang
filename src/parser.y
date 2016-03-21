@@ -1,6 +1,7 @@
 %{
 
 #include "lexer.h"
+#include "compiler.h"
 void yyerror(const char* s);
 
 %}
@@ -17,7 +18,7 @@ void yyerror(const char* s);
 %%
 
 expr: %empty
-    | NUM { printf("%d\n", $1); }
+    | NUM { cp_add(PUSH_I, $1); }
 
 %%
 

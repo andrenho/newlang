@@ -1,20 +1,20 @@
 #include "options.h"
 #include "repl.h"
-#include "vm.h"
+#include "zoe.h"
 
 extern void yyparse(void);
 
 int main(int argc, char** argv) { 
     Options* opt = parse_args(argc, argv);
-    VM* vm = vm_init();
+    Zoe* zoe = zoe_init();
 
     switch(opt->operation_mode) {
         case REPL:
-            repl_exec(opt, vm);
+            repl_exec(opt, zoe);
             break;
     }
 
-    vm_free(&vm);
+    zoe_free(&zoe);
     options_free(&opt);
     return 0; 
 }

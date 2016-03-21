@@ -6,7 +6,7 @@ include build/config.mk
 #
 SRC = src/main.c	\
       src/compiler.c	\
-      src/vm.c		\
+      src/zoe.c		\
       src/options.c	\
       src/repl.c	\
       src/lexer.c	\

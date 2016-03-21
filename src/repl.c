@@ -9,24 +9,24 @@
 #include "compiler.h"
 
 static void 
-repl_run_line(const char* code, Options* opt, VM* vm)
+repl_run_line(char* code, Options* opt, Zoe* zoe)
 {
     (void) opt;
 
     // compile
     uint8_t* buf = NULL;
     size_t buf_sz;
-    if(!cp_compile(code, &buf, &buf_sz)) {
+    if(!compile(code, &buf, &buf_sz)) {
         fprintf(stderr, "repl: %s\n", (char*)buf);
         free(buf);
     }
 
     // debug
-    if(opt->repl_options.show_opcodes) {
-        vm_disassemble(vm, buf, buf_sz);
+    if(opt->repl_options.disassemble) {
+        zoe_disassemble(buf, buf_sz);
     }
 
-    vm_run(vm, buf, buf_sz);
+    zoe_run(zoe, buf, buf_sz);
 
     /*
     char* insp_buf;
@@ -38,7 +38,7 @@ repl_run_line(const char* code, Options* opt, VM* vm)
 
 
 void 
-repl_exec(Options* opt, VM* vm)
+repl_exec(Options* opt, Zoe* zoe)
 {
     (void) opt;
 
@@ -46,13 +46,13 @@ repl_exec(Options* opt, VM* vm)
 
     rl_bind_key('\t', rl_abort);
 
-    while((buf = readline(">")) != NULL) {
+    while((buf = readline("> ")) != NULL) {
         if(strcmp(buf, ".q") == 0) {
             free(buf);
             break;
         }
         
-        repl_run_line(buf, opt, vm);
+        repl_run_line(buf, opt, zoe);
 
         if(buf[0] != '\0') {
             add_history(buf);

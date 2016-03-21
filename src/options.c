@@ -10,6 +10,7 @@ parse_args(int argc, char** argv)
 
     Options* opt = calloc(sizeof(Options), 1);
     opt->operation_mode = REPL;
+    opt->repl_options.disassemble = true;
     return opt;
 }
 
