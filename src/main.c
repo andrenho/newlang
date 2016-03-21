@@ -1,6 +1,6 @@
-extern void yylex();
+//extern void yylex();
 
-int main() { 
+int main(void) { 
   //yylex();
   return 0; 
 }

@@ -7,39 +7,39 @@ include build/config.mk
 SRC = src/main.c
 
 OBJ = ${SRC:.c=.o}
-DIST = COPYING INSTALL README.md GNUmakefile extra/config.mk \
-       extra/version.mk
+DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
+       build/version.mk zoe.1
 
-CPPFLAGS += -DVERSION=\"${VERSION}\" -Isrc -std=c11
+CPPFLAGS += -DVERSION=\"${VERSION}\" ${WARNINGS} -Isrc -std=c11 -march=native
 LDFLAGS +=
 
 ifneq (${DEBUG}, no)
-  CPPFLAGS += -g -O0 -DDEBUG
+  CPPFLAGS += -g -ggdb3 -O0 -DDEBUG
   LDFLAGS += -g
 else
-  CPPFLAGS += -O3
+  # TODO - O2 or O3?
+  CPPFLAGS += -O2 -flto
+  LDFLAGS += -flto
 endif
 
 #
 # COMPILATION RULES
 #
 
-all: options zoe
+all: zoe
 
 options:
-	@echo 
 	@echo "zoe configuration options"
 	@echo "CPPFLAGS = ${CPPFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 
 .c.o:
-	@echo CC $<
+	@echo ${CC} -c -o $@ $<
 	@${CC} -c ${CPPFLAGS} -o $@ $<
 
 zoe: depend ${OBJ}
-	@echo CC -o $@
-	@${CC} -o $@ ${OBJ} ${LDFLAGS}
+	${CC} -o $@ ${OBJ} ${LDFLAGS}
 -include depend
 
 depend: ${SRC}
@@ -51,16 +51,16 @@ depend: ${SRC}
 #
 
 install: all
-	@echo installing executable to ${PREFIX}/bin
-	@install -p zoe ${PREFIX}/bin
-	@echo installing manual page to ${MANPREFIX}
-	@install -p zoe.1 ${MANPREFIX}/man1
+	install -p zoe ${PREFIX}/bin
+	cp zoe.1 ${MANPREFIX}/man1
 
 uninstall:
-
+	rm -f ${PREFIX}/bin/zoe
+	rm -f ${MANPREFIX}/man1/zoe.1
 
 install-strip:
-
+	install -ps zoe ${PREFIX}/bin
+	cp zoe.1 ${MANPREFIX}/man1
 
 #
 # CLEANING RULES
@@ -80,8 +80,12 @@ maintainer-clean:
 # PACKAGING RULES
 #
 
-dist:
-
+dist: distclean
+	mkdir -p zoe-${VERSION}
+	cp --parents ${DIST} ${SRC} zoe-${VERSION}
+	tar cf zoe-${VERSION}.tar zoe-${VERSION}
+	bzip2 -f zoe-${VERSION}.tar
+	rm -rf zoe-${VERSION} zoe-${VERSION}.tar
 
 # 
 # TESTS
@@ -90,4 +94,4 @@ dist:
 check:
 
 
-
+.PHONY: all options clean distclean maintainer-clean dist uninstall install install-strip

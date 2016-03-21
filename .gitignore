@@ -31,3 +31,9 @@
 # Debug files
 *.dSYM/
 
+# aux files
+depend
+
+# vim files
+.*.swo
+.*.swp
