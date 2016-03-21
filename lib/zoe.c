@@ -5,6 +5,8 @@
 Zoe* 
 zoe_new(void)
 {
+    yyparse();
+
     Zoe* zoe = calloc(sizeof(Zoe), 1);
     return zoe;
 }

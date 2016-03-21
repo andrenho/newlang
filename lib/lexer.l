@@ -13,4 +13,11 @@
 .  {}
 %%
 
+int yywrap() { return -1; }
+
+int yyerror(const char* msg) {
+    fprintf(stderr, "Error: %s\n", msg);
+    return 0;
+}
+
 // vim: ts=4:sw=4:sts=4:expandtab
