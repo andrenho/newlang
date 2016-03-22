@@ -7,6 +7,7 @@
 %option noyywrap
 %option reentrant
 %option bison-bridge
+%option extra-type="struct PassToBison*"
 
 %%
 

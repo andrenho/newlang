@@ -6,14 +6,21 @@
 #include "parser.tab.h"
 #include "lexer.h"
 
-void yyerror(void* scanner, const char *s);
+void yyerror(void* scanner, struct PassToBison* pb, const char *s);
 
 %}
 
+%code requires {
+struct PassToBison {
+	void* scanner;
+};
+
+}
+
 %define api.pure full
 
-%lex-param { void* scanner }
-%parse-param { void* scanner }
+%param { void* scanner }
+%parse-param { struct PassToBison * pb }
 
 %union {
 	double d;
@@ -35,14 +42,16 @@ exp: %empty
 int main(void)
 {
 	void* scanner;
-	yylex_init(&scanner);
-	int r = yyparse(scanner);
+	struct PassToBison pb;
+
+	yylex_init_extra(&pb, &scanner);
+	int r = yyparse(scanner, &pb);
 	yylex_destroy(scanner);
 	return r;
 }
 
 
-void yyerror(void* scanner, const char *s)
+void yyerror(void* scanner, struct PassToBison* pb, const char *s)
 {
 	fprintf(stderr, "%s\n", s);
 }
