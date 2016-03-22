@@ -40,10 +40,10 @@ all: libzoe.so.${VERSION} zoe
 
 # relax warnings in generation of lexer/parser C units
 lib/lexer.o: lib/lexer.c
-	${CC} -c -fPIC -I. -o $@ $<
+	${CC} -g -c -fPIC -I. -o $@ $<
 
 lib/parser.o: lib/parser.c
-	${CC} -c -fPIC -I. -o $@ $<
+	${CC} -g -c -fPIC -I. -o $@ $<
 
 %.o: %.c
 	${CC} -c -fPIC ${CPPFLAGS} -o $@ $<

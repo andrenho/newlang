@@ -4,7 +4,7 @@
 %}
 
 %option outfile="lib/lexer.c" header-file="lib/lexer.h"
-%option bison-bridge bison-locations
+%option reentrant bison-bridge noyywrap
 %%
 
 [[:digit:]]+  { yylval->num = atoi(yytext);   return NUMBER;}
@@ -12,8 +12,6 @@
 "="|";"       { return yytext[0];}
 .  {}
 %%
-
-int yywrap() { return -1; }
 
 int yyerror(const char* msg) {
     fprintf(stderr, "Error: %s\n", msg);

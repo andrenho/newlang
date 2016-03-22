@@ -1,13 +1,12 @@
 /* Parser to convert "C" assignments to lisp. */
 %{
-/* Pass the argument to yyparse through to yylex. */
-#define YYPARSE_PARAM scanner
-#define YYLEX_PARAM   scanner
+#include <stdio.h>
 %}
 %locations
 %output  "lib/parser.c"
 %defines "lib/parser.h"
 %pure-parser
+%parse-param { void* scanner }
 %union {
  int num;
  char* str;
