@@ -10,7 +10,7 @@
 
 %%
 
-[0-9]+	{ /* yylval = strtod(yytext, NULL); */ return NUM; }
+[0-9]+	{ yylval->d = strtod(yytext, NULL); return NUM; }
 \n	;
 .	return 1;
 

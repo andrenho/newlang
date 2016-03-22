@@ -10,16 +10,21 @@ void yyerror(void* scanner, const char *s);
 
 %}
 
-%pure-parser
+%define api.pure full
+
 %lex-param { void* scanner }
 %parse-param { void* scanner }
 
-%token NUM
+%union {
+	double d;
+}
+
+%token <d> NUM
 
 %%
 
 exp: %empty
-   | exp NUM		{ printf("(%d)\n", $2); }
+   | exp NUM		{ printf("(%f)\n", $2); }
    ;
 
 %%
