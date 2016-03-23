@@ -4,7 +4,7 @@ include build/config.mk
 # 
 # VARIABLES
 #
-SRC_LIB = lib/zoe.c#		\
+SRC_LIB = lib/zoe.c		\
 	  lib/lex.yy.c		\
 	  lib/parser.tab.c
 
@@ -44,20 +44,16 @@ all: libzoe.so.${VERSION} zoe
 
 # relax warnings in generation of lexer/parser C units
 lib/lex.yy.o: lib/lex.yy.c
-	${CC} ${OPT_CPPFLAGS} -c -I. -o $@ $<
+	${CC} ${OPT_CPPFLAGS} -c -I. -Ilib -o $@ $<
 
 lib/parser.tab.o: lib/parser.tab.c
-	${CC} ${OPT_CPPFLAGS} -c -I. -o $@ $<
+	${CC} ${OPT_CPPFLAGS} -c -I. -Ilib -o $@ $<
 
-.l.c: 
-	flex --header-file=lib/lex.yy.h $<
+lib/lex.yy.c: lib/lexer.l
+	flex --header-file=lib/lex.yy.h -o $@ $<
 
-.y.c:
-	bison -d $<
-
-lib/lex.yy.c: lib/lex.yy.l
-
-lib/parser.tab.c: lib/parser.tab.y
+lib/parser.tab.c: lib/parser.y
+	bison -d -o $@ $<
 
 #
 # COMPILATION RULES
