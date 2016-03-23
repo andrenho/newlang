@@ -29,7 +29,7 @@ void yyerror(void* scanner, Bytecode* bytecode, const char *s);
 %%
 
 exp: %empty
-   | INTEGER            { printf("%" PRId64 "\n", $1); }
+   | INTEGER            { bc_push(bc, PUSH_I, $1); }
    ;
 
 %%
@@ -46,7 +46,7 @@ int parse(Bytecode* bc, const char* code)
 }
 
 
-void yyerror(void* scanner, struct Bytecode* pb, const char *s)
+void yyerror(void* scanner, struct Bytecode* bc, const char *s)
 {
 	fprintf(stderr, "%s\n", s);
 }

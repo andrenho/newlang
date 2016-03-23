@@ -5,11 +5,13 @@ include build/config.mk
 # VARIABLES
 #
 SRC_LIB=lib/zoe.c		\
+	lib/bytecode.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c
 
 SRC_EXE=src/main.c		\
         src/options.c		\
+	src/repl.c		\
 	${SRC_LIB}
 
 OBJ_LIB=${SRC_LIB:.c=.o}

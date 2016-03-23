@@ -12,9 +12,11 @@
 %option bison-bridge
 %option extra-type="Bytecode*"
 
+NUMBER  -?(0|[1-9][0-9]*)
+
 %%
 
-[1-9][0-9]*     { yylval->integer = strtoll(yytext, NULL, 10); return INTEGER; }
+{NUMBER}        { yylval->integer = strtoll(yytext, NULL, 10); return INTEGER; }
 \n              ;
 .               return 1;
 
