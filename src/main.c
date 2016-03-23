@@ -1,5 +1,7 @@
 #include "options.h"
-#include "repl.h"
+//#include "repl.h"
+
+#include "zoe.h"
 
 extern void yyparse(void);
 
@@ -8,7 +10,7 @@ int main(int argc, char** argv) {
 
     switch(opt->operation_mode) {
         case REPL:
-            repl_exec(opt);
+            //repl_exec(opt);
             break;
     }
 

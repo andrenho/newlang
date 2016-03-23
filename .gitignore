@@ -34,10 +34,8 @@
 # aux files
 depend
 zoe
-lib/parser.c
-lib/parser.h
-lib/lexer.c
-lib/lexer.h
+lib/lex.yy.*
+lib/parser.tab.*
 libzoe.so.*
 
 # vim files
