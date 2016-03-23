@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "bytecode.h"
 
@@ -11,6 +12,8 @@ Zoe*
 zoe_new(void)
 {
     Zoe* zoe = calloc(sizeof(Zoe), 1);
+    memset(&zoe->stack, 0, sizeof zoe->stack);
+    zoe->stack_sz = 0;
     return zoe;
 }
 
@@ -41,7 +44,8 @@ zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz)
         bc_free(&bc);
     }
 
-    // TODO - push into stack
+    // push into stack
+    zoe_pushbfunction(zoe, 0, n_data, n_sz);
 
     return ZOE_OK;
 }
@@ -50,11 +54,13 @@ zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz)
 bool 
 zoe_dump(Zoe* zoe, uint8_t** data, size_t* sz)
 {
-    (void) zoe;
-    (void) data;
-    (void) sz;
+    if(zoe->stack[zoe->stack_sz-1].type != FUNCTION) {
+        zoe_error(zoe, "Expected function at the top of the stack.");
+    }
 
-    // TODO
+    *sz = zoe->stack[zoe->stack_sz-1].function.sz;
+    *data = calloc(*sz, 1);
+    memcpy(*data, zoe->stack[zoe->stack_sz-1].function.bytecode, *sz);
 
     return true;
 }
@@ -66,7 +72,34 @@ zoe_call(Zoe* zoe, int args)
     (void) zoe;
     (void) args;
 
+    if(zoe->stack[zoe->stack_sz-1].type != FUNCTION) {
+        zoe_error(zoe, "Expected function at the top of the stack.");
+    }
+
     // TODO
+}
+
+
+void 
+zoe_error(Zoe* zoe, const char* s)
+{
+    (void) zoe;
+
+    // TODO - this function needs to be improved
+    printf("error: %s\n", s);
+    exit(EXIT_FAILURE);
+}
+
+
+void 
+zoe_pushbfunction(Zoe* zoe, int nargs, uint8_t* data, size_t sz)
+{
+    zoe->stack[zoe->stack_sz].type = FUNCTION;
+    zoe->stack[zoe->stack_sz].function.nargs = nargs;
+    zoe->stack[zoe->stack_sz].function.bytecode = calloc(sz, 1);
+    memcpy(zoe->stack[zoe->stack_sz].function.bytecode, data, sz);
+    zoe->stack[zoe->stack_sz].function.sz = sz;
+    ++zoe->stack_sz;
 }
 
 

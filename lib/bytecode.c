@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
 Bytecode* 
 bc_new(void)
@@ -66,6 +67,20 @@ bc_push(Bytecode* bc, Opcode opcode, ...)
 }
 
 
+size_t 
+bc_bytecode(Bytecode* bc, uint8_t** buffer)
+{
+    size_t sz = bc->sz + 4;
+    *buffer = calloc(sz, 1);
+    (*buffer)[0] = 0xB4;
+    (*buffer)[1] = 0x7E;
+    (*buffer)[2] = 0xC0;
+    (*buffer)[3] = 0xDE;
+    memcpy(&(*buffer)[4], bc->data, bc->sz);
+    return sz;
+}
+
+
 //
 // STATIC
 //
@@ -91,7 +106,7 @@ bc_disassemble(FILE* f, uint8_t* buffer, size_t sz)
      ((int64_t)(buffer[n+6]) << 48) | \
      ((int64_t)(buffer[n+7]) << 56))
 
-    uint64_t p;
+    uint64_t p = 4;
     uint8_t ns;
     while(p < sz) {
         fprintf(f, "%08" PRIx64 ":\t", p);
@@ -119,9 +134,11 @@ bc_is_bytecode(uint8_t* buffer, size_t sz)
     (void) buffer;
     (void) sz;
 
-    // TODO
+    if(sz < 4) {
+        return false;
+    }
 
-    return true;
+    return buffer[0] == 0xB4 && buffer[1] == 0x7E && buffer[2] == 0xC0 && buffer[3] == 0xDE;
 }
 
 

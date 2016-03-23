@@ -70,7 +70,6 @@ zoe: depend ${OBJ_EXE}
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS} ${OPT_LDFLAGS}
-	ln -fs libzoe.so.${VERSION} libzoe.so.0
 
 # TODO
 #depend: ${SRC_EXE} ${SRC_LIB}
