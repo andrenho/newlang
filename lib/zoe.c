@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "bytecode.h"
+
 Zoe* 
 zoe_new(void)
 {

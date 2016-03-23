@@ -1,6 +1,8 @@
 #include "options.h"
 //#include "repl.h"
 
+#include "zoe.h"
+
 extern void yyparse(void);
 
 int main(int argc, char** argv) { 

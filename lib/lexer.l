@@ -14,7 +14,7 @@
 
 %%
 
-[1-9][0-9]+     { yylval->integer = strtoll(yytext, NULL, 10); return INTEGER; }
+[1-9][0-9]*     { yylval->integer = strtoll(yytext, NULL, 10); return INTEGER; }
 \n              ;
 .               return 1;
 

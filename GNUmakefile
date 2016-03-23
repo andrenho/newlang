@@ -4,29 +4,29 @@ include build/config.mk
 # 
 # VARIABLES
 #
-SRC_LIB = lib/zoe.c		\
-	  lib/lex.yy.c		\
-	  lib/parser.tab.c
+SRC_LIB=lib/zoe.c		\
+	lib/lex.yy.c		\
+	lib/parser.tab.c
 
-SRC_EXE = src/main.c		\
-          src/options.c		\
-	  ${SRC_LIB}
+SRC_EXE=src/main.c		\
+        src/options.c		\
+	${SRC_LIB}
 
-OBJ_LIB = ${SRC_LIB:.c=.o}
-OBJ_EXE = ${SRC_EXE:.c=.o}
+OBJ_LIB=${SRC_LIB:.c=.o}
+OBJ_EXE=${SRC_EXE:.c=.o}
 
-DIST = COPYING INSTALL README.md GNUmakefile build/config.mk \
-       build/version.mk zoe.1
+DIST=COPYING INSTALL README.md GNUmakefile build/config.mk \
+     build/version.mk zoe.1
 
-CPPFLAGS += -DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/warnings.txt -Ilib -Isrc -std=c11 -march=native -fPIC
+CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/warnings.txt -Ilib -Isrc -std=c11 -march=native -fPIC
 
 ifdef DEBUG
-  OPT_CPPFLAGS = -g -ggdb3 -O0 -DDEBUG
-  OPT_LDFLAGS = -g
+  OPT_CPPFLAGS=-g -ggdb3 -O0 -DDEBUG
+  OPT_LDFLAGS=-g
 else
   # TODO - O2 or O3?
-  OPT_CPPFLAGS += -O2 -flto
-  OPT_LDFLAGS += -flto
+  OPT_CPPFLAGS+=-O2 -flto
+  OPT_LDFLAGS+=-flto
 endif
 
 # libraries
@@ -43,11 +43,11 @@ all: libzoe.so.${VERSION} zoe
 #
 
 # relax warnings in generation of lexer/parser C units
-lib/lex.yy.o: lib/lex.yy.c
-	${CC} ${OPT_CPPFLAGS} -c -I. -Ilib -o $@ $<
+lib/lex.yy.o: lib/lex.yy.c lib/parser.tab.c
+	${CC} ${OPT_CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
 
-lib/parser.tab.o: lib/parser.tab.c
-	${CC} ${OPT_CPPFLAGS} -c -I. -Ilib -o $@ $<
+lib/parser.tab.o: lib/parser.tab.c lib/lex.yy.c
+	${CC} ${OPT_CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
 
 lib/lex.yy.c: lib/lexer.l
 	flex --header-file=lib/lex.yy.h -o $@ $<
@@ -62,13 +62,13 @@ lib/parser.tab.c: lib/parser.y
 %.o: %.c
 	${CC} -c ${CPPFLAGS} ${OPT_CPPFLAGS} -o $@ $<
 
-zoe: depend ${OBJ_EXE} libzoe.so.${VERSION}
-	${CC} -o $@ ${OBJ_EXE} libzoe.so.${VERSION} -Wl,-rpath,. ${LDFLAGS} ${OPT_LDFLAGS}
+zoe: depend ${OBJ_EXE}
+	${CC} -o $@ ${OBJ_EXE} ${LDFLAGS} ${OPT_LDFLAGS}
 -include depend
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS} ${OPT_LDFLAGS}
-	ln -s libzoe.so.${VERSION} libzoe.so.0
+	ln -fs libzoe.so.${VERSION} libzoe.so.0
 
 # TODO
 #depend: ${SRC_EXE} ${SRC_LIB}

@@ -2,10 +2,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 
 #include "parser.tab.h"
-#include "lexer.h"
+#include "lex.yy.h"
 
 void yyerror(void* scanner, Bytecode* bytecode, const char *s);
 
@@ -27,16 +28,18 @@ void yyerror(void* scanner, Bytecode* bytecode, const char *s);
 
 %%
 
-exp: INTEGER            { printf("%" PRId64 "\n", $1); }
+exp: %empty
+   | INTEGER            { printf("%" PRId64 "\n", $1); }
    ;
 
 %%
 
 
-void parse(Bytecode* bc)
+int parse(Bytecode* bc, const char* code)
 {
     void *scanner;
     yylex_init_extra(bc, &scanner);
+    yy_scan_bytes(code, strlen(code), scanner);
     int r = yyparse(scanner, bc);
     yylex_destroy(scanner);
     return r;
