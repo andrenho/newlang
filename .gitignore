@@ -37,6 +37,7 @@ zoe
 lib/lex.yy.*
 lib/parser.tab.*
 libzoe.so.*
+unittests
 
 # vim files
 .*.swo

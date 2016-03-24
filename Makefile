@@ -11,11 +11,16 @@ SRC_EXE=src/main.cc	\
 	src/options.cc	\
 	src/repl.cc
 
+SRC_TST=tests/zoe.cc
+
 OBJ_LIB=${SRC_LIB:.cc=.o}
 OBJ_EXE=${SRC_EXE:.cc=.o}
+OBJ_TST=${SRC_TST:.cc=.o}
+
+HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h}
 
 DIST=COPYING INSTALL README.md Makefile build/config.mk \
-     build/version.mk zoe.1
+     build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)
 
 CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/WARNINGS -Ilib -Isrc -std=c++11 -march=native -fPIC
 
@@ -43,20 +48,20 @@ all: libzoe.so.${VERSION} zoe
 # COMPILATION RULES
 #
 
+-include depend
+
 %.o: %.cc
 	${CPP} -c ${CPPFLAGS} ${OPT_CPPFLAGS} -o $@ $<
 
 zoe: depend ${OBJ_EXE}
 	${CPP} -o $@ ${OBJ_EXE} ${LDFLAGS} ${OPT_LDFLAGS}
--include depend
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CPP} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS} ${OPT_LDFLAGS}
 
-# TODO
-#depend: ${SRC_EXE} ${SRC_LIB}
-#	@echo checking dependencies
-#	@${CPP} -MM ${CPPFLAGS} ${SRC} >depend
+depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE}
+	@echo checking dependencies
+	@${CPP} -MM ${CPPFLAGS} ${HEADERS} ${SRC_LIB} ${SRC_EXE} >depend
 
 # 
 # DESCRIBE VARIABLES
@@ -93,7 +98,7 @@ install-strip:
 #
 
 clean:
-	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} *.o src/*.o lib/*.o
+	rm -f zoe libzoe.so.0 libzoe.so.${VERSION} unittests **/*.o
 
 distclean:
 	${MAKE} clean
@@ -109,7 +114,7 @@ maintainer-clean:
 
 dist: distclean
 	mkdir -p zoe-${VERSION}
-	cp --parents ${DIST} ${SRC} zoe-${VERSION}
+	cp --parents ${DIST} ${SRC_LIB} ${SRC_EXE} ${HEADERS} zoe-${VERSION}
 	tar cf zoe-${VERSION}.tar zoe-${VERSION}
 	bzip2 -f zoe-${VERSION}.tar
 	rm -rf zoe-${VERSION} zoe-${VERSION}.tar
@@ -118,7 +123,14 @@ dist: distclean
 # TESTS
 #
 
+unittests: ${OBJ_LIB} ${OBJ_TST}
+	${CPP} -o unittests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS} ${OPT_LDFLAGS}
+
+check: unittests
+	./unittests
+
 lint: 
+	${MAKE} maintainer-clean
 	cpplint --filter=${LINT_FILTERS} --linelength=120 **/*.cc **/*.h
 
 check-leaks: all

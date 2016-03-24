@@ -1,8 +1,12 @@
 #include "options.h"
 
 Options::Options(int argc, char* argv[])
-    : operation_mode(OperationMode::REPL)
+    : operation_mode(OperationMode::REPL),
+      repl_options({ true })
 {
+    (void) argc;
+    (void) argv;
+
     // TODO
 }
 

@@ -7,6 +7,10 @@ public:
 
     enum OperationMode { REPL };
     const Options::OperationMode operation_mode;
+
+    struct ReplOptions {
+        bool disassemble;
+    } repl_options;
 };
 
 #endif
