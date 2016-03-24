@@ -37,6 +37,14 @@ repl_exec(Options* opt)
             }
         }
         zoe_call(zoe, 0);
+
+        // inspect return value
+        /*
+        char* insp;
+        zoe_inspect(zoe, 0, &insp);
+        printf("%s\n", insp);
+        free(insp);
+        */
     }
 
     zoe_terminate(&zoe);

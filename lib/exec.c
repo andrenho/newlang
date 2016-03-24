@@ -13,7 +13,7 @@ zoe_exec_bytecode(Zoe* zoe, uint8_t* bc, size_t sz)
         Opcode op = bc[p];
         switch(op) {
             case PUSH_I:
-                stack_pushinteger(zoe->stack, 0);
+                stack_pushinteger(zoe->stack, 0);  // TODO
                 p += 9;
                 break;
             default:
