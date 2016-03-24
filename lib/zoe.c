@@ -8,12 +8,13 @@
 
 extern int parse(Bytecode* bc, const char* code);
 
+// {{{ INITIALIZATION
+
 Zoe* 
 zoe_new(void)
 {
     Zoe* zoe = calloc(sizeof(Zoe), 1);
-    memset(&zoe->stack, 0, sizeof zoe->stack);
-    zoe->stack_sz = 0;
+    zoe->stack = stack_new(20);
     return zoe;
 }
 
@@ -21,10 +22,15 @@ zoe_new(void)
 void 
 zoe_terminate(Zoe** zoe)
 {
+    stack_free(&(*zoe)->stack);
+
     free(*zoe);
     *zoe = NULL;
 }
 
+// }}}
+
+// {{{  BYTECODE
 
 ZoeLoadStatus 
 zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz)
@@ -45,7 +51,9 @@ zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz)
     }
 
     // push into stack
-    zoe_pushbfunction(zoe, 0, n_data, n_sz);
+    stack_pushbfunction(zoe->stack, 0, n_data, n_sz);
+
+    free(n_data);
 
     return ZOE_OK;
 }
@@ -54,31 +62,22 @@ zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz)
 bool 
 zoe_dump(Zoe* zoe, uint8_t** data, size_t* sz)
 {
-    if(zoe->stack[zoe->stack_sz-1].type != FUNCTION) {
-        zoe_error(zoe, "Expected function at the top of the stack.");
+    ZValue* rec = stack_peek(zoe->stack);
+
+    if(rec->type != BFUNCTION) {
+        zoe_error(zoe, "zoe: expected function at the top of the stack");
     }
 
-    *sz = zoe->stack[zoe->stack_sz-1].function.sz;
-    *data = calloc(*sz, 1);
-    memcpy(*data, zoe->stack[zoe->stack_sz-1].function.bytecode, *sz);
+    *sz = rec->bfunction.sz;
+    *data = malloc(*sz);
+    memcpy(*data, rec->bfunction.bytecode, *sz);
 
     return true;
 }
 
+// }}}
 
-void 
-zoe_call(Zoe* zoe, int args)
-{
-    (void) zoe;
-    (void) args;
-
-    if(zoe->stack[zoe->stack_sz-1].type != FUNCTION) {
-        zoe_error(zoe, "Expected function at the top of the stack.");
-    }
-
-    // TODO
-}
-
+// {{{  ERROR MANAGEMENT
 
 void 
 zoe_error(Zoe* zoe, const char* s)
@@ -87,20 +86,52 @@ zoe_error(Zoe* zoe, const char* s)
 
     // TODO - this function needs to be improved
     printf("error: %s\n", s);
-    exit(EXIT_FAILURE);
+    abort();
 }
 
+// }}}
+
+// {{{  CODE EXECUTION
+
+extern void zoe_exec_bytecode(Zoe* zoe, uint8_t* bc, size_t sz);
 
 void 
-zoe_pushbfunction(Zoe* zoe, int nargs, uint8_t* data, size_t sz)
+zoe_call(Zoe* zoe, int args)
 {
-    zoe->stack[zoe->stack_sz].type = FUNCTION;
-    zoe->stack[zoe->stack_sz].function.nargs = nargs;
-    zoe->stack[zoe->stack_sz].function.bytecode = calloc(sz, 1);
-    memcpy(zoe->stack[zoe->stack_sz].function.bytecode, data, sz);
-    zoe->stack[zoe->stack_sz].function.sz = sz;
-    ++zoe->stack_sz;
+    int8_t initial_stack_size = stack_size(zoe->stack);
+
+    ZValue* f = stack_peek(zoe->stack);
+
+    // is it a function?
+    if(f->type != BFUNCTION) {
+        zoe_error(zoe, "Element being called is not a function.\n");
+    }
+
+    // is the number of arguments correct?
+    if(f->bfunction.n_args != args) {
+        zoe_error(zoe, "Wrong number of arguments.\n");
+    }
+
+    // remove function from stack
+    uint8_t* bc = malloc(f->bfunction.sz);
+    size_t sz = f->bfunction.sz;
+    memcpy(bc, f->bfunction.bytecode, f->bfunction.sz);
+    stack_remove(zoe->stack, stack_size(zoe->stack) - args - 1);
+
+    // execute
+    zoe_exec_bytecode(zoe, bc, sz);
+    free(bc);
+
+    // verify if the stack has now is the same size as the beginning
+    // (-1 function +1 return argument)
+    if(stack_size(zoe->stack) != initial_stack_size) {
+        fprintf(stderr, "Function should have returned exaclty one argument.\n");
+    }
+    
+    // remove arguments from stack
+    // TODO
 }
 
+// }}}
 
-// vim: ts=4:sw=4:sts=4:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker

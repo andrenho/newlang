@@ -23,7 +23,7 @@ repl_exec(Options* opt)
         memset(buf, 0, BUFSZ);
         fgets(buf, BUFSZ, stdin);
         if(strcmp(buf, ".q") == 0 || buf[0] == 0) {
-            return;
+            break;
         }
 
         // run code

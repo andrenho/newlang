@@ -19,6 +19,9 @@ bc_new(void)
 void 
 bc_free(Bytecode** bc)
 {
+    if((*bc)->data) {
+        free((*bc)->data);
+    }
     free(*bc);
     *bc = NULL;
 }

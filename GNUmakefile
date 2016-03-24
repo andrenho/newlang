@@ -5,6 +5,8 @@ include build/config.mk
 # VARIABLES
 #
 SRC_LIB=lib/zoe.c		\
+	lib/exec.c		\
+	lib/stack.c		\
 	lib/bytecode.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c
@@ -139,10 +141,10 @@ dist: distclean
 #
 
 check-leaks: all
-	valgrind --leak-check=full --show-leak-kinds=all --suppressions=build/zoe.supp ./zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
 
 gen-suppressions: all
-	valgrind --leak-check=full --show-leak-kinds=all --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
 	sed -i -e '/^==.*$$/d' build/zoe.supp
 
 

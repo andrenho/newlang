@@ -5,41 +5,23 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define STACKSZ 20
-
-typedef enum { NIL, INTEGER, FUNCTION } ZType;
-
-typedef struct {
-    int nargs;
-    uint8_t* bytecode;
-    size_t sz;
-} ZFunction;
-
-typedef struct {
-    ZType type;
-    union {
-        int64_t integer;
-        ZFunction function;
-    };
-} ZValue;
+#include "stack.h"
 
 typedef struct Zoe {
-    ZValue stack[STACKSZ];
-    int stack_sz;
+    ZStack* stack;
 } Zoe;
 
-Zoe* zoe_new(void);
-void zoe_terminate(Zoe** zoe);
-
 typedef enum { ZOE_OK, ZOE_ERRSYNTAX } ZoeLoadStatus;
-ZoeLoadStatus zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz);
 
-bool zoe_dump(Zoe* zoe, uint8_t** data, size_t* sz);
-void zoe_call(Zoe* zoe, int args);
+Zoe*            zoe_new(void);
+void            zoe_terminate(Zoe** zoe);
 
-void zoe_error(Zoe* zoe, const char* s);
+ZoeLoadStatus   zoe_load_buffer(Zoe* zoe, uint8_t* data, size_t sz);
+bool            zoe_dump(Zoe* zoe, uint8_t** data, size_t* sz);
 
-void zoe_pushbfunction(Zoe* zoe, int nargs, uint8_t* data, size_t sz);
+void            zoe_error(Zoe* zoe, const char* s);
+
+void            zoe_call(Zoe* zoe, int args);  // in call.c
 
 #endif
 
