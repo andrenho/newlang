@@ -23,13 +23,15 @@ ifdef DEBUG
   OPT_CPPFLAGS=-g -ggdb3 -O0 -DDEBUG
   OPT_LDFLAGS=-g
 else
-  # TODO - O2 or O3?
-  OPT_CPPFLAGS+=-O2 -flto
+  OPT_CPPFLAGS+=-Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
   OPT_LDFLAGS+=-flto
 endif
 
 # libraries
 LDFLAGS +=
+
+# filter for cpplint
+LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo
 
 #
 # ALL 
@@ -115,6 +117,9 @@ dist: distclean
 # 
 # TESTS
 #
+
+lint: 
+	cpplint --filter=${LINT_FILTERS} --linelength=120 **/*.cc **/*.h
 
 check-leaks: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
