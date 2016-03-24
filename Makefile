@@ -7,7 +7,9 @@ include build/config.mk
 
 SRC_LIB=lib/zoe.cc
 
-SRC_EXE=src/main.cc
+SRC_EXE=src/main.cc	\
+	src/options.cc	\
+	src/repl.cc
 
 OBJ_LIB=${SRC_LIB:.cc=.o}
 OBJ_EXE=${SRC_EXE:.cc=.o}
