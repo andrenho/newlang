@@ -11,7 +11,8 @@ SRC_EXE=src/main.cc	\
 	src/options.cc	\
 	src/repl.cc
 
-SRC_TST=tests/zoe.cc
+SRC_TST=tests/main.cc	\
+	tests/zoe.cc
 
 OBJ_LIB=${SRC_LIB:.cc=.o}
 OBJ_EXE=${SRC_EXE:.cc=.o}
@@ -22,7 +23,7 @@ HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h}
 DIST=COPYING INSTALL README.md Makefile build/config.mk \
      build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)
 
-CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/WARNINGS -Ilib -Isrc -std=c++11 -march=native -fPIC
+CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE @build/WARNINGS -Ilib -Isrc -std=c++14 -march=native -fPIC
 
 ifdef DEBUG
   OPT_CPPFLAGS=-g -ggdb3 -O0 -DDEBUG
@@ -36,7 +37,7 @@ endif
 LDFLAGS +=
 
 # filter for cpplint
-LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo
+LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11
 
 #
 # ALL 
@@ -53,15 +54,17 @@ all: libzoe.so.${VERSION} zoe
 %.o: %.cc
 	${CPP} -c ${CPPFLAGS} ${OPT_CPPFLAGS} -o $@ $<
 
-zoe: depend ${OBJ_EXE}
-	${CPP} -o $@ ${OBJ_EXE} ${LDFLAGS} ${OPT_LDFLAGS}
+zoe: depend ${OBJ_EXE} ${OBJ_LIB}
+	${CPP} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS} ${OPT_LDFLAGS}
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CPP} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS} ${OPT_LDFLAGS}
 
-depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE}
+depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies
-	@${CPP} -MM ${CPPFLAGS} ${HEADERS} ${SRC_LIB} ${SRC_EXE} >depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -e 's/^/lib\//' > depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -e 's/^/src\//' >> depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_TST} | sed -e 's/^/tests\//' >> depend
 
 # 
 # DESCRIBE VARIABLES
@@ -131,7 +134,7 @@ check: unittests
 
 lint: 
 	${MAKE} maintainer-clean
-	cpplint --filter=${LINT_FILTERS} --linelength=120 **/*.cc **/*.h
+	cpplint --filter=${LINT_FILTERS} --linelength=120 lib/*.h lib/*.cc src/*.h src/*.cc
 
 check-leaks: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
