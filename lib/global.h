@@ -15,9 +15,9 @@
     _Pragma("GCC diagnostic pop")
 
 // suffixes for several types
-inline uint8_t operator"" _u8(unsigned long long v) { return uint8_t(v); }
-inline int32_t operator"" _i32(unsigned long long v) { return int32_t(v); }
-inline int64_t operator"" _i64(unsigned long long v) { return int64_t(v); }
+constexpr inline uint8_t operator"" _u8(unsigned long long v) { return uint8_t(v); }
+constexpr inline int32_t operator"" _i32(unsigned long long v) { return int32_t(v); }
+constexpr inline int64_t operator"" _i64(unsigned long long v) { return int64_t(v); }
 
 #endif
 

@@ -1,0 +1,12 @@
+#ifndef ZOE_OPCODE_H_
+#define ZOE_OPCODE_H_
+
+#include "global.h"
+
+typedef enum Opcode : uint8_t {
+    PUSH_I = 0x01_u8,
+} Opcode;
+
+#endif
+
+// vim: ts=4:sw=4:sts=4:expandtab

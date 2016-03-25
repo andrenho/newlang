@@ -12,9 +12,9 @@ TEST_CASE("Bytecode operations", "[bytecode]") {
     Bytecode bc;
 
     SECTION("adding data") {
-        bc.Add(0x80_u8);
+        bc.Add_u8(0x80);
         REQUIRE(bc.Data() == vector<uint8_t> { 0x80 });
-        bc.Add(0x1234_i64);
+        bc.Add_i64(0x1234);
         vector<uint8_t> expected { 0x80, 0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         REQUIRE(bc.Data() == expected);
     }

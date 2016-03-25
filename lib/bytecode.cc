@@ -1,22 +1,25 @@
 #include "bytecode.h"
 
+extern int parse(Zoe::Bytecode* bc, const char* code);
+
+
 namespace Zoe {
 
-void
-Bytecode::Add(int32_t n)
+void Bytecode::Add_i64(int64_t n)
 {
-    for(int i=0; i<4; ++i) {
-        Add(static_cast<uint8_t>((n >> (i*8)) & 0xFF));
+    for(int i=0; i<8; ++i) {
+        Add_u8(static_cast<uint8_t>((n >> (i*8)) & 0xFF));
     }
 }
 
-void
-Bytecode::Add(int64_t n)
+
+Bytecode Bytecode::FromCode(string const& code)
 {
-    for(int i=0; i<8; ++i) {
-        Add(static_cast<uint8_t>((n >> (i*8)) & 0xFF));
-    }
+    Bytecode bc;
+    parse(&bc, code.c_str());
+    return bc;
 }
+
 
 }
 

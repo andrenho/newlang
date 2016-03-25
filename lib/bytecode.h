@@ -12,14 +12,13 @@ namespace Zoe {
 
 class Bytecode {
 public:
-    inline void Add(uint8_t value) { _data.push_back(value); }
+    inline void Add_u8(uint8_t value) { _data.push_back(value); }
     inline vector<uint8_t> const& Data() const { return _data; }
 
-    void Add(int32_t value);
-    void Add(int64_t value);
+    void Add_i64(int64_t value);
 
     // static
-    TODO( static Bytecode FromCode(string const& code) )
+    static Bytecode FromCode(string const& code); 
 
 private:
     vector<uint8_t> _data = {};
