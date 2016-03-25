@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "zvalue.h"
+#include "global.h"
 
 namespace Zoe {
 
@@ -16,6 +17,9 @@ public:
     Zoe();
 
     void Error(string s, ...) const __attribute__((noreturn));
+
+    void LoadCode(string const& code);
+    TODO (vector<uint8_t> const& Dump(int8_t pos) const)
 
     //
     // STACK OPERATION

@@ -5,6 +5,8 @@
 #include <memory>
 using namespace std;
 
+#include "bytecode.h"
+
 namespace Zoe {
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -13,6 +15,16 @@ Zoe::Zoe()
     : stack()
 {
     stack.reserve(MaxStackSize);
+}
+
+// }}}
+
+// {{{ CODE MANAGEMENT
+
+void Zoe::LoadCode(string const& code)
+{
+    Bytecode bc = Bytecode::FromCode(code);
+    Push(make_unique<ZBytecodeFunction>(0, bc.Data()));
 }
 
 // }}}

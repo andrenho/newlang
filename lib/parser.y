@@ -4,12 +4,14 @@
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
+#include <string>
+using namespace std;
 
 #include "bytecode.h"
 #include "parser.tab.hh"
 #include "lex.yy.h"
 
-void yyerror(void* scanner, Zoe::Bytecode* bytecode, const char *s);
+void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 
 %}
 
@@ -20,7 +22,7 @@ void yyerror(void* scanner, Zoe::Bytecode* bytecode, const char *s);
 
 %define api.pure full
 %param { void* scanner }
-%parse-param { Zoe::Bytecode* bc }
+%parse-param { Zoe::Bytecode& bc }
 
 %defines "lib/parser.tab.h"
 
@@ -33,24 +35,24 @@ void yyerror(void* scanner, Zoe::Bytecode* bytecode, const char *s);
 %%
 
 exp: %empty
-   | INTEGER            { bc->Add_u8(PUSH_I); bc->Add_i64($1); }
+   | INTEGER            { bc.Add_u8(PUSH_I); bc.Add_i64($1); }
    ;
 
 %%
 
 
-int parse(Zoe::Bytecode* bc, const char* code)
+int parse(Zoe::Bytecode& bc, string const& code)
 {
     void *scanner;
-    yylex_init_extra(bc, &scanner);
-    yy_scan_bytes(code, strlen(code), scanner);
+    yylex_init_extra(&bc, &scanner);
+    yy_scan_bytes(code.c_str(), code.size(), scanner);
     int r = yyparse(scanner, bc);
     yylex_destroy(scanner);
     return r;
 }
 
 
-void yyerror(void* scanner, struct Zoe::Bytecode* bc, const char *s)
+void yyerror(void* scanner, struct Zoe::Bytecode& bc, const char *s)
 {
 	fprintf(stderr, "%s\n", s);
 }

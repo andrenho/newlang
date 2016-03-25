@@ -41,7 +41,7 @@ endif
 LDFLAGS+=-fuse-ld=gold
 
 # filter for cpplint
-LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11
+LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
 
 #
 # ALL 

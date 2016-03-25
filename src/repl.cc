@@ -7,6 +7,8 @@ using namespace std;
 
 #include "options.h"
 #include "zoe.h"
+#include "bytecode.h"
+using namespace Zoe;
 
 void REPL::Execute(Options const& opt) const
 {
@@ -22,12 +24,12 @@ void REPL::Execute(Options const& opt) const
             break;
         }
 
-        /*
         // run code
-        zoe.LoadCode(zoe, buf);
+        zoe.LoadCode(buf);
         if(opt.repl_options.disassemble) {
             Bytecode::Disassemble(cout, zoe.Dump(0));
         }
+        /*
         zoe.Call(0);
 
         // inspect

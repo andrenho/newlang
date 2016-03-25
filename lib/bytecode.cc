@@ -1,6 +1,6 @@
 #include "bytecode.h"
 
-extern int parse(Zoe::Bytecode* bc, const char* code);
+extern int parse(Zoe::Bytecode& bc, string const& code);  // defined in lib/parser.y
 
 
 namespace Zoe {
@@ -16,7 +16,7 @@ void Bytecode::Add_i64(int64_t n)
 Bytecode Bytecode::FromCode(string const& code)
 {
     Bytecode bc;
-    parse(&bc, code.c_str());
+    parse(bc, code);
     return bc;
 }
 
