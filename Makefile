@@ -5,14 +5,16 @@ include build/config.mk
 # VARIABLES
 #
 
-SRC_LIB=lib/zoe.cc
+SRC_LIB=lib/zoe.cc		\
+	lib/bytecode.cc
 
-SRC_EXE=src/main.cc	\
-	src/options.cc	\
+SRC_EXE=src/main.cc		\
+	src/options.cc		\
 	src/repl.cc
 
-SRC_TST=tests/main.cc	\
-	tests/zoe.cc
+SRC_TST=tests/main.cc		\
+	tests/zoe.cc		\
+	tests/bytecode.cc
 
 OBJ_LIB=${SRC_LIB:.cc=.o}
 OBJ_EXE=${SRC_EXE:.cc=.o}

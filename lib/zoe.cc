@@ -1,5 +1,7 @@
 #include "zoe.h"
 
+#include <cstdio>
+#include <cstdarg>
 #include <memory>
 using namespace std;
 
@@ -15,11 +17,19 @@ Zoe::Zoe()
 
 // }}}
 
+// {{{ ERROR MANAGEMENT
+
 void Zoe::Error(string s, ...) const
 {
+    va_list ap;
+    va_start(ap, s);
+    fprintf(stderr, "zoe: ");
+    vfprintf(stderr, s.c_str(), ap);
+    fprintf(stderr, "\n");
     abort();
 }
 
+// }}}
 
 // {{{ STACK OPERATIONS
 

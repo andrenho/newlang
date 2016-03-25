@@ -15,7 +15,7 @@ public:
 
     Zoe();
 
-    void Error(string s, ...) const;
+    void Error(string s, ...) const __attribute__((noreturn));
 
     //
     // STACK OPERATION
