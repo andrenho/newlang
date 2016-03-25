@@ -38,7 +38,7 @@ else
 endif
 
 # libraries
-LDFLAGS += -fuse-ld=gold
+LDFLAGS+=-fuse-ld=gold
 
 # filter for cpplint
 LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11
@@ -87,9 +87,9 @@ libzoe.so.${VERSION}: ${OBJ_LIB}
 
 depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies
-	@${CPP} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -e 's/^/lib\//' > depend
-	@${CPP} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -e 's/^/src\//' >> depend
-	@${CPP} -MM ${CPPFLAGS} ${SRC_TST} | sed -e 's/^/tests\//' >> depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -re 's/^([^ ])/lib\/\1/' > depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -re 's/^([^ ])/lib\/\1/' >> depend
+	@${CPP} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/lib\/\1/' >> depend
 
 # 
 # DESCRIBE VARIABLES
