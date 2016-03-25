@@ -27,6 +27,16 @@ void Zoe::LoadCode(string const& code)
     Push(make_unique<ZBytecodeFunction>(0, bc.Data()));
 }
 
+vector<uint8_t> const& Zoe::Dump(int8_t pos) const
+{
+    ZBytecodeFunction const* f;
+    if((f = Peek<ZBytecodeFunction>(pos))) {
+        return f->Code();
+    } else {
+        Error("Expected function");
+    }
+}
+
 // }}}
 
 // {{{ ERROR MANAGEMENT

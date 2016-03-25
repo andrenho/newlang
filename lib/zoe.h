@@ -19,7 +19,7 @@ public:
     void Error(string s, ...) const __attribute__((noreturn));
 
     void LoadCode(string const& code);
-    TODO (vector<uint8_t> const& Dump(int8_t pos) const)
+    vector<uint8_t> const& Dump(int8_t pos=-1) const;
 
     //
     // STACK OPERATION

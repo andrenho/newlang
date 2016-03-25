@@ -27,7 +27,7 @@ void REPL::Execute(Options const& opt) const
         // run code
         zoe.LoadCode(buf);
         if(opt.repl_options.disassemble) {
-            Bytecode::Disassemble(cout, zoe.Dump(0));
+            Bytecode::Disassemble(stderr, zoe.Dump(0));
         }
         /*
         zoe.Call(0);

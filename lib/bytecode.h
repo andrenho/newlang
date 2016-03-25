@@ -1,6 +1,7 @@
 #ifndef ZOE_BYTECODE_H_
 #define ZOE_BYTECODE_H_
 
+#include <cstdio>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -19,7 +20,7 @@ public:
 
     // static
     static Bytecode FromCode(string const& code); 
-    TODO( static void Disassemble(ostream const& s, vector<uint8_t> const& data) )
+    static void Disassemble(FILE* f, vector<uint8_t> const& data);
 
 private:
     vector<uint8_t> _data = {};
