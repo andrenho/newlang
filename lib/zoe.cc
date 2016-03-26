@@ -108,10 +108,14 @@ void Zoe::Execute(vector<uint8_t> const& data)
 {
     uint64_t p = 4;
     while(p < data.size()) {
-        Opcode op = static_cast<Opcode>(data[p]);
+        Opcode op = static_cast<Opcode>(data[p]);  // this is for receiving compiler warnings when something is missing
         switch(op) {
             case PUSH_I:
                 Push(make_unique<ZInteger>(data, p+1));
+                p += 9;
+                break;
+            case PUSH_F:
+                Push(make_unique<ZFloat>(data, p+1));
                 p += 9;
                 break;
             default:
@@ -156,13 +160,14 @@ string Zoe::Inspect(int8_t pos) const
 {
     ZValue const* value = Peek<ZValue>(pos);
 
-    auto integer = dynamic_cast<ZInteger const*>(value);
-    if(integer) {
-        return to_string(integer->Value());
+    switch(value->Type) {
+        case ZType::INTEGER:
+            return to_string(dynamic_cast<ZInteger const*>(value)->Value());
+        case ZType::FLOAT:
+            return to_string(dynamic_cast<ZFloat const*>(value)->Value());
+        default: 
+            Error("Invalid value type.");
     }
-
-    Error("Invalid value type.");
-    abort();
 }
 
 // }}}

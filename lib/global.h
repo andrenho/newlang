@@ -7,6 +7,12 @@
 #include <cstdio>
 #include <cstdlib>
 
+// static assertions
+static_assert(sizeof(double) == 8, "sizeof(double) != 8");
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#  error "Non little-endian architectures are currently unsupported."
+#endif
+
 // when a function/method is not implemented, causes a error and abort
 #define TODO(def) \
     _Pragma("GCC diagnostic push") \
