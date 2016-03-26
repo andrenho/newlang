@@ -27,12 +27,12 @@ struct ZInteger : public ZValue {
 
 
 struct ZBytecodeFunction : public ZValue {
-    ZBytecodeFunction(uint8_t n_args, vector<uint8_t> const& code) : _n_args(n_args), _code(code) {}
+    ZBytecodeFunction(uint8_t n_args, vector<uint8_t> const& bytecode) : _n_args(n_args), _bytecode(bytecode) {}
     uint8_t NArgs() const { return _n_args; }
-    vector<uint8_t> const& Code() const { return _code; }
+    vector<uint8_t> const& Bytecode() const { return _bytecode; }
 
     uint8_t _n_args;
-    vector<uint8_t> _code;
+    vector<uint8_t> _bytecode;
 };
 
 

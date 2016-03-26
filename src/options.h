@@ -1,6 +1,8 @@
 #ifndef OPTIONS_H_
 #define OPTIONS_H_
 
+#include <cstdio>
+
 class Options {
 public:
     Options(int argc, char* argv[]);
@@ -11,6 +13,9 @@ public:
     struct ReplOptions {
         bool disassemble;
     } repl_options;
+
+private:
+    void PrintHelp(FILE* f, int exit_status) const __attribute__((noreturn));
 };
 
 #endif

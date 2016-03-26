@@ -21,7 +21,7 @@ TEST_CASE("Bytecode operations", "[bytecode]") {
 
     SECTION("simple parsing") {
         auto bc = Bytecode::FromCode("34");
-        vector<uint8_t> expected { 0x01, 34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        vector<uint8_t> expected { 0xB4, 0x7E, 0xC0, 0xDE, 0x01, 34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         REQUIRE(bc.Data() == expected);
     }
 }

@@ -43,6 +43,13 @@ exp: %empty
 
 int parse(Zoe::Bytecode& bc, string const& code)
 {
+    // bytecode header
+    bc.Add_u8(0xB4);
+    bc.Add_u8(0x7E);
+    bc.Add_u8(0xC0);
+    bc.Add_u8(0xDE);
+
+    // parse code
     void *scanner;
     yylex_init_extra(&bc, &scanner);
     yy_scan_bytes(code.c_str(), code.size(), scanner);

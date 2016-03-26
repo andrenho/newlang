@@ -29,12 +29,11 @@ void REPL::Execute(Options const& opt) const
         if(opt.repl_options.disassemble) {
             Bytecode::Disassemble(stderr, zoe.Dump(0));
         }
-        /*
         zoe.Call(0);
 
         // inspect
-        cout << zoe.Inspect(0) << endl;
-        */
+        cout << zoe.Inspect() << endl;
+        zoe.Pop();
     }
 }
 
