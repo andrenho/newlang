@@ -2,6 +2,8 @@
 #define ZOE_ZVALUE_H_
 
 #include <cstdint>
+#include <vector>
+using namespace std;
 
 namespace Zoe {
 
@@ -19,10 +21,12 @@ public:
 
 struct ZInteger : public ZValue {
     explicit ZInteger(int64_t value) : _value(value) {}
-    int64_t Value() const { return _value; }
-    int64_t _value;
+    explicit ZInteger(vector<uint8_t> const& data, size_t pos=0);
 
+    int64_t Value() const { return _value; }
     bool operator==(ZInteger const& other) { return Value() == other.Value(); }
+
+    const int64_t _value;
 };
 
 
@@ -31,8 +35,8 @@ struct ZBytecodeFunction : public ZValue {
     uint8_t NArgs() const { return _n_args; }
     vector<uint8_t> const& Bytecode() const { return _bytecode; }
 
-    uint8_t _n_args;
-    vector<uint8_t> _bytecode;
+    const uint8_t _n_args;
+    const vector<uint8_t> _bytecode;
 };
 
 

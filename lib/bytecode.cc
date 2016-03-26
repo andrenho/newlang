@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 
+#include "zvalue.h"
 #include "opcode.h"
 
 extern int parse(Zoe::Bytecode& bc, string const& code);  // defined in lib/parser.y
@@ -29,26 +30,13 @@ void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
 {
     uint64_t p = 4;
 
-    /// {{{ lambdas
-    auto next = [&](uint64_t sz) {
+    auto next = [&](uint64_t sz) {  // {{{
         for(uint8_t i=0; i<sz; ++i) {
             fprintf(f, "%02X ", data[p+i]);
         }
         fprintf(f, "\n");
         p += sz;
-    };
-
-    auto integer = [&](size_t n) {
-        return static_cast<int64_t>(data[n])         | \
-               static_cast<int64_t>(data[n+1]) << 8  | \
-               static_cast<int64_t>(data[n+2]) << 16 | \
-               static_cast<int64_t>(data[n+3]) << 24 | \
-               static_cast<int64_t>(data[n+4]) << 32 | \
-               static_cast<int64_t>(data[n+5]) << 40 | \
-               static_cast<int64_t>(data[n+6]) << 48 | \
-               static_cast<int64_t>(data[n+7]) << 56;
-    };
-    /// }}}
+    }; /// }}}
 
     int ns;
     while(p < data.size()) {
@@ -56,7 +44,7 @@ void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
         switch(data[p]) {
             case PUSH_I:
                 fprintf(f, "push_i\t");
-                ns = fprintf(f, "%" PRId64, IntegerToInt64_t(data, p+1));
+                ns = fprintf(f, "%" PRId64, ZInteger(data, p+1).Value());
                 fprintf(f, "%*s", 23-ns, " ");
                 next(9);
                 break;

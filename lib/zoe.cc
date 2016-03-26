@@ -111,7 +111,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
         Opcode op = static_cast<Opcode>(data[p]);
         switch(op) {
             case PUSH_I:
-                Push(make_unique<ZInteger>(IntegerToInt64_t(data, p+1)));
+                Push(make_unique<ZInteger>(data, p+1));
                 p += 9;
                 break;
             default:

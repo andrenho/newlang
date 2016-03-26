@@ -5,7 +5,8 @@ include build/config.mk
 # VARIABLES
 #
 
-SRC_LIB=lib/zoe.cc		\
+SRC_LIB=lib/zvalue.cc		\
+	lib/zoe.cc		\
 	lib/bytecode.cc		\
 	lib/lex.yy.cc		\
 	lib/parser.tab.cc
