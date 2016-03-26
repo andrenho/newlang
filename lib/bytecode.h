@@ -17,8 +17,7 @@ public:
     inline void Add_u8(uint8_t value) { _data.push_back(value); }
     inline vector<uint8_t> const& Data() const { return _data; }
 
-    void Add_i64(int64_t value) { ZInteger(value).InsertIntoVector(_data); }
-    void Add_f64(double value) { ZFloat(value).InsertIntoVector(_data); }
+    void Add_f64(double value) { ZNumber(value).InsertIntoVector(_data); }
 
     // static
     static Bytecode FromCode(string const& code); 

@@ -36,7 +36,8 @@ public:
     // CODE EXECUTION
     void Call(int8_t n_args);
 
-    // DEBUGGING
+    // INFORMATION
+    ZType Type(int8_t pos=-1) const;
     string Inspect(int8_t pos=-1) const;
 
 private:

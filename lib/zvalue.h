@@ -7,7 +7,7 @@ using namespace std;
 
 namespace Zoe {
 
-enum ZType { NIL, BOOLEAN, INTEGER, FLOAT, BFUNCTION };
+enum ZType { NIL, BOOLEAN, NUMBER, BFUNCTION };
 
 struct ZValue {
 protected:
@@ -37,25 +37,12 @@ private:
 };
 
 
-struct ZInteger : public ZValue {
-    explicit ZInteger(int64_t value) : ZValue(ZType::INTEGER), _value(value) {}
-    explicit ZInteger(vector<uint8_t> const& data, size_t pos=0);
+struct ZNumber : public ZValue {
+    explicit ZNumber(double value) : ZValue(ZType::NUMBER), _value(value) {}
+    explicit ZNumber(vector<uint8_t> const& data, size_t pos=0);
 
-    int64_t Value() const { return _value; }
-    bool operator==(ZInteger const& other) const { return Value() == other.Value(); }
-    void InsertIntoVector(vector<uint8_t>& vec) const;
-
-private:
-    const int64_t _value;
-};
-
-
-struct ZFloat : public ZValue {
-    explicit ZFloat(double value) : ZValue(ZType::FLOAT), _value(value) {}
-    explicit ZFloat(vector<uint8_t> const& data, size_t pos=0);
-
+    bool operator==(ZNumber const& other) const;
     double Value() const { return _value; }
-    bool operator==(ZFloat const& other) const;
     void InsertIntoVector(vector<uint8_t>& vec) const;
 
 private:

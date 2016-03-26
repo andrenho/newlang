@@ -29,25 +29,25 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 %defines "lib/parser.tab.h"
 
 %union {
-    int64_t integer;
-    double _float;
+    double number;
     bool   boolean;
     char*  _string;
 }
 
-%token <integer> INTEGER
-%token <_float>  FLOAT
+%token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <string>  STRING
 %token NIL
 
+%left '+'
+
 %%
 
 exp: %empty
-   | INTEGER            { bc.Add_u8(PUSH_I); bc.Add_i64($1); }
-   | FLOAT              { bc.Add_u8(PUSH_F); bc.Add_f64($1); }
+   | NUMBER             { bc.Add_u8(PUSH_N); bc.Add_f64($1); }
    | BOOLEAN            { bc.Add_u8($1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bc.Add_u8(PUSH_Nil); }
+   | exp '+' exp        { bc.Add_u8(SUM); }
    ;
 
 %%

@@ -25,14 +25,16 @@ FLOAT       [0-9][0-9_]*\.[0-9_]+
 
 STRING      '(\\.|[^'])*\'
 
+OPERANDS    \+
+
 %%
 
-{INTEGER}       { yylval->integer = strtoll(remove_undersc(yytext), NULL, 10); return INTEGER; }
-{BINARY}        { yylval->integer = strtoll(remove_undersc(&yytext[2]), NULL, 2); return INTEGER; }
-{HEX}           { yylval->integer = strtoll(remove_undersc(&yytext[2]), NULL, 16); return INTEGER; }
-{OCTAL}         { yylval->integer = strtoll(remove_undersc(&yytext[2]), NULL, 8); return INTEGER; }
+{INTEGER}       { yylval->number = static_cast<double>(strtoll(remove_undersc(yytext), NULL, 10)); return NUMBER; }
+{BINARY}        { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 2)); return NUMBER; }
+{HEX}           { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 16)); return NUMBER; }
+{OCTAL}         { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 8)); return NUMBER; }
 
-{FLOAT}         { yylval->_float = strtod(remove_undersc(yytext), NULL); return FLOAT; }
+{FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
 {STRING}        { strcpy(yylval->_string, remove_quotes(yytext)); return STRING; }
 
@@ -40,6 +42,8 @@ true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 
 nil             { return NIL; }
+
+{OPERANDS}      { return yytext[0]; }
 
 \n              ;
 .               return 1;

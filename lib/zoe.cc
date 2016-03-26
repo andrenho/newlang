@@ -112,24 +112,30 @@ void Zoe::Execute(vector<uint8_t> const& data)
         switch(op) {
             case PUSH_Nil:
                 Push(make_unique<ZNil>());
-                p += 1;
+                ++p;
                 break;
             case PUSH_Bt:
                 Push(make_unique<ZBoolean>(true));
-                p += 1;
+                ++p;
                 break;
             case PUSH_Bf:
                 Push(make_unique<ZBoolean>(false));
-                p += 1;
+                ++p;
                 break;
-            case PUSH_I:
-                Push(make_unique<ZInteger>(data, p+1));
+            case PUSH_N:
+                Push(make_unique<ZNumber>(data, p+1));
                 p += 9;
                 break;
-            case PUSH_F:
-                Push(make_unique<ZFloat>(data, p+1));
-                p += 9;
-                break;
+            case SUM: {
+                    auto a = Pop<ZNumber>();
+                    auto b = Pop<ZNumber>();
+                    if(a && b) {
+                        Push(make_unique<ZNumber>(a->Value() + b->Value()));
+                    } else {
+                        throw;  // TODO - what error?
+                    }
+                    ++p;
+                } break;
             default:
                 Error("Invalid opcode 0x%2X.", op);
         }
@@ -166,7 +172,16 @@ void Zoe::Call(int8_t n_args)
 
 // }}}
 
-// {{{ DEBUGGING
+// {{{ INFORMATION
+
+ZType Zoe::Type(int8_t pos) const
+{
+    if(S(pos) >= stack.size()) {
+        Error("Querying type of item %d when the list has only %d items", S(pos), StackSize());
+    }
+    return stack[S(pos)]->Type;
+}
+
 
 string Zoe::Inspect(int8_t pos) const
 {
@@ -177,11 +192,9 @@ string Zoe::Inspect(int8_t pos) const
             return "nil";
         case ZType::BOOLEAN:
             return dynamic_cast<ZBoolean const*>(value)->Value() ? "true" : "false";
-        case ZType::INTEGER:
-            return to_string(dynamic_cast<ZInteger const*>(value)->Value());
-        case ZType::FLOAT: {
+        case ZType::NUMBER: {
             char buf[100];
-            snprintf(buf, 100, "%g", dynamic_cast<ZFloat const*>(value)->Value());
+            snprintf(buf, 100, "%g", dynamic_cast<ZNumber const*>(value)->Value());
             return string(buf);
         }
         default: 

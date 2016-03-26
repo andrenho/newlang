@@ -4,11 +4,12 @@
 #include "global.h"
 
 typedef enum Opcode : uint8_t {
-    PUSH_Nil = 0x01_u8,
-    PUSH_Bt  = 0x02_u8,
-    PUSH_Bf  = 0x03_u8,
-    PUSH_I   = 0x04_u8,
-    PUSH_F   = 0x05_u8,
+    PUSH_Nil = 0x01,
+    PUSH_Bt  = 0x02,
+    PUSH_Bf  = 0x03,
+    PUSH_N   = 0x04,
+
+    SUM      = 0x10,
 } Opcode;
 
 #endif
