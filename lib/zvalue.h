@@ -25,6 +25,7 @@ struct ZInteger : public ZValue {
 
     int64_t Value() const { return _value; }
     bool operator==(ZInteger const& other) { return Value() == other.Value(); }
+    void InsertIntoVector(vector<uint8_t>& vec) const;
 
     const int64_t _value;
 };

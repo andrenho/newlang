@@ -12,7 +12,7 @@ using namespace Zoe;
 
 void REPL::Execute(Options const& opt) const
 {
-    Zoe::Zoe zoe;
+    ::Zoe::Zoe zoe;
 
     while(1) {
         string buf;

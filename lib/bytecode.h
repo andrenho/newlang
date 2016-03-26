@@ -8,6 +8,7 @@
 using namespace std;
 
 #include "global.h"
+#include "zvalue.h"
 
 namespace Zoe {
 
@@ -16,7 +17,8 @@ public:
     inline void Add_u8(uint8_t value) { _data.push_back(value); }
     inline vector<uint8_t> const& Data() const { return _data; }
 
-    void Add_i64(int64_t value);
+    void Add_i64(int64_t value) { ZInteger(value).InsertIntoVector(_data); }
+    void Add_f64(double value) { throw; /*ZFloat(value).InsertIntoVector(_data);*/ }
 
     // static
     static Bytecode FromCode(string const& code); 

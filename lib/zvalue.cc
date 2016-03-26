@@ -16,6 +16,14 @@ ZInteger::ZInteger(vector<uint8_t> const& data, size_t n)
 }
 
 
+void ZInteger::InsertIntoVector(vector<uint8_t>& vec) const
+{
+    for(int i=0; i<8; ++i) {
+        vec.push_back(static_cast<uint8_t>((_value >> (i*8)) & 0xFF));
+    }
+}
+
+
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker

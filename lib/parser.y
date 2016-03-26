@@ -4,11 +4,13 @@
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
+
+#include <decimal/decimal>
 #include <string>
 using namespace std;
 
 #include "bytecode.h"
-#include "parser.tab.hh"
+#include "parser.tab.h"
 #include "lex.yy.h"
 
 void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
@@ -28,14 +30,17 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 
 %union {
     int64_t integer;
+    double _float;
 }
 
 %token <integer> INTEGER;
+%token <_float> FLOAT;
 
 %%
 
 exp: %empty
    | INTEGER            { bc.Add_u8(PUSH_I); bc.Add_i64($1); }
+   | FLOAT              { bc.Add_u8(PUSH_F); bc.Add_f64($1); }
    ;
 
 %%

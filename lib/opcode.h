@@ -5,6 +5,7 @@
 
 typedef enum Opcode : uint8_t {
     PUSH_I = 0x01_u8,
+    PUSH_F = 0x02_u8,
 } Opcode;
 
 #endif
