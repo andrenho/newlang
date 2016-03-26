@@ -26,7 +26,7 @@ thread?
 array     ZArray     array
 table     ZTable     map
 
-Order of business:
-- Makefile + main
-- Executable
-- Library
+
+Next steps:
+ - basic expressions
+ - implement strings

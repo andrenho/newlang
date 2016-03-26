@@ -31,16 +31,23 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 %union {
     int64_t integer;
     double _float;
+    bool   boolean;
+    char*  _string;
 }
 
-%token <integer> INTEGER;
-%token <_float> FLOAT;
+%token <integer> INTEGER
+%token <_float>  FLOAT
+%token <boolean> BOOLEAN
+%token <string>  STRING
+%token NIL
 
 %%
 
 exp: %empty
    | INTEGER            { bc.Add_u8(PUSH_I); bc.Add_i64($1); }
    | FLOAT              { bc.Add_u8(PUSH_F); bc.Add_f64($1); }
+   | BOOLEAN            { bc.Add_u8($1 ? PUSH_Bt : PUSH_Bf); }
+   | NIL                { bc.Add_u8(PUSH_Nil); }
    ;
 
 %%

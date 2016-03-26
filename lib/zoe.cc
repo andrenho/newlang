@@ -110,6 +110,18 @@ void Zoe::Execute(vector<uint8_t> const& data)
     while(p < data.size()) {
         Opcode op = static_cast<Opcode>(data[p]);  // this is for receiving compiler warnings when something is missing
         switch(op) {
+            case PUSH_Nil:
+                Push(make_unique<ZNil>());
+                p += 1;
+                break;
+            case PUSH_Bt:
+                Push(make_unique<ZBoolean>(true));
+                p += 1;
+                break;
+            case PUSH_Bf:
+                Push(make_unique<ZBoolean>(false));
+                p += 1;
+                break;
             case PUSH_I:
                 Push(make_unique<ZInteger>(data, p+1));
                 p += 9;
@@ -161,10 +173,17 @@ string Zoe::Inspect(int8_t pos) const
     ZValue const* value = Peek<ZValue>(pos);
 
     switch(value->Type) {
+        case ZType::NIL:
+            return "nil";
+        case ZType::BOOLEAN:
+            return dynamic_cast<ZBoolean const*>(value)->Value() ? "true" : "false";
         case ZType::INTEGER:
             return to_string(dynamic_cast<ZInteger const*>(value)->Value());
-        case ZType::FLOAT:
-            return to_string(dynamic_cast<ZFloat const*>(value)->Value());
+        case ZType::FLOAT: {
+            char buf[100];
+            snprintf(buf, 100, "%g", dynamic_cast<ZFloat const*>(value)->Value());
+            return string(buf);
+        }
         default: 
             Error("Invalid value type.");
     }

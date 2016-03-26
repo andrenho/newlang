@@ -7,7 +7,7 @@ using namespace std;
 
 namespace Zoe {
 
-enum ZType { INTEGER, FLOAT, BFUNCTION };
+enum ZType { NIL, BOOLEAN, INTEGER, FLOAT, BFUNCTION };
 
 struct ZValue {
 protected:
@@ -19,6 +19,21 @@ public:
     // prevent copy
     ZValue(ZValue const&) = delete;
     ZValue& operator=(ZValue const&) = delete;
+};
+
+
+struct ZNil : public ZValue {
+    ZNil() : ZValue(ZType::NIL) {}
+};
+
+
+struct ZBoolean : public ZValue {
+    explicit ZBoolean(bool value) : ZValue(ZType::BOOLEAN), _value(value) {}
+
+    bool Value() const { return _value; }
+
+private:
+    bool _value;
 };
 
 

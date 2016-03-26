@@ -21,8 +21,10 @@ Bytecode Bytecode::FromCode(string const& code)
 void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
 {
     uint64_t p = 4;
+    int ns;
 
     auto next = [&](uint64_t sz) {  // {{{
+        fprintf(f, "%*s", 28-ns, " ");
         for(uint8_t i=0; i<sz; ++i) {
             fprintf(f, "%02X ", data[p+i]);
         }
@@ -30,28 +32,40 @@ void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
         p += sz;
     }; /// }}}
 
-    int ns;
+    fprintf(f, TTY_GRAY);
     while(p < data.size()) {
         fprintf(f, "%08" PRIx64 ":\t", p);
         Opcode op = static_cast<Opcode>(data[p]);  // this is for receiving compiler warnings when something is missing
         switch(op) {
+            case PUSH_Nil:
+                ns = fprintf(f, "PUSH_Nil") - 1;
+                next(1);
+                break;
+            case PUSH_Bt:
+                ns = fprintf(f, "PUSH_Bt") - 1;
+                next(1);
+                break;
+            case PUSH_Bf:
+                ns = fprintf(f, "PUSH_Bf") - 1;
+                next(1);
+                break;
             case PUSH_I:
-                fprintf(f, "push_i\t");
-                ns = fprintf(f, "%" PRId64, ZInteger(data, p+1).Value());
-                fprintf(f, "%*s", 23-ns, " ");
+                ns = fprintf(f, "PUSH_I\t");
+                ns += fprintf(f, "%" PRId64, ZInteger(data, p+1).Value());
                 next(9);
                 break;
             case PUSH_F:
-                fprintf(f, "push_i\t");
-                ns = fprintf(f, "%g", ZFloat(data, p+1).Value());
-                fprintf(f, "%*s", 23-ns, " ");
+                ns = fprintf(f, "PUSH_F\t");
+                ns += fprintf(f, "%g", ZFloat(data, p+1).Value());
                 next(9);
                 break;
             default:
                 fprintf(stderr, "Invalid opcode %02X\n", data[p]);
+                fprintf(f, TTY_NORMAL);
                 return;
         }
     }
+    fprintf(f, TTY_NORMAL);
 }
 
 

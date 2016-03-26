@@ -7,6 +7,7 @@
 #include "parser.tab.h"
 
 static char* remove_undersc(char* t);
+static char* remove_quotes(char* t);
 
 %}
 
@@ -22,6 +23,8 @@ OCTAL       0[Oo][0-7_]+
 
 FLOAT       [0-9][0-9_]*\.[0-9_]+
 
+STRING      '(\\.|[^'])*\'
+
 %%
 
 {INTEGER}       { yylval->integer = strtoll(remove_undersc(yytext), NULL, 10); return INTEGER; }
@@ -30,6 +33,13 @@ FLOAT       [0-9][0-9_]*\.[0-9_]+
 {OCTAL}         { yylval->integer = strtoll(remove_undersc(&yytext[2]), NULL, 8); return INTEGER; }
 
 {FLOAT}         { yylval->_float = strtod(remove_undersc(yytext), NULL); return FLOAT; }
+
+{STRING}        { strcpy(yylval->_string, remove_quotes(yytext)); return STRING; }
+
+true            { yylval->boolean = true; return BOOLEAN; }
+false           { yylval->boolean = false; return BOOLEAN; }
+
+nil             { return NIL; }
 
 \n              ;
 .               return 1;
@@ -46,6 +56,26 @@ static char* remove_undersc(char* t)
         }
         ++c;
     }
+    return t;
+}
+
+
+static char* remove_quotes(char* t)
+{
+    int len = strlen(t)-2;
+    memmove(t, &t[1], strlen(t)-2);
+    t[strlen(t)-2] = '\0';
+
+    int c = 0;
+    while(t[c]) {
+        if(t[c] == '\\' && t[c+1] == '\'') {
+            memmove(t+c, t+c+1, strlen(t)-c);
+            --len;
+            continue;
+        }
+        ++c;
+    }
+
     return t;
 }
 

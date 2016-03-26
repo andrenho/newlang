@@ -25,6 +25,10 @@ constexpr inline uint8_t operator"" _u8(unsigned long long v) { return uint8_t(v
 constexpr inline int32_t operator"" _i32(unsigned long long v) { return int32_t(v); }  // NOLINT(runtime/int)
 constexpr inline int64_t operator"" _i64(unsigned long long v) { return int64_t(v); }  // NOLINT(runtime/int)
 
+// tty codes
+#define TTY_GRAY   "\033[1;30m"
+#define TTY_NORMAL "\033[0m"
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker
