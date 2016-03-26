@@ -1,21 +1,22 @@
 #ifndef OPTIONS_H_
 #define OPTIONS_H_
 
-#include <stdbool.h>
+#include <cstdio>
 
-typedef enum {
-    REPL,
-} OperationMode;
+class Options {
+public:
+    Options(int argc, char* argv[]);
 
-typedef struct Options {
-    OperationMode operation_mode;
-    struct { 
+    enum OperationMode { REPL };
+    const Options::OperationMode operation_mode;
+
+    struct ReplOptions {
         bool disassemble;
     } repl_options;
-} Options;
 
-Options* parse_args(int argc, char** argv);
-void options_free(Options** opt);
+private:
+    void PrintHelp(FILE* f, int exit_status) const __attribute__((noreturn));
+};
 
 #endif
 

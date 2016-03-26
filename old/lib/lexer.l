@@ -3,14 +3,14 @@
 #include <stdlib.h>
 
 #include "bytecode.h"
-#include "parser.tab.hh"
+#include "parser.tab.h"
 
 %}
 
 %option noyywrap
 %option reentrant
 %option bison-bridge
-%option extra-type="Zoe::Bytecode*"
+%option extra-type="Bytecode*"
 
 NUMBER  -?(0|[1-9][0-9]*)
 

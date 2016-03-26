@@ -1,0 +1,32 @@
+The plan:
+
+Classes:
+
+Library:
+  ZValue    ->   Possible values for the VM
+  Zoe       ->   The virtual machine
+  Stack     ->   The VM stack
+  Bytecode  ->   Helps to create a bytecode
+  Compiler  ->   Compile original code into some format (ex. bytecode)
+
+Executable
+  Options   ->   Commandline arguments
+  REPL      ->   A REPL
+
+
+Types:
+nil       ZNil       null
+bool      ZBoolean   bool
+int       ZInteger   int64_t
+float     ZFloat     double
+string    ZString    string
+function  ZFunction  
+userdata?
+thread?
+array     ZArray     array
+table     ZTable     map
+
+Order of business:
+- Makefile + main
+- Executable
+- Library

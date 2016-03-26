@@ -1,30 +1,33 @@
-#ifndef BYTECODE_H_
-#define BYTECODE_H_
+#ifndef ZOE_BYTECODE_H_
+#define ZOE_BYTECODE_H_
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdint>
+#include <string>
+#include <vector>
+using namespace std;
 
-#include "opcode.h"
+#include "global.h"
 
-#define STEPSZ 512
+namespace Zoe {
 
-typedef struct Bytecode {
-    uint8_t* data;
-    size_t sz;
-    size_t alloc;
-} Bytecode;
+class Bytecode {
+public:
+    inline void Add_u8(uint8_t value) { _data.push_back(value); }
+    inline vector<uint8_t> const& Data() const { return _data; }
 
-Bytecode* bc_new(void);
-void bc_free(Bytecode** bc);
-void bc_push(Bytecode* bc, Opcode opcode, ...);
-size_t bc_bytecode(Bytecode* bc, uint8_t** buffer);
+    void Add_i64(int64_t value);
 
-// static
-void bc_disassemble(FILE* f, uint8_t* buffer, size_t sz);
-bool bc_is_bytecode(uint8_t* buffer, size_t sz);
+    // static
+    static Bytecode FromCode(string const& code); 
+    static void Disassemble(FILE* f, vector<uint8_t> const& data);
+
+private:
+    vector<uint8_t> _data = {};
+};
+
+}
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker

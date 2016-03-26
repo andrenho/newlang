@@ -1,10 +1,9 @@
 #ifndef REPL_H_
 #define REPL_H_
 
-class REPL {
-public:
-    void Execute(class Options const& opt) const;
-};
+#include "options.h"
+
+void repl_exec(Options* opt);
 
 #endif
 

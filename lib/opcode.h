@@ -1,8 +1,10 @@
-#ifndef OPCODE_H_
-#define OPCODE_H_
+#ifndef ZOE_OPCODE_H_
+#define ZOE_OPCODE_H_
 
-typedef enum Opcode {
-    PUSH_I = 0x01,
+#include "global.h"
+
+typedef enum Opcode : uint8_t {
+    PUSH_I = 0x01_u8,
 } Opcode;
 
 #endif
