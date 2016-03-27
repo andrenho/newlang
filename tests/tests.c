@@ -79,13 +79,13 @@ static char* test_bytecode(void)
     bytecode_add(bc, 0x80);
 
     uint8_t* buf;
-    mu_assert("size == 1", bytecode_data(bc, &buf) == 1);
+    mu_assert("size == 1", bytecode_copy_data(bc, &buf) == 1);
     mu_assert("[0] = 0x80", buf[0] == 0x80);
     free(buf);
 
-    bytecode_add(bc, 3.1416);
+    bytecode_addf64(bc, 3.1416);
 
-    mu_assert("size == 9", bytecode_data(bc, &buf) == 1);
+    mu_assert("size == 9", bytecode_copy_data(bc, &buf) == 9);
     mu_assert("[1] = 0xA7", buf[1] == 0xA7);
     mu_assert("[8] = 0x40", buf[8] == 0x40);
     free(buf);
@@ -100,7 +100,7 @@ static char* test_bytecode_simplecode(void)
     Bytecode* bc = bytecode_newfromcode(&default_userfunctions, "3.1416");
 
     uint8_t* buf;
-    mu_assert("size == 9", bytecode_data(bc, &buf) == 1);
+    mu_assert("size == 9", bytecode_copy_data(bc, &buf) == 1);
     mu_assert("[0] = 0x03", buf[0] == 0x03); // PUSH_N - TODO
     mu_assert("[1] = 0xA7", buf[1] == 0xA7);
     mu_assert("[8] = 0x40", buf[8] == 0x40);

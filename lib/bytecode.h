@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "userfunctions.h"
 
@@ -24,12 +25,13 @@ void      bytecode_addf64(Bytecode* bc, double data);
 // 
 // READ DATA
 //
-size_t    bytecode_data(Bytecode* bc, uint8_t** data);
+size_t    bytecode_data(Bytecode* bc, uint8_t** data);       // DO NOT FREE the resulting data
+size_t    bytecode_copy_data(Bytecode* bc, uint8_t** data);  // DO FREE the resulting data
 
 // 
 // DEBUGGING
 //
-void      bytecode_disassemble(uint8_t* data, size_t sz);
+void      bytecode_disassemble(FILE* f, uint8_t* data, size_t sz);
 
 #endif
 
