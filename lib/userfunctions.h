@@ -9,7 +9,7 @@ typedef struct UserFunctions {
     void  (*error)(const char*);
 } UserFunctions;
 
-UserFunctions default_userfunctions(void);
+extern UserFunctions default_userfunctions;
 
 #endif
 

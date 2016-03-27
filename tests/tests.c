@@ -2,6 +2,7 @@
 #include "tests/minunit.h"
 
 #include "lib/stack.h"
+#include "lib/zoe.h"
 
 int error = 0;
 static void my_error(const char* s) {
@@ -9,14 +10,17 @@ static void my_error(const char* s) {
     error = 1;
 }
 
-// {{{ STACK
+// {{{ LOW-LEVEL STACK
 
 static char* test_stack(void) 
 {
     error = 0;
 
-    UserFunctions uf = default_userfunctions();
-    uf.error = my_error;
+    UserFunctions uf = {
+        .realloc = realloc,
+        .free    = free,
+        .error   = my_error,
+    };
     Stack* st = stack_new(&uf);
 
     mu_assert("stack size == 0", stack_size(st) == 0);
@@ -42,6 +46,27 @@ static char* test_stack(void)
 
 // }}}
 
+// {{{ HIGH-LEVEL STACK
+
+static char* test_zoe_stack(void) 
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
+
+    zoe_pushnumber(Z, 3.24);
+    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("peek", zoe_peeknumber(Z) == 3.24);
+    mu_assert("pop", zoe_popnumber(Z) == 3.24);
+    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+
+    zoe_free(Z);
+    return 0;
+}
+
+// }}}
+
+
 // {{{ TEST MANAGEMENT
 
 int tests_run = 0;
@@ -49,6 +74,7 @@ int tests_run = 0;
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
+    mu_run_test(test_zoe_stack);
     return 0;
 }
 
