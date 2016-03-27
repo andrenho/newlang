@@ -7,8 +7,8 @@ include build/config.mk
 
 SRC_LIB=lib/zoe.c		\
 	lib/userfunctions.c	\
-	lib/stack.c#		\
-	lib/bytecode.c		\
+	lib/stack.c		\
+	lib/bytecode.c	#	\
 	lib/lex.yy.c		\
 	lib/parser.tab.c
 
@@ -149,6 +149,9 @@ dist: distclean
 # 
 # TESTS
 #
+
+cloc:
+	cloc --exclude-dir=old .
 
 runtests: ${OBJ_LIB} ${OBJ_TST}
 	${CC} -o runtests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS}

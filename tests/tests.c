@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "tests/minunit.h"
 
+#include "lib/bytecode.h"
 #include "lib/stack.h"
 #include "lib/zoe.h"
 
@@ -67,6 +68,33 @@ static char* test_zoe_stack(void)
 
 // }}}
 
+// {{{ BYTECODE
+
+static char* test_bytecode(void) 
+{
+    Bytecode* bc = bytecode_new();
+
+    mu_assert("size == 0", bytecode_data(bc, NULL) == 0);
+
+    bytecode_add(bc, 0x80);
+
+    uint8_t* buf;
+    mu_assert("size == 1", bytecode_data(bc, &buf) == 1);
+    mu_assert("[0] = 0x80", buf[0] == 0x80);
+    free(buf);
+
+    bytecode_add(bc, 3.1416);
+
+    mu_assert("size == 9", bytecode_data(bc, &buf) == 1);
+    mu_assert("[1] = ??", buf[1] == 0x00);  // TODO
+    free(buf);
+
+    bytecode_free(bc);
+    return 0;
+}
+
+// }}}
+
 // {{{ TEST MANAGEMENT
 
 int tests_run = 0;
@@ -75,6 +103,7 @@ static char* all_tests(void)
 {
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
+    mu_run_test(test_bytecode);
     return 0;
 }
 
