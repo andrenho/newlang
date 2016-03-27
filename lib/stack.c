@@ -99,6 +99,7 @@ void stack_popfree(Stack* st)
     STPOS p = stack_abs(st, -1);
     if(st->items[p].type == FUNCTION) {
         if(st->items[p].function.type == BYTECODE) {
+            assert(st->items[p].function.bytecode);
             st->uf->free(st->items[p].function.bytecode);
         }
     }
