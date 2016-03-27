@@ -6,6 +6,7 @@ include build/config.mk
 #
 
 SRC_LIB=lib/zoe.c		\
+	lib/userfunctions.c	\
 	lib/stack.c#		\
 	lib/bytecode.c		\
 	lib/lex.yy.c		\
@@ -86,8 +87,8 @@ libzoe.so.${VERSION}: ${OBJ_LIB}
 depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies
 	@${CC} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.c=.h} | sed -re 's/^([^ ])/lib\/\1/' > depend
-	@${CC} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.c=.h}) | sed -re 's/^([^ ])/lib\/\1/' >> depend
-	@${CC} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/lib\/\1/' >> depend
+	@${CC} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.c=.h}) | sed -re 's/^([^ ])/src\/\1/' >> depend
+	@${CC} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/tests\/\1/' >> depend
 
 # 
 # DESCRIBE VARIABLES

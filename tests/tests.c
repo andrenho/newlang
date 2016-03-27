@@ -5,11 +5,34 @@
 
 // {{{ STACK
 
+int error = 0;
+static void my_error(const char* s) {
+    (void) s;
+    error = 1;
+}
+
 static char* test_stack(void) 
 {
-    Stack* st = stack_new();
+    UserFunctions uf = default_userfunctions();
+    uf.error = my_error;
+    Stack* st = stack_new(&uf);
 
     mu_assert("stack size == 0", stack_size(st) == 0);
+
+    stack_push(st, (ZValue) { .type=NIL });
+
+    mu_assert("stack size == 1 (after push)", stack_size(st) == 1);
+    mu_assert("stack abs 0 = 0", stack_abs(st, 0) == 0);
+    mu_assert("stack abs -1 = 0", stack_abs(st, -1) == 0);
+        
+    mu_assert("push & peek", stack_peek(st, -1).type == NIL);
+
+    stack_popfree(st);
+    mu_assert("stack size == 0 (after push/pop)", stack_size(st) == 0);
+
+    mu_assert("no errors so far", error == 0);
+    stack_pop(st);
+    mu_assert("stack underflow", error == 1);
 
     stack_free(st);
     return 0;

@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef enum { NIL, BOOLEAN, NUMBER, FUNCTION } ZType;
+typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION } ZType;
 
-typedef enum { BYTECODE } ZFunctionType;
+typedef enum { BYTECODE=1 } ZFunctionType;
 
 typedef struct {
     ZFunctionType type;
