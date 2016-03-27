@@ -14,7 +14,7 @@ SRC_EXE=src/main.c	#	\
 	src/options.c		\
 	src/repl.c
 
-SRC_TST=tests/main.c	#	\
+SRC_TST=tests/tests.c	#	\
 	tests/zoe.c		\
 	tests/bytecode.c
 
@@ -148,11 +148,11 @@ dist: distclean
 # TESTS
 #
 
-#unittests: ${OBJ_LIB} ${OBJ_TST}
-#	${CPP} -o unittests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS}
+runtests: ${OBJ_LIB} ${OBJ_TST}
+	${CC} -o runtests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS}
 
-check: 
-	$(error not implemented yet)
+check: runtests
+	./runtests
 
 lint: 
 	${MAKE} maintainer-clean
