@@ -4,13 +4,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "userfunctions.h"
+
 typedef struct Bytecode Bytecode;
 
 // 
 // CONSTRUCTOR/DESTRUCTOR
 //
-Bytecode* bytecode_new();
-Bytecode* bytecode_newfromcode();
+Bytecode* bytecode_new(UserFunctions *uf);
+Bytecode* bytecode_newfromcode(UserFunctions *uf, const char* code);
 void      bytecode_free(Bytecode* bc);
 
 //

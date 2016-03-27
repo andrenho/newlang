@@ -1,27 +1,41 @@
 #include "lib/bytecode.h"
 
+#include <string.h>
+
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
 typedef struct Bytecode {
-    uint8_t* data;
-    size_t   sz;
+    uint8_t*       data;
+    size_t         sz;
+    UserFunctions* uf;
 } Bytecode;
 
 Bytecode* 
-bytecode_new()
+bytecode_new(UserFunctions *uf)
 {
+    Bytecode* bc = uf->realloc(NULL, sizeof(Bytecode));
+    memset(bc, 0, sizeof(Bytecode));
+    bc->uf = uf;
+    return bc;
 }
 
 
 Bytecode* 
-bytecode_newfromcode()
+bytecode_newfromcode(UserFunctions *uf, const char* code)
 {
+    Bytecode* bc = bytecode_new(uf);
+    // TODO parse(bc, code);
+    return bc;
 }
 
 
 void
 bytecode_free(Bytecode* bc)
 {
+    if(bc->data) {
+        free(bc->data);
+    }
+    free(bc);
 }
 
 // }}}

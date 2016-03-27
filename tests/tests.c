@@ -72,7 +72,7 @@ static char* test_zoe_stack(void)
 
 static char* test_bytecode(void) 
 {
-    Bytecode* bc = bytecode_new();
+    Bytecode* bc = bytecode_new(&default_userfunctions);
 
     mu_assert("size == 0", bytecode_data(bc, NULL) == 0);
 
@@ -86,27 +86,43 @@ static char* test_bytecode(void)
     bytecode_add(bc, 3.1416);
 
     mu_assert("size == 9", bytecode_data(bc, &buf) == 1);
-    mu_assert("[1] = ??", buf[1] == 0x00);  // TODO
+    mu_assert("[1] = 0xA7", buf[1] == 0xA7);
+    mu_assert("[8] = 0x40", buf[8] == 0x40);
     free(buf);
 
     bytecode_free(bc);
     return 0;
 }
 
+
+static char* test_bytecode_simplecode(void)
+{
+    Bytecode* bc = bytecode_newfromcode(&default_userfunctions, "3.1416");
+
+    uint8_t* buf;
+    mu_assert("size == 9", bytecode_data(bc, &buf) == 1);
+    mu_assert("[0] = 0x03", buf[0] == 0x03); // PUSH_N - TODO
+    mu_assert("[1] = 0xA7", buf[1] == 0xA7);
+    mu_assert("[8] = 0x40", buf[8] == 0x40);
+    free(buf);
+
+    return 0;
+}
+
 // }}}
-
-// {{{ TEST MANAGEMENT
-
-int tests_run = 0;
 
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
     mu_run_test(test_bytecode);
+    mu_run_test(test_bytecode_simplecode);
     return 0;
 }
 
+// {{{ TEST MANAGEMENT
+
+int tests_run = 0;
 
 int main(void) 
 {

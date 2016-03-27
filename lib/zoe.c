@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
@@ -17,6 +18,7 @@ zoe_createvm(UserFunctions* uf)
         uf = &default_userfunctions;
     }
     Zoe* Z = uf->realloc(NULL, sizeof(Zoe));
+    memset(Z, 0, sizeof(Zoe));
     Z->stack = stack_new(uf);
     Z->uf = uf;
     return Z;
