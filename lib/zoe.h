@@ -38,6 +38,15 @@ bool      zoe_popboolean(Zoe* Z);
 double    zoe_popnumber(Zoe* Z);
 ZFunction zoe_popfunction(Zoe* Z);
 
+//
+// ERROR MANAGEMENT
+//
+void zoe_error(Zoe* Z, char* fmt, ...);
+
+// 
+// INFORMATION
+// 
+char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 
 #endif
 

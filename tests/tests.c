@@ -54,10 +54,11 @@ static char* test_zoe_stack(void)
 
     mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
 
-    zoe_pushnumber(Z, 3.24);
+    double f = 3.24;
+    zoe_pushnumber(Z, f);
     mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
-    mu_assert("peek", zoe_peeknumber(Z) == 3.24);
-    mu_assert("pop", zoe_popnumber(Z) == 3.24);
+    mu_assert("peek", zoe_peeknumber(Z) == f);
+    mu_assert("pop", zoe_popnumber(Z) == f);
     mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
 
     zoe_free(Z);
@@ -65,7 +66,6 @@ static char* test_zoe_stack(void)
 }
 
 // }}}
-
 
 // {{{ TEST MANAGEMENT
 
