@@ -38,6 +38,7 @@ public:
 
     // INFORMATION
     ZType Type(int8_t pos=-1) const;
+    string Typename(ZType tp) const;
     string Inspect(int8_t pos=-1) const;
 
 private:

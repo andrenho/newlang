@@ -1,7 +1,9 @@
 #include "zoe.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstdarg>
+#include <functional>
 #include <memory>
 using namespace std;
 
@@ -106,6 +108,20 @@ void Zoe::Remove(int8_t pos)
 
 void Zoe::Execute(vector<uint8_t> const& data)
 {
+    // {{{ lambda: math
+    auto do_math_op = [this](function<double(double, double)> const& f) {
+        ZType tp_b = Type(-1),
+              tp_a = Type(-2);
+        auto b = Pop<ZNumber>();
+        auto a = Pop<ZNumber>();
+        if(a && b) {
+            Push(make_unique<ZNumber>(f(a->Value(), b->Value())));
+        } else {
+            Error("Can't sum " + Typename(tp_a) + " and " + Typename(tp_b) + ".");
+        }
+    };
+    // }}}
+
     uint64_t p = 4;
     while(p < data.size()) {
         Opcode op = static_cast<Opcode>(data[p]);  // this is for receiving compiler warnings when something is missing
@@ -126,14 +142,40 @@ void Zoe::Execute(vector<uint8_t> const& data)
                 Push(make_unique<ZNumber>(data, p+1));
                 p += 9;
                 break;
-            case SUM: {
-                    auto a = Pop<ZNumber>();
-                    auto b = Pop<ZNumber>();
-                    if(a && b) {
-                        Push(make_unique<ZNumber>(a->Value() + b->Value()));
-                    } else {
-                        throw;  // TODO - what error?
+            case ADD:
+                do_math_op([](double a, double b) { return a+b; });
+                ++p;
+                break;
+            case SUB:
+                do_math_op([](double a, double b) { return a-b; });
+                ++p;
+                break;
+            case MUL:
+                do_math_op([](double a, double b) { return a*b; });
+                ++p;
+                break;
+            case DIV:
+                do_math_op([](double a, double b) { return a/b; });
+                ++p;
+                break;
+            case IDIV:
+                do_math_op([](double a, double b) { return static_cast<int64_t>(a/b); });
+                ++p;
+                break;
+            case MOD:
+                do_math_op([](double a, double b) { return fmod(a, b); });
+                ++p;
+                break;
+            case POW:
+                do_math_op([](double a, double b) { return pow(a, b); });
+                ++p;
+                break;
+            case NEG: {
+                    ZType tp = Type(-1);
+                    if(tp != NUMBER) {
+                        Error("Can't negate " + Typename(tp) + ".");
                     }
+                    Push(make_unique<ZNumber>(-Pop<ZNumber>()->Value()));
                     ++p;
                 } break;
             default:
@@ -173,6 +215,18 @@ void Zoe::Call(int8_t n_args)
 // }}}
 
 // {{{ INFORMATION
+
+string Zoe::Typename(ZType tp) const
+{
+    switch(tp) {
+        case NIL:       return "nil";
+        case BOOLEAN:   return "boolean";
+        case NUMBER:    return "number";
+        case BFUNCTION: return "function";
+    }
+    abort();
+}
+
 
 ZType Zoe::Type(int8_t pos) const
 {

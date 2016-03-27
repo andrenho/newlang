@@ -29,4 +29,17 @@ table     ZTable     map
 
 Next steps:
  - basic expressions
+ - less/eq/greater expression
+ - logical expressions
+ - ternary expression
  - implement strings
+ - string expressions
+ - array
+ - len, index expression
+ - call expression
+
+New OP:
+ - create in opcode.h
+ - add to parser.y
+ - disassemble in bytecode.cc
+ - execute in zoe.cc

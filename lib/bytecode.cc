@@ -48,8 +48,22 @@ void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
                 ns += fprintf(f, "%g", ZNumber(data, p+1).Value());
                 next(9);
                 break;
-            case SUM:
-                ns = fprintf(f, "SUM") - 1; next(1); break;
+            case ADD:
+                ns = fprintf(f, "ADD") - 1; next(1); break;
+            case SUB:
+                ns = fprintf(f, "SUB") - 1; next(1); break;
+            case MUL:
+                ns = fprintf(f, "MUL") - 1; next(1); break;
+            case DIV:
+                ns = fprintf(f, "DIV") - 1; next(1); break;
+            case IDIV:
+                ns = fprintf(f, "IDIV") - 1; next(1); break;
+            case MOD:
+                ns = fprintf(f, "MOD") - 1; next(1); break;
+            case POW:
+                ns = fprintf(f, "POW") - 1; next(1); break;
+            case NEG:
+                ns = fprintf(f, "NEG") - 1; next(1); break;
             default:
                 fprintf(stderr, "Invalid opcode %02X\n", data[p]);
                 fprintf(f, TTY_NORMAL);

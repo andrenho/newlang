@@ -25,7 +25,7 @@ FLOAT       [0-9][0-9_]*\.[0-9_]+
 
 STRING      '(\\.|[^'])*\'
 
-OPERANDS    \+
+OPERANDS    [\+\-\*\/%\(\)]
 
 %%
 
@@ -44,8 +44,9 @@ false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 
 {OPERANDS}      { return yytext[0]; }
+\/\/            { return _IDIV; }
+\*\*            { return _POW; }
 
-\n              ;
 .               return 1;
 
 %%

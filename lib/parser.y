@@ -39,15 +39,25 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 %token <string>  STRING
 %token NIL
 
-%left '+'
+%left '+' '-'
+%left '*' '/' _IDIV '%'
+%precedence _NEG
+%right _POW
 
 %%
 
-exp: %empty
-   | NUMBER             { bc.Add_u8(PUSH_N); bc.Add_f64($1); }
+exp: NUMBER             { bc.Add_u8(PUSH_N); bc.Add_f64($1); }
    | BOOLEAN            { bc.Add_u8($1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bc.Add_u8(PUSH_Nil); }
-   | exp '+' exp        { bc.Add_u8(SUM); }
+   | exp '+' exp        { bc.Add_u8(ADD); }
+   | exp '-' exp        { bc.Add_u8(SUB); }
+   | exp '*' exp        { bc.Add_u8(MUL); }
+   | exp '/' exp        { bc.Add_u8(DIV); }
+   | exp _IDIV exp      { bc.Add_u8(IDIV); }
+   | exp '%' exp        { bc.Add_u8(MOD); }
+   | '-' exp %prec _NEG { bc.Add_u8(NEG); }
+   | exp _POW exp       { bc.Add_u8(POW); }
+   | '(' exp ')'
    ;
 
 %%
