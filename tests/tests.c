@@ -1,19 +1,32 @@
 #include <stdio.h>
 #include "tests/minunit.h"
 
-int tests_run = 0;
+#include "lib/stack.h"
 
-static char* test_basic(void) 
+// {{{ STACK
+
+static char* test_stack(void) 
 {
-    mu_assert("1 == 2", 1 == 2);
+    Stack* st = stack_new();
+
+    mu_assert("stack size == 0", stack_size(st) == 0);
+
+    stack_free(st);
     return 0;
 }
+
+// }}}
+
+// {{{ TEST MANAGEMENT
+
+int tests_run = 0;
 
 static char* all_tests(void)
 {
-    mu_run_test(test_basic);
+    mu_run_test(test_stack);
     return 0;
 }
+
 
 int main(void) 
 {
@@ -27,5 +40,7 @@ int main(void)
 
     return result != 0;
 }
+
+// }}}
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c
