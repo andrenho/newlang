@@ -8,7 +8,7 @@ using namespace std;
 namespace Zoe {
 
 // {{{ ZNumber
-
+/*
 ZNumber::ZNumber(vector<uint8_t> const& data, size_t n)
     : ZNumber(0.0)
 {
@@ -30,7 +30,7 @@ void ZNumber::InsertIntoVector(vector<uint8_t>& vec) const
         vec.push_back(ptr[i]);
     }
 }
-
+*/
 // }}}
 
 }

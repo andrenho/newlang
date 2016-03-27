@@ -2,6 +2,7 @@
 #define ZOE_ZVALUE_H_
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 using namespace std;
 
@@ -9,58 +10,40 @@ namespace Zoe {
 
 enum ZType { NIL, BOOLEAN, NUMBER, BFUNCTION };
 
+struct ZBFunction { 
+    int8_t n_args; 
+    shared_ptr<vector<uint8_t>> bytecode;
+};
+
 struct ZValue {
-protected:
-    ZValue(ZType type) : Type(type) {}
-public:
-    virtual ~ZValue() {}
-    const ZType Type;
+    ZType type;
+    union {
+        bool       boolean;
+        double     number;
+        ZBFunction bfunction;
+    };
 
-    // prevent copy
+    ZValue() : type(NIL) {}
+    ZValue(bool b) : type(BOOLEAN), boolean(b) {}
+    ZValue(double n) : type(NUMBER), number(n) {}
+    ZValue(int8_t n_args, vector<uint8_t>&& bytecode): type(BFUNCTION), bfunction({ n_args, make_unique<vector<uint8_t>>(bytecode) }) {}
+    ~ZValue() {}
+
+    ZValue(ZValue&& v) : type(v.type) {
+        switch(type) {
+            case NIL: break;
+            case BOOLEAN: boolean = v.boolean; break;
+            case NUMBER: number = v.number; break;
+            case BFUNCTION:
+                bfunction.n_args = v.bfunction.n_args;
+                bfunction.bytecode = move(v.bfunction.bytecode);
+                break;
+        }
+    }
+
     ZValue(ZValue const&) = delete;
-    ZValue& operator=(ZValue const&) = delete;
+    void operator=(ZValue const&) = delete;
 };
-
-
-struct ZNil : public ZValue {
-    ZNil() : ZValue(ZType::NIL) {}
-};
-
-
-struct ZBoolean : public ZValue {
-    explicit ZBoolean(bool value) : ZValue(ZType::BOOLEAN), _value(value) {}
-
-    bool Value() const { return _value; }
-
-private:
-    bool _value;
-};
-
-
-struct ZNumber : public ZValue {
-    explicit ZNumber(double value) : ZValue(ZType::NUMBER), _value(value) {}
-    explicit ZNumber(vector<uint8_t> const& data, size_t pos=0);
-
-    bool operator==(ZNumber const& other) const;
-    double Value() const { return _value; }
-    void InsertIntoVector(vector<uint8_t>& vec) const;
-
-private:
-    double _value;
-};
-
-
-struct ZBytecodeFunction : public ZValue {
-    ZBytecodeFunction(uint8_t n_args, vector<uint8_t> const& bytecode) 
-        : ZValue(ZType::BFUNCTION), _n_args(n_args), _bytecode(bytecode) {}
-    uint8_t NArgs() const { return _n_args; }
-    vector<uint8_t> const& Bytecode() const { return _bytecode; }
-
-private:
-    const uint8_t _n_args;
-    const vector<uint8_t> _bytecode;
-};
-
 
 }
 

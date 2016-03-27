@@ -17,41 +17,7 @@ namespace Zoe {
 Zoe::Zoe()
     : stack()
 {
-    stack.reserve(MaxStackSize);
-}
-
-// }}}
-
-// {{{ CODE MANAGEMENT
-
-void Zoe::LoadCode(string const& code)
-{
-    Bytecode bc = Bytecode::FromCode(code);
-    Push(make_unique<ZBytecodeFunction>(0, bc.Data()));
-}
-
-vector<uint8_t> const& Zoe::Dump(int8_t pos) const
-{
-    ZBytecodeFunction const* f;
-    if((f = Peek<ZBytecodeFunction>(pos))) {
-        return f->Bytecode();
-    } else {
-        Error("Expected function");
-    }
-}
-
-// }}}
-
-// {{{ ERROR MANAGEMENT
-
-void Zoe::Error(string s, ...) const
-{
-    va_list ap;
-    va_start(ap, s);
-    fprintf(stderr, "zoe: ");
-    vfprintf(stderr, s.c_str(), ap);
-    fprintf(stderr, "\n");
-    abort();
+    //stack.reserve(MaxStackSize);
 }
 
 // }}}
@@ -63,6 +29,122 @@ int8_t Zoe::StackSize() const
     return static_cast<int8_t>(stack.size());
 }
 
+
+void Zoe::PushNil()
+{
+    CheckMaxSize(MaxStackSize-1);
+    stack.emplace_back();
+}
+
+
+void Zoe::PushBoolean(bool b)
+{
+    CheckMaxSize(MaxStackSize-1);
+    stack.emplace_back(b);
+}
+
+
+void Zoe::PushNumber(double n)
+{
+    CheckMaxSize(MaxStackSize-1);
+    stack.emplace_back(n);
+}
+
+
+void Zoe::PushBFunction(int8_t n_args, vector<uint8_t>&& bytecode)
+{
+    CheckMaxSize(MaxStackSize-1);
+    stack.emplace_back(n_args, move(bytecode));
+}
+
+
+void Zoe::Pop(int8_t n)
+{
+    for(int8_t i=0; i<n; ++i) {
+        stack.pop_back();
+    }
+}
+
+
+void Zoe::PopNil()
+{
+    PopAndCheckType(NIL);
+}
+
+
+bool Zoe::PopBoolean()
+{
+    return PopAndCheckType(BOOLEAN).boolean;
+}
+
+
+double Zoe::PopNumber()
+{
+    return PopAndCheckType(NUMBER).boolean;
+}
+
+
+ZBFunction Zoe::PopFunction()
+{
+    return PopAndCheckType(BFUNCTION).bfunction;
+}
+
+
+bool Zoe::PeekBoolean(int8_t pos) const
+{
+    pos = S(pos);
+    CheckMinSize(pos);
+    return stack[pos].boolean;
+}
+
+
+double Zoe::PeekNumber(int8_t pos) const
+{
+    pos = S(pos);
+    CheckMinSize(pos);
+    return stack[pos].number;
+}
+
+
+ZBFunction const& Zoe::PeekFunction(int8_t pos) const
+{
+    pos = S(pos);
+    CheckMinSize(pos);
+    return stack[pos].bfunction;
+}
+
+
+void Zoe::CheckMinSize(int8_t sz) const
+{
+    if(StackSize() <= sz) {
+        Error("There are too few items in the stack.");
+    }
+}
+
+
+void Zoe::CheckMaxSize(int8_t sz) const
+{
+    if(sz >= MaxStackSize) {
+        Error("There are already too many items in the stack.");
+    }
+}
+
+
+ZValue Zoe::PopAndCheckType(ZType t)
+{
+    CheckMinSize(0);
+    ZValue v = move(stack.back());
+    stack.pop_back();
+    if(t != v.type) {
+        Error("Expected %s, found %s.", Typename(t), Typename(v.type));
+    }
+    return move(v);
+}
+
+// }}}
+
+/*
+// {{{ STACK OPERATIONS
 
 void Zoe::Push(unique_ptr<ZValue>&& value)
 {
@@ -103,81 +185,75 @@ void Zoe::Remove(int8_t pos)
 
 
 // }}}
+*/
+
+// {{{ ERROR MANAGEMENT
+
+void Zoe::Error(string s, ...) const
+{
+    va_list ap;
+    va_start(ap, s);
+    fprintf(stderr, "zoe: ");
+    vfprintf(stderr, s.c_str(), ap);
+    fprintf(stderr, "\n");
+    abort();
+}
+
+// }}}
+
+// {{{ CODE MANAGEMENT
+
+void Zoe::LoadCode(string const& code)
+{
+    Bytecode bc = Bytecode::FromCode(code);
+    PushBFunction(0, bc.Data());
+    //Push(make_unique<ZBytecodeFunction>(0, bc.Data()));
+}
+
+vector<uint8_t> const& Zoe::Dump(int8_t pos) const
+{
+    return *PeekFunction().bytecode;
+}
+
+// }}}
 
 // {{{ CODE EXECUTION
 
 void Zoe::Execute(vector<uint8_t> const& data)
 {
-    // {{{ lambda: math
-    auto do_math_op = [this](function<double(double, double)> const& f) {
-        ZType tp_b = Type(-1),
-              tp_a = Type(-2);
-        auto b = Pop<ZNumber>();
-        auto a = Pop<ZNumber>();
-        if(a && b) {
-            Push(make_unique<ZNumber>(f(a->Value(), b->Value())));
-        } else {
-            Error("Can't sum " + Typename(tp_a) + " and " + Typename(tp_b) + ".");
-        }
-    };
-    // }}}
-
     uint64_t p = 4;
     while(p < data.size()) {
         Opcode op = static_cast<Opcode>(data[p]);  // this is for receiving compiler warnings when something is missing
         switch(op) {
-            case PUSH_Nil:
-                Push(make_unique<ZNil>());
-                ++p;
+            case PUSH_Nil: PushNil(); ++p; break;
+            case PUSH_Bt:  PushBoolean(true); ++p; break;
+            case PUSH_Bf:  PushBoolean(false); ++p; break;
+            case PUSH_N: {
+                    int64_t m = static_cast<int64_t>(p);
+                    double value;
+                    copy(begin(data)+m, begin(data)+m+8, reinterpret_cast<uint8_t*>(&value));
+                    PushNumber(value);
+                    p += 9;
+                }
                 break;
-            case PUSH_Bt:
-                Push(make_unique<ZBoolean>(true));
-                ++p;
-                break;
-            case PUSH_Bf:
-                Push(make_unique<ZBoolean>(false));
-                ++p;
-                break;
-            case PUSH_N:
-                Push(make_unique<ZNumber>(data, p+1));
-                p += 9;
-                break;
-            case ADD:
-                do_math_op([](double a, double b) { return a+b; });
-                ++p;
-                break;
-            case SUB:
-                do_math_op([](double a, double b) { return a-b; });
-                ++p;
-                break;
-            case MUL:
-                do_math_op([](double a, double b) { return a*b; });
-                ++p;
-                break;
-            case DIV:
-                do_math_op([](double a, double b) { return a/b; });
-                ++p;
-                break;
-            case IDIV:
-                do_math_op([](double a, double b) { return static_cast<int64_t>(a/b); });
-                ++p;
-                break;
-            case MOD:
-                do_math_op([](double a, double b) { return fmod(a, b); });
-                ++p;
-                break;
-            case POW:
-                do_math_op([](double a, double b) { return pow(a, b); });
-                ++p;
-                break;
-            case NEG: {
-                    ZType tp = Type(-1);
-                    if(tp != NUMBER) {
-                        Error("Can't negate " + Typename(tp) + ".");
-                    }
-                    Push(make_unique<ZNumber>(-Pop<ZNumber>()->Value()));
+            case ADD: PushNumber(PopNumber() + PopNumber()); ++p; break;
+            case SUB: PushNumber(- PopNumber() + PopNumber()); ++p; break;
+            case MUL: PushNumber(PopNumber() * PopNumber()); ++p; break;
+            case DIV: PushNumber((1.0 / PopNumber()) * PopNumber()); ++p; break;
+            case IDIV: PushNumber(static_cast<int64_t>((1.0 / PopNumber()) * PopNumber())); ++p; break;
+            case MOD: {
+                    double b = PopNumber(), a = PopNumber();
+                    PushNumber(fmod(a, b)); ++p; break;
                     ++p;
                 } break;
+            case POW: {
+                    double b = PopNumber(), a = PopNumber();
+                    PushNumber(pow(a, b)); ++p; break;
+                    ++p;
+                }
+                ++p;
+                break;
+            case NEG: PushNumber(-PopNumber()); ++p; break;
             default:
                 Error("Invalid opcode 0x%2X.", op);
         }
@@ -189,18 +265,15 @@ void Zoe::Call(int8_t n_args)
     auto initial_stack_size = StackSize();
 
     // load function
-    unique_ptr<ZBytecodeFunction> f;
-    if(!(f = Pop<ZBytecodeFunction>())) {
-        Error("Element being called is not a function.");
-    }
+    ZBFunction f = PopFunction();
 
     // number of arguments is correct?
-    if(f->NArgs() != n_args) {
+    if(f.n_args != n_args) {
         Error("Wrong number of arguments.");
     }
 
     // execute
-    Execute(f->Bytecode());
+    Execute(*f.bytecode);
 
     // verify if the stack has now is the same size as the beginning
     // (-1 function +1 return argument)
@@ -216,6 +289,33 @@ void Zoe::Call(int8_t n_args)
 
 // {{{ INFORMATION
 
+ZType Zoe::Type(int8_t pos) const
+{
+    if(S(pos) >= stack.size()) {
+        Error("Querying type of item %d when the list has only %d items", S(pos), StackSize());
+    }
+    return stack[S(pos)].type;
+}
+
+
+string Zoe::Inspect(int8_t pos) const
+{
+    switch(stack[S(pos)].type) {
+        case ZType::NIL:
+            return "nil";
+        case ZType::BOOLEAN:
+            return PeekBoolean(S(pos)) ? "true" : "false";
+        case ZType::NUMBER: {
+            char buf[100];
+            snprintf(buf, 100, "%g", PeekNumber(S(pos)));
+            return string(buf);
+        }
+        default: 
+            Error("Invalid value type.");
+    }
+}
+
+
 string Zoe::Typename(ZType tp) const
 {
     switch(tp) {
@@ -227,34 +327,6 @@ string Zoe::Typename(ZType tp) const
     abort();
 }
 
-
-ZType Zoe::Type(int8_t pos) const
-{
-    if(S(pos) >= stack.size()) {
-        Error("Querying type of item %d when the list has only %d items", S(pos), StackSize());
-    }
-    return stack[S(pos)]->Type;
-}
-
-
-string Zoe::Inspect(int8_t pos) const
-{
-    ZValue const* value = Peek<ZValue>(pos);
-
-    switch(value->Type) {
-        case ZType::NIL:
-            return "nil";
-        case ZType::BOOLEAN:
-            return dynamic_cast<ZBoolean const*>(value)->Value() ? "true" : "false";
-        case ZType::NUMBER: {
-            char buf[100];
-            snprintf(buf, 100, "%g", dynamic_cast<ZNumber const*>(value)->Value());
-            return string(buf);
-        }
-        default: 
-            Error("Invalid value type.");
-    }
-}
 
 // }}}
 

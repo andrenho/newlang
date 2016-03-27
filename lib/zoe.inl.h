@@ -3,6 +3,7 @@
 
 namespace Zoe {
 
+/*
 template<typename T> T const* Zoe::Peek(int8_t n) const {
     if(stack.size() == 0) {
         Error("Peeking empty stack");
@@ -30,6 +31,7 @@ template<typename T> unique_ptr<T> Zoe::Pop() {
     }
     return move(Remove<T>(static_cast<int8_t>(StackSize()-1)));
 }
+*/
 
 }
 

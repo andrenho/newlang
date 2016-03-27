@@ -10,6 +10,15 @@ extern int parse(Zoe::Bytecode& bc, string const& code);  // defined in lib/pars
 namespace Zoe {
 
 
+void Bytecode::Add_f64(double value)
+{
+    uint8_t const* ptr = reinterpret_cast<uint8_t const*>(&value);
+    for(int i=0; i<8; ++i) {
+        _data.push_back(ptr[i]);
+    }
+}
+
+
 Bytecode Bytecode::FromCode(string const& code)
 {
     Bytecode bc;
@@ -43,10 +52,14 @@ void Bytecode::Disassemble(FILE* f, vector<uint8_t> const& data)
                 ns = fprintf(f, "PUSH_Bt") - 1; next(1); break;
             case PUSH_Bf:
                 ns = fprintf(f, "PUSH_Bf") - 1; next(1); break;
-            case PUSH_N:
-                ns = fprintf(f, "PUSH_N\t");
-                ns += fprintf(f, "%g", ZNumber(data, p+1).Value());
-                next(9);
+            case PUSH_N: {
+                    ns = fprintf(f, "PUSH_N\t");
+                    double _value;
+                    int64_t m = static_cast<int64_t>(p);
+                    copy(begin(data)+m, begin(data)+m+8, reinterpret_cast<uint8_t*>(&_value));
+                    ns += fprintf(f, "%g", _value);
+                    next(9);
+                }
                 break;
             case ADD:
                 ns = fprintf(f, "ADD") - 1; next(1); break;
