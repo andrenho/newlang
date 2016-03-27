@@ -5,30 +5,29 @@ include build/config.mk
 # VARIABLES
 #
 
-SRC_LIB=lib/zvalue.cc		\
-	lib/zoe.cc		\
-	lib/bytecode.cc		\
-	lib/lex.yy.cc		\
-	lib/parser.tab.cc
+SRC_LIB=lib/zoe.c#		\
+	lib/bytecode.c		\
+	lib/lex.yy.c		\
+	lib/parser.tab.c
 
-SRC_EXE=src/main.cc		\
-	src/options.cc		\
-	src/repl.cc
+SRC_EXE=src/main.c	#	\
+	src/options.c		\
+	src/repl.c
 
-SRC_TST=tests/main.cc		\
-	tests/zoe.cc		\
-	tests/bytecode.cc
+SRC_TST=tests/main.c	#	\
+	tests/zoe.c		\
+	tests/bytecode.c
 
-OBJ_LIB=${SRC_LIB:.cc=.o}
-OBJ_EXE=${SRC_EXE:.cc=.o}
-OBJ_TST=${SRC_TST:.cc=.o}
+OBJ_LIB=${SRC_LIB:.c=.o}
+OBJ_EXE=${SRC_EXE:.c=.o}
+OBJ_TST=${SRC_TST:.c=.o}
 
-HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h}
+HEADERS=$(filter-out src/main.h,${SRC_EXE:.c=.h}) ${SRC_LIB:.c=.h}
 
 DIST=COPYING INSTALL README.md Makefile build/config.mk \
      build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)
 
-CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -Ilib -Isrc -std=c++14 -march=native -fPIC
+CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c11 -march=native -fPIC
 
 ifdef DEBUG
   CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG
@@ -41,9 +40,6 @@ endif
 # libraries
 LDFLAGS+=-fuse-ld=gold
 
-# filter for cpplint
-LINT_FILTERS = -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
-
 #
 # ALL 
 #
@@ -55,16 +51,16 @@ all: libzoe.so.${VERSION} zoe
 #
 
 # relax warnings in generation of lexer/parser C units
-lib/lex.yy.o: lib/lex.yy.cc lib/parser.tab.cc
-	${CPP} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
+lib/lex.yy.o: lib/lex.yy.c lib/parser.tab.c
+	${CC} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
 
-lib/parser.tab.o: lib/parser.tab.cc lib/lex.yy.cc
-	${CPP} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
+lib/parser.tab.o: lib/parser.tab.c lib/lex.yy.c
+	${CC} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
 
-lib/lex.yy.cc: lib/lexer.l
+lib/lex.yy.c: lib/lexer.l
 	flex --header-file=lib/lex.yy.h -o $@ $<
 
-lib/parser.tab.cc: lib/parser.y
+lib/parser.tab.c: lib/parser.y
 	bison -d -o $@ $<
 
 lib/lex.yy.h:
@@ -77,20 +73,20 @@ lib/parser.tab.h:
 
 -include depend
 
-%.o: %.cc
-	${CPP} -c ${CPPFLAGS} @build/WARNINGS -o $@ $<
+%.o: %.c
+	${CC} -c ${CPPFLAGS} @build/WARNINGS -o $@ $<
 
 zoe: depend ${OBJ_EXE} ${OBJ_LIB}
-	${CPP} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS}
+	${CC} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS}
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
-	${CPP} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS}
+	${CC} -shared -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS}
 
 depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies
-	@${CPP} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -re 's/^([^ ])/lib\/\1/' > depend
-	@${CPP} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -re 's/^([^ ])/lib\/\1/' >> depend
-	@${CPP} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/lib\/\1/' >> depend
+	@${CC} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.c=.h} | sed -re 's/^([^ ])/lib\/\1/' > depend
+	@${CC} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.c=.h}) | sed -re 's/^([^ ])/lib\/\1/' >> depend
+	@${CC} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/lib\/\1/' >> depend
 
 # 
 # DESCRIBE VARIABLES
@@ -100,7 +96,7 @@ options:
 	@echo "zoe configuration options"
 	@echo "CPPFLAGS = ${CPPFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
-	@echo "CPP      = ${CPP}"
+	@echo "CC       = ${CC}"
 
 #
 # INSTALATION RULES
@@ -135,7 +131,7 @@ distclean:
 
 maintainer-clean:
 	${MAKE} distclean
-	rm -f lib/lex.yy.cc lib/lex.yy.h lib/parser.tab.h lib/parser.tab.cc
+	rm -f lib/lex.yy.c lib/lex.yy.h lib/parser.tab.h lib/parser.tab.c
 
 # 
 # PACKAGING RULES
@@ -152,15 +148,15 @@ dist: distclean
 # TESTS
 #
 
-unittests: ${OBJ_LIB} ${OBJ_TST}
-	${CPP} -o unittests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS}
+#unittests: ${OBJ_LIB} ${OBJ_TST}
+#	${CPP} -o unittests ${OBJ_TST} ${OBJ_LIB} ${LDFLAGS}
 
-check: unittests
-	./unittests
+check: 
+	$(error not implemented yet)
 
 lint: 
 	${MAKE} maintainer-clean
-	cpplint --filter=${LINT_FILTERS} --linelength=120 lib/*.h lib/*.cc src/*.h src/*.cc
+	splint -badflag ${CPPFLAGS} lib/*.h lib/*.c src/*.h src/*.c
 
 check-leaks: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
