@@ -3,16 +3,18 @@
 
 #include "lib/stack.h"
 
-// {{{ STACK
-
 int error = 0;
 static void my_error(const char* s) {
     (void) s;
     error = 1;
 }
 
+// {{{ STACK
+
 static char* test_stack(void) 
 {
+    error = 0;
+
     UserFunctions uf = default_userfunctions();
     uf.error = my_error;
     Stack* st = stack_new(&uf);
