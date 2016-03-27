@@ -8,7 +8,7 @@ include build/config.mk
 SRC_LIB=lib/zoe.c		\
 	lib/userfunctions.c	\
 	lib/stack.c		\
-	lib/bytecode.c	#	\
+	lib/bytecode.c		\
 	lib/lex.yy.c		\
 	lib/parser.tab.c
 
