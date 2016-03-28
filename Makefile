@@ -164,7 +164,7 @@ lint:
 	splint -badflag ${CPPFLAGS} lib/*.h lib/*.c src/*.h src/*.c
 
 check-leaks: all
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe -D
 
 gen-suppressions: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe

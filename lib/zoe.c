@@ -327,17 +327,19 @@ void zoe_call(Zoe* Z, int n_args)
 
 // {{{ DEBUGGING
 
-static int aprintf(Zoe* Z, char** ptr, char* fmt, ...) __attribute__ ((format (printf, 3, 4)));
-static int aprintf(Zoe* Z, char** ptr, char* fmt, ...)
+static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...) __attribute__ ((format (printf, 3, 4)));
+static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
 {
     va_list ap;
 
     size_t cur_sz = (*ptr ? strlen(*ptr) : 0);
 
     va_start(ap, fmt);
-    int new_sz = vsnprintf(NULL, 0, fmt, ap) + 1;
-    *ptr = Z->uf->realloc(*ptr, cur_sz + new_sz);
-    int r = vsnprintf(&(*ptr)[cur_sz], new_sz, fmt, ap);
+    int new_sz = cur_sz + vsnprintf(NULL, 0, fmt, ap) + 1;
+    va_end(ap);
+    *ptr = Z->uf->realloc(*ptr, new_sz);
+    va_start(ap, fmt);
+    int r = vsnprintf((*ptr) + cur_sz, new_sz, fmt, ap);
     va_end(ap);
 
     return r;
@@ -352,7 +354,7 @@ void zoe_disassemble(Zoe* Z)
         zoe_error(Z, "Only bytecode functions can be disassembled.");
     }
 
-    uint64_t p = 4;
+    uint64_t p = 0;
     int ns;
 
 #define next(sz) {                                \
@@ -378,12 +380,9 @@ void zoe_disassemble(Zoe* Z)
                 ns = aprintf(Z, &buf, "PUSH_Bf") - 1; next(1); break;
             case PUSH_N: {
                     ns = aprintf(Z, &buf, "PUSH_N\t");
-                    /*
-                    double _value;
-                    int64_t m = (int64_t)p;
-                    copy(begin(data)+m, begin(data)+m+8, reinterpret_cast<uint8_t*>(&_value));
-                    ns += fprintf(f, "%g", _value);
-                    */
+                    double v;
+                    memcpy(&v, &bc->code[p+1], 8);
+                    ns += aprintf(Z, &buf, "%g", v);
                     next(9);
                 }
                 break;
