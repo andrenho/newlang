@@ -5,6 +5,8 @@
 
 #include "opcode.h"
 
+extern int parse(Bytecode* b, const char* code);
+
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
 typedef struct Bytecode {
@@ -28,7 +30,7 @@ Bytecode*
 bytecode_newfromcode(UserFunctions *uf, const char* code)
 {
     Bytecode* bc = bytecode_new(uf);
-    // TODO parse(bc, code);
+    parse(bc, code);
     return bc;
 }
 

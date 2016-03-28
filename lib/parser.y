@@ -60,14 +60,8 @@ exp: NUMBER             { bytecode_add(b, PUSH_N); bytecode_addf64(b, $1); }
 %%
 
 
-int parse(Bytecode* b, char* code)
+int parse(Bytecode* b, const char* code)
 {
-    // bytecode header
-    bytecode_add(b, 0xB4);
-    bytecode_add(b, 0x7E);
-    bytecode_add(b, 0xC0);
-    bytecode_add(b, 0xDE);
-
     // parse code
     void *scanner;
     yylex_init_extra(b, &scanner);
