@@ -1,69 +1,37 @@
 #ifndef ZOE_ZVALUE_H_
 #define ZOE_ZVALUE_H_
 
-#include <cstdint>
-#include <vector>
-using namespace std;
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-namespace Zoe {
+typedef enum { INVALID, NIL, BOOLEAN, NUMBER, FUNCTION, STRING } ZType;
 
-enum ZType { NIL, BOOLEAN, NUMBER, BFUNCTION };
+typedef enum { BYTECODE=1 } ZFunctionType;
 
-struct ZValue {
-protected:
-    ZValue(ZType type) : Type(type) {}
-public:
-    virtual ~ZValue() {}
-    const ZType Type;
+typedef struct {
+    uint8_t* bytecode;
+    size_t   sz;
+} ZBytecodeFunction;
 
-    // prevent copy
-    ZValue(ZValue const&) = delete;
-    ZValue& operator=(ZValue const&) = delete;
-};
+typedef struct {
+    ZFunctionType type;
+    int8_t n_args;
+    union {
+        ZBytecodeFunction bfunction;
+    };
+} ZFunction;
 
-
-struct ZNil : public ZValue {
-    ZNil() : ZValue(ZType::NIL) {}
-};
-
-
-struct ZBoolean : public ZValue {
-    explicit ZBoolean(bool value) : ZValue(ZType::BOOLEAN), _value(value) {}
-
-    bool Value() const { return _value; }
-
-private:
-    bool _value;
-};
-
-
-struct ZNumber : public ZValue {
-    explicit ZNumber(double value) : ZValue(ZType::NUMBER), _value(value) {}
-    explicit ZNumber(vector<uint8_t> const& data, size_t pos=0);
-
-    bool operator==(ZNumber const& other) const;
-    double Value() const { return _value; }
-    void InsertIntoVector(vector<uint8_t>& vec) const;
-
-private:
-    double _value;
-};
-
-
-struct ZBytecodeFunction : public ZValue {
-    ZBytecodeFunction(uint8_t n_args, vector<uint8_t> const& bytecode) 
-        : ZValue(ZType::BFUNCTION), _n_args(n_args), _bytecode(bytecode) {}
-    uint8_t NArgs() const { return _n_args; }
-    vector<uint8_t> const& Bytecode() const { return _bytecode; }
-
-private:
-    const uint8_t _n_args;
-    const vector<uint8_t> _bytecode;
-};
-
-
-}
+typedef struct {
+    ZType type;
+    union {
+        bool        boolean;
+        double      number;
+        ZFunction   function;
+        char*       string;
+    };
+} ZValue;
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

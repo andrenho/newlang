@@ -1,19 +1,16 @@
 %{
 
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
-
-#include <decimal/decimal>
-#include <string>
-using namespace std;
 
 #include "bytecode.h"
 #include "parser.tab.h"
 #include "lex.yy.h"
 
-void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
+void yyerror(void* scanner, Bytecode* bc, const char *s);
 
 %}
 
@@ -24,7 +21,7 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 
 %define api.pure full
 %param { void* scanner }
-%parse-param { Zoe::Bytecode& bc }
+%parse-param { Bytecode* b }
 
 %defines "lib/parser.tab.h"
 
@@ -39,49 +36,59 @@ void yyerror(void* scanner, Zoe::Bytecode& bytecode, const char *s);
 %token <string>  STRING
 %token NIL
 
+%nonassoc _LTE _GTE '<' '>' _EQ _NEQ
+%left '&' '^' '|'
+%left _SHL _SHR
 %left '+' '-'
 %left '*' '/' _IDIV '%'
-%precedence _NEG
 %right _POW
+%precedence _NOT
+%precedence _NEG
 
 %%
 
-exp: NUMBER             { bc.Add_u8(PUSH_N); bc.Add_f64($1); }
-   | BOOLEAN            { bc.Add_u8($1 ? PUSH_Bt : PUSH_Bf); }
-   | NIL                { bc.Add_u8(PUSH_Nil); }
-   | exp '+' exp        { bc.Add_u8(ADD); }
-   | exp '-' exp        { bc.Add_u8(SUB); }
-   | exp '*' exp        { bc.Add_u8(MUL); }
-   | exp '/' exp        { bc.Add_u8(DIV); }
-   | exp _IDIV exp      { bc.Add_u8(IDIV); }
-   | exp '%' exp        { bc.Add_u8(MOD); }
-   | '-' exp %prec _NEG { bc.Add_u8(NEG); }
-   | exp _POW exp       { bc.Add_u8(POW); }
+exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
+   | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
+   | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | exp _EQ exp        { bytecode_addcode(b, EQ); }
+   | exp _NEQ exp       { bytecode_addcode(b, EQ); bytecode_addcode(b, NOT); }
+   | exp _LTE exp       { bytecode_addcode(b, LTE); }
+   | exp '<' exp        { bytecode_addcode(b, LT); }
+   | exp _GTE exp       { bytecode_addcode(b, GTE); }
+   | exp '>' exp        { bytecode_addcode(b, GT); }
+   | exp '&' exp        { bytecode_addcode(b, AND); }
+   | exp '^' exp        { bytecode_addcode(b, XOR); }
+   | exp '|' exp        { bytecode_addcode(b, OR); }
+   | exp _SHL exp       { bytecode_addcode(b, SHL); }
+   | exp _SHR exp       { bytecode_addcode(b, SHR); }
+   | exp '+' exp        { bytecode_addcode(b, ADD); }
+   | exp '-' exp        { bytecode_addcode(b, SUB); }
+   | exp '*' exp        { bytecode_addcode(b, MUL); }
+   | exp '/' exp        { bytecode_addcode(b, DIV); }
+   | exp _IDIV exp      { bytecode_addcode(b, IDIV); }
+   | exp '%' exp        { bytecode_addcode(b, MOD); }
+   | exp _POW exp       { bytecode_addcode(b, POW); }
+   | '~' exp %prec _NOT { bytecode_addcode(b, NOT); }
+   | '-' exp %prec _NEG { bytecode_addcode(b, NEG); }
    | '(' exp ')'
    ;
 
 %%
 
 
-int parse(Zoe::Bytecode& bc, string const& code)
+int parse(Bytecode* b, const char* code)
 {
-    // bytecode header
-    bc.Add_u8(0xB4);
-    bc.Add_u8(0x7E);
-    bc.Add_u8(0xC0);
-    bc.Add_u8(0xDE);
-
     // parse code
     void *scanner;
-    yylex_init_extra(&bc, &scanner);
-    yy_scan_bytes(code.c_str(), code.size(), scanner);
-    int r = yyparse(scanner, bc);
+    yylex_init_extra(b, &scanner);
+    yy_scan_bytes(code, strlen(code), scanner);
+    int r = yyparse(scanner, b);
     yylex_destroy(scanner);
     return r;
 }
 
 
-void yyerror(void* scanner, struct Zoe::Bytecode& bc, const char *s)
+void yyerror(void* scanner, Bytecode* bc, const char *s)
 {
 	fprintf(stderr, "%s\n", s);
 }

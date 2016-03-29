@@ -1,11 +1,10 @@
-#ifndef REPL_H_
-#define REPL_H_
+#ifndef SRC_REPL_H_
+#define SRC_REPL_H_
 
-class REPL {
-public:
-    void Execute(class Options const& opt) const;
-};
+#include "src/options.h"
+
+void repl_execute(Options* opt);
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

@@ -1,34 +1,45 @@
 #ifndef ZOE_BYTECODE_H_
 #define ZOE_BYTECODE_H_
 
-#include <cstdio>
-#include <cstdint>
-#include <string>
-#include <vector>
-using namespace std;
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "global.h"
-#include "zvalue.h"
+#include "lib/userfunctions.h"
 
-namespace Zoe {
+#define ZB_VERSION_MINOR 1
+#define ZB_VERSION_MAJOR 0
 
-class Bytecode {
-public:
-    inline void Add_u8(uint8_t value) { _data.push_back(value); }
-    inline vector<uint8_t> const& Data() const { return _data; }
+struct B_Priv;
 
-    void Add_f64(double value) { ZNumber(value).InsertIntoVector(_data); }
+typedef struct Bytecode {
+    uint8_t        version_minor;
+    uint8_t        version_major;
+    uint8_t*       code;
+    size_t         code_sz;
+    struct B_Priv* _;
+} Bytecode;
 
-    // static
-    static Bytecode FromCode(string const& code); 
-    static void Disassemble(FILE* f, vector<uint8_t> const& data);
 
-private:
-    vector<uint8_t> _data = {};
-};
+//
+// CONSTRUCTOR/DESTRUCTOR
+//
+Bytecode* bytecode_new(UserFunctions *uf);
+Bytecode* bytecode_newfromzb(UserFunctions *uf, uint8_t* data, size_t sz);
+Bytecode* bytecode_newfromcode(UserFunctions *uf, const char* code);   // here is where the magic happens
+void      bytecode_free(Bytecode* bc);
 
-}
+//
+// ADD CODE
+//
+void      bytecode_addcode(Bytecode* bc, uint8_t code);
+void      bytecode_addcodef64(Bytecode* bc, double code);
+
+//
+// GENERATE ZB FILE
+//
+size_t    bytecode_generatezb(Bytecode* bc, uint8_t** data);
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

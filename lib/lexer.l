@@ -1,5 +1,6 @@
 %{
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,7 +15,7 @@ static char* remove_quotes(char* t);
 %option noyywrap
 %option reentrant
 %option bison-bridge
-%option extra-type="Zoe::Bytecode*"
+%option extra-type="Bytecode*"
 
 INTEGER     [0-9][0-9_]*
 BINARY      0[Bb][01_]+
@@ -25,14 +26,16 @@ FLOAT       [0-9][0-9_]*\.[0-9_]+
 
 STRING      '(\\.|[^'])*\'
 
-OPERANDS    [\+\-\*\/%\(\)]
+OPERANDS    [\+\-\*\/%\(\)\^\~\&\|\<\>]
+
+SPACES      [ \t]+
 
 %%
 
-{INTEGER}       { yylval->number = static_cast<double>(strtoll(remove_undersc(yytext), NULL, 10)); return NUMBER; }
-{BINARY}        { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 2)); return NUMBER; }
-{HEX}           { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 16)); return NUMBER; }
-{OCTAL}         { yylval->number = static_cast<double>(strtoll(remove_undersc(&yytext[2]), NULL, 8)); return NUMBER; }
+{INTEGER}       { yylval->number = (double)(strtoll(remove_undersc(yytext), NULL, 10)); return NUMBER; }
+{BINARY}        { yylval->number = (double)(strtoll(remove_undersc(&yytext[2]), NULL, 2)); return NUMBER; }
+{HEX}           { yylval->number = (double)(strtoll(remove_undersc(&yytext[2]), NULL, 16)); return NUMBER; }
+{OCTAL}         { yylval->number = (double)(strtoll(remove_undersc(&yytext[2]), NULL, 8)); return NUMBER; }
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
@@ -44,9 +47,19 @@ false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 
 {OPERANDS}      { return yytext[0]; }
+
 \/\/            { return _IDIV; }
 \*\*            { return _POW; }
+\<\<            { return _SHL; }
+\>\>            { return _SHR; }
 
+\>\=            { return _GTE; }
+\<\=            { return _LTE; }
+
+\=\=            { return _EQ; }
+\!\=            { return _NEQ; }
+
+{SPACES}        ;
 .               return 1;
 
 %%

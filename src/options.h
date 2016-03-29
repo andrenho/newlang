@@ -1,23 +1,22 @@
-#ifndef OPTIONS_H_
-#define OPTIONS_H_
+#ifndef SRC_OPTIONS_H_
+#define SRC_OPTIONS_H_
 
-#include <cstdio>
+#include <stdbool.h>
 
-class Options {
-public:
-    Options(int argc, char* argv[]);
+typedef enum { REPL } OperationMode;
 
-    enum OperationMode { REPL };
-    const Options::OperationMode operation_mode;
+typedef struct {
+    bool disassemble;
+} REPL_Options;
 
-    struct ReplOptions {
-        bool disassemble;
-    } repl_options;
+typedef struct {
+    OperationMode mode;
+    REPL_Options  repl_options;
+} Options;
 
-private:
-    void PrintHelp(FILE* f, int exit_status) const __attribute__((noreturn));
-};
+Options* options_parse(int argc, char* argv[]);
+void     options_free(Options* opt);
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

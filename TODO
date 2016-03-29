@@ -1,45 +1,18 @@
-The plan:
-
-Classes:
-
-Library:
-  ZValue    ->   Possible values for the VM
-  Zoe       ->   The virtual machine
-  Stack     ->   The VM stack
-  Bytecode  ->   Helps to create a bytecode
-  Compiler  ->   Compile original code into some format (ex. bytecode)
-
-Executable
-  Options   ->   Commandline arguments
-  REPL      ->   A REPL
-
-
-Types:
-nil       ZNil       null
-bool      ZBoolean   bool
-int       ZInteger   int64_t
-float     ZFloat     double
-string    ZString    string
-function  ZFunction  
-userdata?
-thread?
-array     ZArray     array
-table     ZTable     map
-
-
 Next steps:
- - basic expressions
- - less/eq/greater expression
- - logical expressions
- - ternary expression
- - implement strings
- - string expressions
- - array
- - len, index expression
- - call expression
 
-New OP:
- - create in opcode.h
- - add to parser.y
- - disassemble in bytecode.cc
- - execute in zoe.cc
+ - arithmetic
+   - logical operators (ok)
+   - NOT for boolean (ok)
+ - relational operators
+   - <> (ok)
+   - equality
+ - dealing with booleans
+   - (labels in VM?)
+   - short-circuit operators
+   - ternary operator
+ - strings
+   - concatenation
+   - special chars
+   - multiline strings
+   - embedded code
+ - arrays

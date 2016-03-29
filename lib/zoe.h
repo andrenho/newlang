@@ -1,58 +1,76 @@
 #ifndef ZOE_ZOE_H_
 #define ZOE_ZOE_H_
 
-#include <cstdint>
-#include <memory>
-#include <vector>
-using namespace std;
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "zvalue.h"
-#include "global.h"
+#include "lib/stack.h"
+#include "lib/userfunctions.h"
+#include "lib/zvalue.h"
 
-namespace Zoe {
+typedef struct Zoe Zoe;
 
-class Zoe {
-public:
+//
+// CONSTRUCTOR/DESTRUCTOR
+//
+Zoe* zoe_createvm(UserFunctions* uf);
+void zoe_free(Zoe* Z);
 
-    Zoe();
+//
+// HIGH LEVEL STACK ACCESS
+//
+STPOS       zoe_stacksize(Zoe* Z);
 
-    // CODE MANAGEMENT
-    void LoadCode(string const& code);
-    vector<uint8_t> const& Dump(int8_t pos=-1) const;
+void        zoe_pushnil(Zoe* Z);
+void        zoe_pushboolean(Zoe* Z, bool b);
+void        zoe_pushnumber(Zoe* Z, double n);
+void        zoe_pushfunction(Zoe* Z, ZFunction f);
+void        zoe_pushstring(Zoe* Z, char* s);
 
-    // ERROR MANAGEMENT
-    void Error(string s, ...) const __attribute__((noreturn));
+void        zoe_pop(Zoe* Z, int count);
 
-    // STACK OPERATIONS
-    int8_t  StackSize() const;
-    void    Push(unique_ptr<ZValue>&& value);
-    void    Insert(unique_ptr<ZValue>&& value, int8_t pos);
-    template<typename T> T const* Peek(int8_t pos=-1) const;
-    void    Pop(int8_t count=1);
-    template<typename T> unique_ptr<T> Pop();
-    void    Remove(int8_t pos=1);
-    template<typename T> unique_ptr<T> Remove(int8_t pos);
+ZType       zoe_peektype(Zoe* Z);
 
-    // CODE EXECUTION
-    void Call(int8_t n_args);
+void        zoe_peeknil(Zoe* Z);
+bool        zoe_peekboolean(Zoe* Z);
+double      zoe_peeknumber(Zoe* Z);
+ZFunction   zoe_peekfunction(Zoe* Z);
+char const* zoe_peekstring(Zoe* Z);
 
-    // INFORMATION
-    ZType Type(int8_t pos=-1) const;
-    string Typename(ZType tp) const;
-    string Inspect(int8_t pos=-1) const;
+void        zoe_popnil(Zoe* Z);
+bool        zoe_popboolean(Zoe* Z);
+double      zoe_popnumber(Zoe* Z);
+ZFunction   zoe_popfunction(Zoe* Z);
+char*       zoe_popstring(Zoe* Z);
 
-private:
-    const size_t MaxStackSize = 20;
-    vector<unique_ptr<ZValue>> stack;
+//
+// ERROR MANAGEMENT
+//
+void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 
-    void Execute(vector<uint8_t> const& data);
-    inline uint8_t S(int8_t v) const { return static_cast<uint8_t>((v >= 0) ? v : (StackSize() + v)); }
-};
+//
+// INFORMATION
+//
+char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 
-}
+//
+// CODE EXECUTION
+//
+typedef enum {
+    ZOE_ADD, ZOE_SUB, ZOE_MUL, ZOE_DIV, ZOE_IDIV, ZOE_MOD, ZOE_POW, ZOE_NEG,    // arithmetic
+    ZOE_AND, ZOE_XOR, ZOE_OR, ZOE_SHL, ZOE_SHR, ZOE_NOT,                        // bitwise
+    ZOE_LT, ZOE_LTE, ZOE_GT, ZOE_GTE, ZOE_EQ,                                   // relational
+} Operator;
+void zoe_oper(Zoe* Z, Operator oper);
+void zoe_eval(Zoe* Z, const char* code);
+void zoe_call(Zoe* Z, int n_args);
 
-#include "zoe.inl.h"
+//
+// DEBUGGING
+//
+void zoe_disassemble(Zoe* Z);
+void zoe_inspect(Zoe* Z);
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

@@ -1,0 +1,62 @@
+FILE ORGANIZATION
+-----------------
+
+The directory structure is organized like this:
+
+build/       support files for building the application
+lib/         Zoe library
+src/         Zoe executable
+tests/       Unit tests
+
+
+The files are:
+
+/
+  COPYING            The GPLv3 license
+  HACKING            This file
+  INSTALL            Installation instructions
+  Makefile           Build instructions for make
+  README.md          Markdown README file (for github)
+  zoe.1              Manual page
+build/
+  config.mk          User-configurable options for make
+  version.mk         Contains the version number
+  WARNINGS           A list of warnings issued by gcc when building
+  zoe.supp           Suppression file for valgrind
+lib/
+  bytecode.c         Bytecode management (the parser is called from here)
+  lexer.l            The lexer
+  parser.y           The parser
+  opcode.h           List of VM opcodes
+  stack.c            Low-level stack management for ZoeVM
+  userfunctions.c|h  Structure to interact with the user environment
+  zoe.c|h            ZoeVM
+  zvalue.h           Union containing all types acceptable by Zoe
+tests/
+  tests.c            Unit tests
+
+
+MEMORY MANAGEMENT
+-----------------
+
+All functions that return a string need to be freed by the caller afterwards.
+
+Stack memory management is tricky. Some types (such as string) will have their
+memory pointer moved around. The final responsability for freeing this pointer
+belongs to whoever consumes it. So, if the string is simply removed from the 
+stack, the freer is the remove function. If, however, the user pops the value
+from the stack, it is his responsability to free it.
+
+
+BYTECODE FORMAT (0.1)
+---------------------
+Magic          00..05      0x90 (Z), 0x6F (o), 0x65 (e), 0x20, 0xEB, 0x00
+Minor version  06          0x01
+Major version  07          0x00
+Code pos       08..0F      0x00000038
+Code size      10..17	   ?
+Data pos       18..1F      ?
+Data size      20..27      ?
+Debug pos      27..2F      ?
+Debug size     30..37      ?
+Data           38.....
