@@ -1,5 +1,6 @@
 #include "lib/zoe.h"
 
+#include <float.h>
 #include <math.h>
 #include <inttypes.h>
 #include <stdarg.h>
@@ -96,6 +97,13 @@ ZType
 zoe_peektype(Zoe* Z)
 {
     return stack_peek(Z->stack, -1).type;
+}
+
+
+ZType
+zoe_gettype(Zoe* Z, int n)
+{
+    return stack_peek(Z->stack, n).type;
 }
 
 
@@ -227,7 +235,42 @@ char* zoe_typename(ZType type)
 
 static void zoe_eq(Zoe* Z)
 {
-    zoe_pop(Z, 2); // TODO
+    ZType tb = zoe_gettype(Z, -1),
+          ta = zoe_gettype(Z, -2);
+    if(ta != tb) {
+        zoe_pop(Z, 2);
+        zoe_pushboolean(Z, false);
+    } else {
+        switch(ta) {
+            case NIL:
+                zoe_pop(Z, 2);
+                zoe_pushboolean(Z, true);
+                break;
+            case BOOLEAN: {
+                    bool b = zoe_popboolean(Z),
+                         a = zoe_popboolean(Z);
+                    zoe_pushboolean(Z, a == b);
+                }
+                break;
+            case NUMBER: {
+                    double b = zoe_popnumber(Z),
+                           a = zoe_popnumber(Z);
+                    zoe_pushboolean(Z, fabs(a - b) < DBL_EPSILON);
+                }
+                break;
+            case STRING: {
+                    char *b = zoe_popstring(Z),
+                         *a = zoe_popstring(Z);
+                    zoe_pushboolean(Z, strcmp(a, b) == 0);
+                    free(a);
+                    free(b);
+                }
+                break;
+            case INVALID:
+            default:
+                zoe_error(Z, "equality does not exists for type %s", zoe_typename(ta));
+        }
+    }
 }
 
 
@@ -448,7 +491,15 @@ void zoe_disassemble(Zoe* Z)
                     ns = aprintf(Z, &buf, "PUSH_N\t");
                     double v;
                     memcpy(&v, &bc->code[p+1], 8);
-                    ns += aprintf(Z, &buf, "%g", v);
+
+                    char nbuf[128];
+                    snprintf(nbuf, sizeof nbuf, "%0.14f", v);
+                    int lg;
+                    while(lg = strlen(nbuf)-1, nbuf[lg] == '0' || nbuf[lg] == '.') {
+                        nbuf[lg] = '\0';
+                    }
+
+                    ns += aprintf(Z, &buf, "%s", nbuf);
                     next(9);
                 }
                 break;

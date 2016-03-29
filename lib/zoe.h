@@ -30,6 +30,7 @@ void        zoe_pushstring(Zoe* Z, char* s);
 void        zoe_pop(Zoe* Z, int count);
 
 ZType       zoe_peektype(Zoe* Z);
+ZType       zoe_gettype(Zoe* Z, int n);
 
 void        zoe_peeknil(Zoe* Z);
 bool        zoe_peekboolean(Zoe* Z);
