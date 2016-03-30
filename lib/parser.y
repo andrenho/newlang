@@ -56,10 +56,8 @@ code: exps             { bytecode_addcode(b, END); }
     ;
 
 exps: %empty
-    | exps expr
-    ;
-
-expr: exp SEP
+    | exp SEP exps
+    | exp
     | SEP               { bytecode_addcode(b, PUSH_Nil); }
     ;
 
