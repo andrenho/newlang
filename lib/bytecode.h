@@ -20,6 +20,7 @@ typedef struct Bytecode {
     struct B_Priv* _;
 } Bytecode;
 
+typedef int Label;  // TODO
 
 //
 // CONSTRUCTOR/DESTRUCTOR
@@ -34,6 +35,13 @@ void      bytecode_free(Bytecode* bc);
 //
 void      bytecode_addcode(Bytecode* bc, uint8_t code);
 void      bytecode_addcodef64(Bytecode* bc, double code);
+
+//
+// LABELS
+//
+Label     bytecode_createlabel(Bytecode* bc);
+void      bytecode_setlabel(Bytecode* bc, Label lbl);
+void      bytecode_addcodelabel(Bytecode* bc, Label lbl);
 
 //
 // GENERATE ZB FILE

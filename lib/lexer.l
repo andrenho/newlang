@@ -59,6 +59,8 @@ nil             { return NIL; }
 \=\=            { return _EQ; }
 \!\=            { return _NEQ; }
 
+\&\&            { return CCAND; }
+
 {SPACES}        ;
 .               return 1;
 

@@ -29,6 +29,7 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
     double number;
     bool   boolean;
     char*  _string;
+    Label  label;
 }
 
 %token <number>  NUMBER
@@ -36,6 +37,7 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 %token <string>  STRING
 %token NIL
 
+%left CCAND
 %nonassoc _LTE _GTE '<' '>' _EQ _NEQ
 %left '&' '^' '|'
 %left _SHL _SHR
@@ -50,6 +52,13 @@ void yyerror(void* scanner, Bytecode* bc, const char *s);
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
+   | exp CCAND { 
+         $<label>2 = bytecode_createlabel(b);
+         bytecode_addcode(b, BEQ); 
+         bytecode_addcodelabel(b, $<label>2);
+     }[ccand] exp {
+         bytecode_setlabel(b, $<label>2); 
+     }
    | exp _EQ exp        { bytecode_addcode(b, EQ); }
    | exp _NEQ exp       { bytecode_addcode(b, EQ); bytecode_addcode(b, NOT); }
    | exp _LTE exp       { bytecode_addcode(b, LTE); }

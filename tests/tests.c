@@ -224,6 +224,62 @@ static char* test_inspect(void)
 
 // }}}
 
+static double number_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    double r = zoe_popnumber(Z);
+
+    zoe_free(Z);
+
+    return r;
+}
+
+static bool boolean_expr(char* expr)
+{
+    Zoe* Z = zoe_createvm(NULL);
+
+    zoe_eval(Z, expr);
+    zoe_call(Z, 0);
+    bool r = zoe_popboolean(Z);
+
+    zoe_free(Z);
+
+    return r;
+}
+
+#define mu_assert_nexpr(expr, r) mu_assert(expr, number_expr(expr) == r);
+#define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
+
+
+static char* test_expressions(void)
+{
+    mu_assert_nexpr("2 + 3", 5);
+    mu_assert_nexpr("2 * 3", 6);
+    mu_assert_nexpr("2 - 3", -1);
+    mu_assert_nexpr("3 / 2", 1.5);
+    mu_assert_nexpr("1 + 2 * 3", 7);
+    mu_assert_nexpr("(1 + 2) * 3", 9);
+    mu_assert_nexpr("3 // 2", 1);
+    mu_assert_nexpr("3 % 2", 1);
+    mu_assert_nexpr("-3 + 2", -1);
+    mu_assert_nexpr("2 ** 3", 8);
+    mu_assert_nexpr("0b11 & 0b10", 2);
+    mu_assert_nexpr("0b11 | 0b10", 3);
+    mu_assert_nexpr("0b11 ^ 0b10", 1);
+    mu_assert_nexpr("0b1000 >> 2", 2);
+    mu_assert_nexpr("0b1000 << 2", 32);
+    mu_assert_nexpr("(~0b1010) & 0b1111", 5);
+    mu_assert_bexpr("2 > 3", false);
+    mu_assert_bexpr("2 < 3", true);
+    mu_assert_bexpr("2 == 3", false);
+    mu_assert_bexpr("2 != 3", true);
+
+    return 0;
+}
+
 static char* all_tests(void)
 {
     mu_run_test(test_stack);
@@ -235,6 +291,7 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
+    mu_run_test(test_expressions);
     return 0;
 }
 

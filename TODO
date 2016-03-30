@@ -5,7 +5,8 @@ Next steps:
    - NOT for boolean (ok)
  - relational operators
    - <> (ok)
-   - equality
+   - equality (ok)
+   - test for the operators
  - dealing with booleans
    - (labels in VM?)
    - short-circuit operators

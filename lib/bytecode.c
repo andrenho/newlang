@@ -108,6 +108,32 @@ bytecode_addcodef64(Bytecode* bc, double code)
 
 // }}}
 
+// {{{ LABELS
+int counter;
+Label
+bytecode_createlabel(Bytecode* bc)
+{
+    // TODO
+    return ++counter;
+}
+
+
+void
+bytecode_setlabel(Bytecode* bc, Label lbl)
+{
+    // TODO
+}
+
+
+void
+bytecode_addcodelabel(Bytecode* bc, Label lbl)
+{
+    printf("[[%d]]\n", lbl);
+}
+
+
+// }}}
+
 // {{{ GENERATE ZB FILE
 
 size_t
