@@ -16,3 +16,9 @@ Next steps:
    - multiline strings
    - embedded code
  - arrays
+
+
+FUTURE
+
+ - two types of number - integer and double
+ - two types of string - reference and string

@@ -266,6 +266,9 @@ static void zoe_eq(Zoe* Z)
                     free(b);
                 }
                 break;
+            case FUNCTION:
+                zoe_error(Z, "function comparison not implemented yet"); // TODO
+                abort();
             case INVALID:
             default:
                 zoe_error(Z, "equality does not exists for type %s", zoe_typename(ta));
@@ -495,7 +498,7 @@ void zoe_disassemble(Zoe* Z)
                     char nbuf[128];
                     snprintf(nbuf, sizeof nbuf, "%0.14f", v);
                     int lg;
-                    while(lg = strlen(nbuf)-1, nbuf[lg] == '0' || nbuf[lg] == '.') {
+                    while(lg = strlen(nbuf)-1, (nbuf[lg] == '0' || nbuf[lg] == '.') && lg > 0) {
                         nbuf[lg] = '\0';
                     }
 
@@ -577,7 +580,7 @@ void zoe_inspect(Zoe* Z)
                 snprintf(buf, sizeof buf, "%0.14f", n);
                 // remove zeroes at the and
                 int lg;
-                while(lg = strlen(buf)-1, buf[lg] == '0' || buf[lg] == '.') {
+                while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
                     buf[lg] = '\0';
                 }
                 zoe_pushstring(Z, buf);
