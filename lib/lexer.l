@@ -117,7 +117,7 @@ static char* parse_string(char* t)
                     if(endptr != orig) {
                         // TODO - what is the better way to fire this error?
                         fprintf(stderr, "Hexadecimal digit expected.\n");
-                        exit(-1);
+                        yyterminate();
                     }
                     memmove(t+c, t+c+3, strlen(t)-c);
                     t[c] = ch;
