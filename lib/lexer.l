@@ -100,21 +100,29 @@ static char* parse_string(char* t)
                 case '\'':  // single quotes
                 case '\\':  // reverse slash
                     memmove(t+c, t+c+1, strlen(t)-c);  // just remove the slash
-                    --len;
                     continue;
                 case 'n':  // 'n' (char 13)
                     memmove(t+c, t+c+1, strlen(t)-c);
-                    t[c] = 13;
-                    --len;
+                    t[c] = 10;
                     continue;
                 case 'r':  // 'n' (char 10)
                     memmove(t+c, t+c+1, strlen(t)-c);
-                    t[c] = 10;
-                    --len;
+                    t[c] = 13;
                     continue;
-                case 'x':  // 'x' (hexadecimal follows)
-                    // TODO - not implemented
-                    abort();
+                case 'x': { // 'x' (hexadecimal follows)
+                    char hex[3] = {0,0,0};
+                    memcpy(hex, &t[c+2], 2);
+                    char *endptr = &hex[2], *orig = &hex[2];
+                    uint8_t ch = (uint8_t)strtol(hex, &endptr, 16);
+                    if(endptr != orig) {
+                        // TODO - what is the better way to fire this error?
+                        fprintf(stderr, "Hexadecimal digit expected.\n");
+                        exit(-1);
+                    }
+                    memmove(t+c, t+c+3, strlen(t)-c);
+                    t[c] = ch;
+                    continue;
+                }
                 // TODO - unicode - how?
             }
         }

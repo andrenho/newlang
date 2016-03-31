@@ -588,15 +588,22 @@ static char* zoe_escapestring(Zoe* Z, const char* s)
     int a = 0, b = 0;
     buf[b++] = '\'';
     while(s[a]) {
-        if(s[a] == 13) {
-            buf[b++] = '\\';
-            buf[b++] = 'n';
-            continue;
+        if(s[a] == 10) {
+            buf[b++] = '\\'; buf[b++] = 'n';
+            ++a;
+        } else if(s[a] == 10) {
+            buf[b++] = '\\'; buf[b++] = 'r';
+            ++a;
         } else if(s[a] == '\\' || s[a] == '\'') {
             buf[b++] = '\\';
+            buf[b++] = s[a++];
+        } else if(s[a] >= 32 && s[a] < 127) {
+            buf[b++] = s[a++];
+        } else {
+            snprintf(&buf[b], 5, "\\x%02X", (uint8_t)s[a]);
+            b += 4;
+            ++a;
         }
-
-        buf[b++] = s[a++];
     }
     buf[b++] = '\'';
     buf[b++] = 0;
