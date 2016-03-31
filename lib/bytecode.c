@@ -124,6 +124,17 @@ bytecode_addcodef64(Bytecode* bc, double code)
     }
 }
 
+
+void
+bytecode_addcodestr(Bytecode* bc, const char* str)
+{
+    int c = 0;
+    while(str[c]) {
+        bytecode_addcode(bc, str[c++]);
+    }
+    bytecode_addcode(bc, 0);
+}
+
 // }}}
 
 // {{{ LABELS

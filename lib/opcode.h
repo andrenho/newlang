@@ -7,6 +7,7 @@ typedef enum Opcode {
     PUSH_Bt  = 0x02,
     PUSH_Bf  = 0x03,
     PUSH_N   = 0x04,
+    PUSH_S   = 0x05,
     POP      = 0x0F,
 
     // arithmetic

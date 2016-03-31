@@ -43,6 +43,7 @@ void      bytecode_free(Bytecode* bc);
 //
 void      bytecode_addcode(Bytecode* bc, uint8_t code);
 void      bytecode_addcodef64(Bytecode* bc, double code);
+void      bytecode_addcodestr(Bytecode* bc, const char* str);
 
 //
 // LABELS

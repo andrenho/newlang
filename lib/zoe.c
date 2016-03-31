@@ -399,7 +399,7 @@ void zoe_eval(Zoe* Z, const char* code)
 
 
 #ifdef DEBUG
-static void zoe_dbgopcode(uint8_t* code, uint64_t p);
+static void zoe_dbgopcode(Zoe* Z, uint8_t* code, uint64_t p);
 static void zoe_dbgstack(Zoe* Z);
 #endif
 
@@ -411,7 +411,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
     while(p < bc->code_sz) {
 #ifdef DEBUG
         if(Z->debug_asm) {
-            zoe_dbgopcode(bc->code, p);
+            zoe_dbgopcode(Z, bc->code, p);
         }
 #endif
         Opcode op = bc->code[p];
@@ -428,6 +428,10 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                     zoe_pushnumber(Z, n);
                     p += 9;
                 }
+                break;
+            case PUSH_S: 
+                zoe_pushstring(Z, (char*)&bc->code[p+1]); 
+                p += 2 + strlen((char*)&bc->code[p+1]);
                 break;
             case POP: zoe_pop(Z, 1); ++p; break;
 
@@ -555,6 +559,7 @@ static int aprintf(Zoe* Z, char** ptr, const char* fmt, ...)
     return r;
 }
 
+
 static int sprint_dbl(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 {
     double d;
@@ -568,6 +573,7 @@ static int sprint_dbl(char* buf, size_t nbuf, uint8_t* array, size_t pos)
     return r;
 }
 
+
 static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 {
     uint64_t n;
@@ -576,11 +582,33 @@ static int sprint_uint64(char* buf, size_t nbuf, uint8_t* array, size_t pos)
 }
 
 
+static char* zoe_escapestring(Zoe* Z, const char* s)
+{
+    char* buf = Z->uf->realloc(NULL, (strlen(s) * 2) + 3);
+    int a = 0, b = 0;
+    buf[b++] = '\'';
+    while(s[a]) {
+        if(s[a] == 13) {
+            buf[b++] = '\\';
+            buf[b++] = 'n';
+            continue;
+        } else if(s[a] == '\\' || s[a] == '\'') {
+            buf[b++] = '\\';
+        }
+
+        buf[b++] = s[a++];
+    }
+    buf[b++] = '\'';
+    buf[b++] = 0;
+    return buf;
+}
+
+
 // }}}
 
 // {{{ OPCODE DISASSEMBLY
 
-static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
+static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
     Opcode op = (Opcode)code[p];
     switch(op) {
         case PUSH_Nil: snprintf(buf, nbuf, "PUSH_Nil"); return 1;
@@ -590,6 +618,11 @@ static int sprint_code(char* buf, size_t nbuf, uint8_t* code, uint64_t p) {
                 char xbuf[128]; sprint_dbl(xbuf, sizeof xbuf, code, p+1);
                 snprintf(buf, nbuf, "PUSH_N  %s", xbuf);
                 return 9;
+            }
+        case PUSH_S: {
+                char* sbuf = zoe_escapestring(Z, (char*)&code[p+1]);
+                snprintf(buf, nbuf, "PUSH_S  %s", sbuf);
+                return 2 + strlen((char*)&code[p+1]);
             }
         case POP:  snprintf(buf, nbuf, "POP");  return 1;
         case ADD:  snprintf(buf, nbuf, "ADD");  return 1;
@@ -650,7 +683,7 @@ void zoe_disassemble(Zoe* Z)
         int ns = aprintf(Z, &buf, "%08" PRIx64 ":\t", p);
         // code
         static char cbuf[128];
-        int n = sprint_code(cbuf, sizeof cbuf, bc->code, p);
+        int n = sprint_code(Z, cbuf, sizeof cbuf, bc->code, p);
         ns += aprintf(Z, &buf, "%s", cbuf);
         // spaces
         aprintf(Z, &buf, "%*s", 32-ns, " ");
@@ -683,12 +716,12 @@ void zoe_asmdebugger(Zoe* Z, bool value)
 }
 
 
-static void zoe_dbgopcode(uint8_t* code, uint64_t p)
+static void zoe_dbgopcode(Zoe* Z, uint8_t* code, uint64_t p)
 {
     int ns = printf("%08" PRIx64 ":\t", p);
 
     char buf[128];
-    sprint_code(buf, sizeof buf, code, p);
+    sprint_code(Z, buf, sizeof buf, code, p);
     ns += printf("%s", buf);
     printf("%*s", 32-ns, " ");
 }
@@ -714,25 +747,6 @@ static void zoe_dbgstack(Zoe* Z)
 #endif
 
 // {{{ INSPECTION
-
-static char* zoe_escapestring(Zoe* Z, const char* s)
-{
-    char* buf = Z->uf->realloc(NULL, strlen(s));
-    int a = 0, b = 0;
-    while(s[a]) {
-        if(s[a] == 13) {
-            buf[b++] = '\\';
-            buf[b++] = 'n';
-            continue;
-        } else if(s[a] == '\\' || s[a] == '\'') {
-            buf[b++] = '\\';
-        }
-
-        buf[b++] = s[a++];
-    }
-    return buf;
-}
-
 
 void zoe_inspect(Zoe* Z, int i)
 {
