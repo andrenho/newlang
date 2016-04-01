@@ -4,8 +4,9 @@ FILE ORGANIZATION
 The directory structure is organized like this:
 
 build/       support files for building the application
-lib/         Zoe library
-src/         Zoe executable
+parser/      Zoe parser & bytecode generator
+vm/          Zoe Virtual Machine interpreter
+exe/         Zoe executable
 tests/       Unit tests
 
 
@@ -23,13 +24,16 @@ build/
   version.mk         Contains the version number
   WARNINGS           A list of warnings issued by gcc when building
   zoe.supp           Suppression file for valgrind
-lib/
+parser/
   lexer.l            The lexer
   parser.y           The parser
   bytecode.c         Bytecode management (the parser is called from here)
+vm/
   opcode.h           List of VM opcodes
   stack.c            Low-level stack management for ZoeVM
-  global.h           Global defines and typedefs
+  global.h           Global definitions & typedefs
+  util.c             Utility functions
+  world.c            Zoe value management & GC
   zoe.c              Zoe virtual machine
   zvalue.c           Union containing all types acceptable by Zoe
 src/
@@ -38,18 +42,6 @@ src/
   repl.c             REPL
 tests/
   tests.c            Unit tests
-
-
-MEMORY MANAGEMENT
------------------
-
-All functions that return a string need to be freed by the caller afterwards.
-
-Stack memory management is tricky. Some types (such as string) will have their
-memory pointer moved around. The final responsability for freeing this pointer
-belongs to whoever consumes it. So, if the string is simply removed from the 
-stack, the freer is the remove function. If, however, the user pops the value
-from the stack, it is his responsability to free it.
 
 
 BYTECODE FORMAT (0.1)
