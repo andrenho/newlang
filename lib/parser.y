@@ -80,6 +80,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
    | NIL                { bytecode_addcode(b, PUSH_Nil); }
    | strings
+   | array
    | ternary
    | ccand
    | ccor
@@ -118,6 +119,18 @@ string: STRING {
 strings: string
        | string strings { bytecode_addcode(b, CAT); }
        ;
+
+// arrays
+array: '[' { bytecode_addcode(b, PUSHTBL); } array_items ']'
+     ;
+
+array_items: %empty
+           | array_item
+           | array_item ',' array_items
+           ;
+
+array_item: exp { bytecode_addcode(b, APPEND); }
+          ;
 
 // short-circuit AND
 ccand: exp CCAND { 

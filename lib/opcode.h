@@ -43,6 +43,10 @@ typedef enum Opcode {
     Bfalse   = 0x31,
     Btrue    = 0x32,
 
+    // tables
+    PUSHTBL  = 0x40,
+    APPEND   = 0x41,
+
     // others
     END      = 0xFF,
 

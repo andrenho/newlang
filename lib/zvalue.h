@@ -22,13 +22,21 @@ typedef struct {
     };
 } ZFunction;
 
+struct ZValue;
+
 typedef struct {
+    uint64_t n;
+    struct ZValue* items;
+} ZArray;
+
+typedef struct ZValue {
     ZType type;
     union {
         bool        boolean;
         double      number;
         ZFunction   function;
         char*       string;
+        ZArray      array;
     };
 } ZValue;
 

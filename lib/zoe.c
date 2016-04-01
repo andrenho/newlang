@@ -678,7 +678,9 @@ static int sprint_code(Zoe* Z, char* buf, size_t nbuf, uint8_t* code, uint64_t p
                 snprintf(buf, nbuf, "Btrue   %s", xbuf);
                 return 9;
             }
-        case END:  snprintf(buf, nbuf, "END");  return 1;
+        case PUSHTBL: snprintf(buf, nbuf, "PUSHTBL"); return 1;
+        case APPEND:  snprintf(buf, nbuf, "APPEND");  return 1;
+        case END:     snprintf(buf, nbuf, "END");     return 1;
         default:
             snprintf(buf, nbuf, "Invalid opcode %02X\n", (uint8_t)op);
     }
