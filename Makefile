@@ -82,7 +82,7 @@ lib/parser.tab.h:
 	${CC} -c ${CPPFLAGS} @build/WARNINGS -o $@ $<
 
 zoe: depend ${OBJ_EXE} ${OBJ_LIB}
-	${CC} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS}
+	${CC} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS} -lreadline
 
 libzoe.so.${VERSION}: ${OBJ_LIB}
 	${CC} -shared -fPIC -Wl,-soname,libzoe.so.0 -o $@ $? ${LDFLAGS}

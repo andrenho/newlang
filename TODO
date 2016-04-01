@@ -16,7 +16,8 @@ Next steps:
    - concatenation (ok)
    - multiline strings (ok)
    - embedded code (ok)
- - comments
+ - comments (ok)
+ - use readline (ok)
  - arrays
  - tables
 

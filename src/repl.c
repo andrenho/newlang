@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <readline/history.h>
+#include <readline/readline.h>
 
 #include "lib/zoe.h"
 
@@ -14,21 +16,22 @@ void repl_execute(Options* opt)
     }
 #endif
 
-    while(1) {
-        char* buf = NULL;
-        size_t sz = 0;
+    char* buf;
+    
+    rl_bind_key('\t', rl_abort);
+
+    while((buf = readline("(zoe) ")) != NULL) {
+
+        if(!buf) {
+            continue;
+        }
 
         // read input
-        printf("> ");
-        ssize_t r = getline(&buf, &sz, stdin);
-        if(r == -1) {
+        if(strcmp(buf, ".q") == 0) {
             free(buf);
             break;
         }
-        if(strcmp(buf, ".q\n") == 0) {
-            free(buf);
-            break;
-        }
+        add_history(buf);
 
         // run code
         zoe_eval(Z, buf);
@@ -54,6 +57,16 @@ void repl_execute(Options* opt)
         zoe_pop(Z, 1);
 
         free(buf);
+    }
+
+    // free history list
+    if(where_history() > 0) {
+        HIST_ENTRY** h = history_list();
+        size_t i = 0;
+        while(h[i]) {
+            free_history_entry(h[i]);
+            ++i;
+        }
     }
 
     zoe_free(Z);
