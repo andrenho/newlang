@@ -219,44 +219,48 @@ static char* test_world(void)
 
 // }}}
 
-#if 0
 // {{{ LOW-LEVEL STACK
 
-int error = 0;
-static void my_error(const char* s) {
+bool error_found = false;
+static void test_error(const char* s) {
     (void) s;
-    error = 1;
+    error_found = true;
 }
+
+extern ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing);
+extern ZValue* zoe_stack_pushnew(Zoe* Z);
+extern void zoe_stack_pop(Zoe* Z);
+extern ZValue* zoe_stack_get(Zoe* Z, STPOS pos);
 
 static char* test_stack(void) 
 {
-    error = 0;
+    Zoe* Z = zoe_createvm(test_error);
 
-    Stack* st = stack_new(my_error);
+    mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
 
-    mu_assert("stack size == 0", stack_size(st) == 0);
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = NIL;
+    mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
+    mu_assert("stack abs 0 = 0", zoe_stackabs(Z, 0) == 0);
+    mu_assert("stack abs -1 = 0", zoe_stackabs(Z, -1) == 0);
 
-    stack_push(st, (ZValue) { .type=NIL });
+    mu_assert("push & peek", zoe_stack_get(Z, -1)->type == NIL);
 
-    mu_assert("stack size == 1 (after push)", stack_size(st) == 1);
-    mu_assert("stack abs 0 = 0", stack_abs(st, 0) == 0);
-    mu_assert("stack abs -1 = 0", stack_abs(st, -1) == 0);
-        
-    mu_assert("push & peek", stack_peek(st, -1).type == NIL);
+    zoe_stack_pop(Z);
+    mu_assert("stack size == 0 (after push/pop)", zoe_stacksize(Z) == 0);
+    
+    mu_assert("no errors so far", !error_found);
+    zoe_stack_pop(Z);
+    mu_assert("stack underflow", error_found);
 
-    stack_popfree(st);
-    mu_assert("stack size == 0 (after push/pop)", stack_size(st) == 0);
+    zoe_free(Z);
 
-    mu_assert("no errors so far", error == 0);
-    stack_pop(st);
-    mu_assert("stack underflow", error == 1);
-
-    stack_free(st);
     return 0;
 }
 
 // }}}
 
+#if 0
 // {{{ HIGH-LEVEL STACK
 
 static char* test_zoe_stack(void) 
@@ -527,8 +531,8 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_world);
-    /*
     mu_run_test(test_stack);
+    /*
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
     mu_run_test(test_zoe_string);

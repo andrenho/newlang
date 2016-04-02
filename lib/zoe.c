@@ -14,7 +14,7 @@ typedef struct Zoe {
     ZWorld*  world;
     ERROR    errorf;
     ZValue*  stack[STACK_MAX];
-    STPOS    stack_top;
+    STPOS    stack_sz;
 #ifdef DEBUG
     bool     debug_asm;
 #endif
@@ -56,51 +56,80 @@ zoe_free(Zoe* Z)
 
 // {{{ PRIVATE, LOW LEVEL STACK ACCESS
 
-ZValue* zoe_stack_push_existing(Zoe* Z, ZValue* existing)
+// the following functions are not static so they can be tested
+// in tests/tests.c
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
+ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
 {
-    if(Z->stack_top == STACK_MAX-1) {
+    if(Z->stack_sz == STACK_MAX-1) {
         zoe_error(Z, "Stack overflow.");
+        return NULL;
     }
 
-    Z->stack[Z->stack_top] = existing;
-    ++Z->stack_top;
+    Z->stack[Z->stack_sz] = existing;
+    ++Z->stack_sz;
+
+    zworld_inc(Z->world, existing);
 
     return existing;
 }
 
 
-static ZValue* zoe_stack_push_new(Zoe* Z)
+ZValue* zoe_stack_pushnew(Zoe* Z)
 {
     ZValue* value = zworld_alloc(Z->world);
-    ++value->ref_count;
-
-    return zoe_stack_push_existing(Z, value);
+    return zoe_stack_pushexisting(Z, value);
 }
 
 
 void zoe_stack_pop(Zoe* Z)
 {
-    TODO
+    if(Z->stack_sz == 0) {
+        zoe_error(Z, "Stack overflow.");
+        return;
+    }
+    
+    zworld_dec(Z->world, Z->stack[Z->stack_sz-1]);
+    --Z->stack_sz;
 }
 
 
 ZValue* zoe_stack_get(Zoe* Z, STPOS pos)
 {
-    TODO
+    pos = zoe_stackabs(Z, pos);
+    if(pos >= Z->stack_sz) {
+        zoe_error(Z, "Position > stack size.");
+        return NULL;
+    }
+    return Z->stack[pos];
 }
 
+#pragma GCC diagnostic pop
 
 // }}}
 
-/*
 // {{{ HIGH LEVEL STACK ACCESS
 
 STPOS
 zoe_stacksize(Zoe* Z)
 {
-    return stack_size(Z->stack);
+    return Z->stack_sz;
 }
 
+
+STPOS
+zoe_stackabs(Zoe* Z, STPOS pos)
+{
+    return (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
+}
+
+// }}}
+
+/*
+// {{{ HIGH LEVEL STACK ACCESS
 
 void
 zoe_pushnil(Zoe* Z)
