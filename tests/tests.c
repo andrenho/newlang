@@ -169,6 +169,8 @@ static char* test_bytecode_simplecode(void)
 
 // }}}
 
+// {{{ WORLD
+
 static char* test_world(void)
 {
     ZWorld* w = zworld_new(my_error);
@@ -176,11 +178,46 @@ static char* test_world(void)
     ZValue* v1 = zworld_alloc(w);
     v1->type = NUMBER;
     v1->number = 1;
+    zworld_inc(w, v1);
     mu_assert("Count values = 1", zworld_ref_count(w) == 1);
+
+    ZValue* v2 = zworld_alloc(w);
+    v2->type = NUMBER;
+    v2->number = 2;
+    zworld_inc(w, v2);
+    mu_assert("Count values = 2", zworld_ref_count(w) == 2);
+
+    ZValue* v3 = zworld_alloc(w);
+    v2->type = NUMBER;
+    v2->number = 3;
+    zworld_inc(w, v3);
+    mu_assert("Count values = 3", zworld_ref_count(w) == 3);
+
+    zworld_dec(w, v2);
+    mu_assert("Record #2 eliminated", zworld_ref_count(w) == 2);
+
+    zworld_dec(w, v1);
+    mu_assert("Record #1 eliminated", zworld_ref_count(w) == 1);
+
+    zworld_dec(w, v3);
+    mu_assert("Record #3 eliminated", zworld_ref_count(w) == 0);
+
+    ZValue* v4 = zworld_alloc(w);
+    v4->type = NUMBER;
+    v4->number = 4;
+    zworld_inc(w, v4);
+    mu_assert("Count values = 1", zworld_ref_count(w) == 1);
+
+    zworld_dec(w, v4);
+    mu_assert("Record #4 eliminated", zworld_ref_count(w) == 0);
+
+    // right here, running with valgrind should return no leaks
 
     zworld_free(w);
     return 0;
 }
+
+// }}}
 
 #if 0
 // {{{ LOW-LEVEL STACK

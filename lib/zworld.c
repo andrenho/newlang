@@ -88,6 +88,7 @@ found:
     if(ref == w->last_ref) {
         w->last_ref = prev;
     }
+    free(ref);
 
     // free value structure
     zvalue_free_structure(value);
@@ -139,6 +140,7 @@ void zworld_gc(ZWorld* w, ZValue* value)
             ++v;
         }
         free(children);   // alloc'd in zvalue_children
+        zworld_release(w, value);
     }
 }
 
