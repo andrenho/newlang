@@ -4,8 +4,7 @@ FILE ORGANIZATION
 The directory structure is organized like this:
 
 build/       support files for building the application
-parser/      Zoe parser & bytecode generator
-vm/          Zoe Virtual Machine interpreter
+lib/          Zoe parser & VM
 exe/         Zoe executable
 tests/       Unit tests
 
@@ -24,11 +23,10 @@ build/
   version.mk         Contains the version number
   WARNINGS           A list of warnings issued by gcc when building
   zoe.supp           Suppression file for valgrind
-parser/
+lib/
   lexer.l            The lexer
   parser.y           The parser
   bytecode.c         Bytecode management (the parser is called from here)
-vm/
   opcode.h           List of VM opcodes
   stack.c            Low-level stack management for ZoeVM
   global.h           Global definitions & typedefs
