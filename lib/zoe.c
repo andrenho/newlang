@@ -8,11 +8,15 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "lib/zworld.h"
+
 typedef struct Zoe {
-    //Stack*         stack;
-    ERROR          errorf;
+    ZWorld*  world;
+    ERROR    errorf;
+    ZValue*  stack[STACK_MAX];
+    STPOS    stack_top;
 #ifdef DEBUG
-    bool           debug_asm;
+    bool     debug_asm;
 #endif
 } Zoe;
 
@@ -32,7 +36,7 @@ zoe_createvm(ERROR errorf)
         errorf = default_error;
     }
     Zoe* Z = calloc(sizeof(Zoe), 1);
-    //Z->stack = stack_new(errorf);
+    Z->world = zworld_new(errorf);
     Z->errorf = errorf;
 #ifdef DEBUG
     Z->debug_asm = false;
@@ -44,9 +48,47 @@ zoe_createvm(ERROR errorf)
 void
 zoe_free(Zoe* Z)
 {
-    // stack_free(Z->stack);
+    zworld_free(Z->world);
     free(Z);
 }
+
+// }}}
+
+// {{{ PRIVATE, LOW LEVEL STACK ACCESS
+
+ZValue* zoe_stack_push_existing(Zoe* Z, ZValue* existing)
+{
+    if(Z->stack_top == STACK_MAX-1) {
+        zoe_error(Z, "Stack overflow.");
+    }
+
+    Z->stack[Z->stack_top] = existing;
+    ++Z->stack_top;
+
+    return existing;
+}
+
+
+static ZValue* zoe_stack_push_new(Zoe* Z)
+{
+    ZValue* value = zworld_alloc(Z->world);
+    ++value->ref_count;
+
+    return zoe_stack_push_existing(Z, value);
+}
+
+
+void zoe_stack_pop(Zoe* Z)
+{
+    TODO
+}
+
+
+ZValue* zoe_stack_get(Zoe* Z, STPOS pos)
+{
+    TODO
+}
+
 
 // }}}
 
@@ -273,6 +315,7 @@ void zoe_arrayappend(Zoe* Z)
 }
 
 // }}}
+*/
 
 // {{{ ERROR MANAGEMENT
 
@@ -290,6 +333,7 @@ void zoe_error(Zoe* Z, char* fmt, ...)
 
 // }}}
 
+/*
 // {{{ INFORMATION
 
 char* zoe_typename(ZType type)

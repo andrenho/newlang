@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define STACK_MAX 20
+
 #define TODO { \
     _Pragma ("message \"Not implemented.\"") \
     fprintf(stderr, "`%s` not implemented.\n", __func__); \
     abort(); \
 }
-
 
 typedef void(*ERROR)(const char*);
 

@@ -8,6 +8,8 @@
 
 typedef struct Zoe Zoe;
 
+typedef int8_t STPOS;
+
 //
 // CONSTRUCTOR/DESTRUCTOR
 //
