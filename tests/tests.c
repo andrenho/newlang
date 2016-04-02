@@ -176,6 +176,7 @@ static char* test_world(void)
     ZValue* v1 = zworld_alloc(w);
     v1->type = NUMBER;
     v1->number = 1;
+    mu_assert("Count values = 1", zworld_ref_count(w) == 1);
 
     zworld_free(w);
     return 0;

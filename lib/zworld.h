@@ -19,6 +19,9 @@ void zworld_inc(ZWorld* w, ZValue* value);
 void zworld_dec(ZWorld* w, ZValue* value);
 void zworld_gc(ZWorld* w, ZValue* value);
 
+// INFORMATION
+size_t zworld_ref_count(ZWorld* w);
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c
