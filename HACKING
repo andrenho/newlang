@@ -31,7 +31,7 @@ lib/
   stack.c            Low-level stack management for ZoeVM
   global.h           Global definitions & typedefs
   util.c             Utility functions
-  world.c            Zoe value management & GC
+  zworld.c           Zoe value management & GC
   zoe.c              Zoe virtual machine
   zvalue.c           Union containing all types acceptable by Zoe
 src/

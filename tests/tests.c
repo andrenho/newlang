@@ -3,6 +3,7 @@
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
+#include "lib/zworld.h"
 #include "lib/zoe.h"
 
 // {{{ TEST FRAMEWORK
@@ -22,6 +23,7 @@
     if (message) return message; } while (0)
 extern int tests_run;
 
+/*
 static double number_expr(char* expr)
 {
     Zoe* Z = zoe_createvm(NULL);
@@ -78,12 +80,108 @@ static char* inspect_expr(char* expr)
 #define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
 #define mu_assert_sexpr(expr, r) { char* s = string_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
 #define mu_assert_inspect(expr, r) { char* s = inspect_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
+*/
+
+static void my_error(const char* str)
+{
+    fprintf(stderr, "error: %s\n", str);
+    abort();
+}
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
 // }}}
 
-/*
+// {{{ BYTECODE
+
+static uint8_t expected[] = {
+    0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
+    0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
+    0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_pos
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_sz
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
+    PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
+    0xFF,                                               // EOF
+};
+
+static char* test_bytecode_gen(void) 
+{
+    Bytecode* bc = bytecode_new(NULL);
+
+    bytecode_addcode(bc, PUSH_N);
+    bytecode_addcodef64(bc, 3.1416);
+    bytecode_addcode(bc, END);
+
+    uint8_t* found;
+    size_t sz = bytecode_generatezb(bc, &found);
+
+    mu_assert("BZ size", sz == sizeof expected);
+    for(size_t i=0; i<sz; ++i) {
+        static char buf[100];
+        sprintf(buf, "%zuth byte", i);
+        mu_assert(buf, expected[i] == found[i]);
+    }
+    free(found);
+
+    bytecode_free(bc);
+    
+    return 0;
+}
+
+
+static char* test_bytecode_import(void)
+{
+    Bytecode* bc = bytecode_newfromzb(expected, sizeof expected, NULL);
+
+    mu_assert("version minor", bc->version_minor == 0x1);
+    mu_assert("code_sz", bc->code_sz == 10);
+    mu_assert("code[0]", bc->code[0] == PUSH_N);
+    mu_assert("code[1]", bc->code[1] == 0xA7);
+    mu_assert("code[8]", bc->code[8] == 0x40);
+
+    bytecode_free(bc);
+
+    return 0;
+}
+
+
+static char* test_bytecode_simplecode(void)
+{
+    Bytecode* bc = bytecode_newfromcode("3.1416", NULL);
+
+    uint8_t* found;
+    size_t sz = bytecode_generatezb(bc, &found);
+
+    mu_assert("BZ size", sz == sizeof expected);
+    for(size_t i=0; i<sz; ++i) {
+        static char buf[100];
+        sprintf(buf, "%zuth byte", i);
+        mu_assert(buf, expected[i] == found[i]);
+    }
+    free(found);
+
+    bytecode_free(bc);
+
+    return 0;
+}
+
+// }}}
+
+static char* test_world(void)
+{
+    ZWorld* w = zworld_new(my_error);
+
+    ZValue* v1 = zworld_alloc(w);
+    v1->type = NUMBER;
+    v1->number = 1;
+
+    zworld_free(w);
+    return 0;
+}
+
+#if 0
 // {{{ LOW-LEVEL STACK
 
 int error = 0;
@@ -177,83 +275,6 @@ static char* test_zoe_string(void)
     return 0;
 }
 
-
-// }}}
-
-// {{{ BYTECODE
-
-static uint8_t expected[] = {
-    0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
-    0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
-    0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_pos
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_sz
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
-    PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
-    0xFF,                                               // EOF
-};
-
-static char* test_bytecode_gen(void) 
-{
-    Bytecode* bc = bytecode_new(NULL);
-
-    bytecode_addcode(bc, PUSH_N);
-    bytecode_addcodef64(bc, 3.1416);
-    bytecode_addcode(bc, END);
-
-    uint8_t* found;
-    size_t sz = bytecode_generatezb(bc, &found);
-
-    mu_assert("BZ size", sz == sizeof expected);
-    for(size_t i=0; i<sz; ++i) {
-        static char buf[100];
-        sprintf(buf, "%zuth byte", i);
-        mu_assert(buf, expected[i] == found[i]);
-    }
-    free(found);
-
-    bytecode_free(bc);
-    
-    return 0;
-}
-
-
-static char* test_bytecode_import(void)
-{
-    Bytecode* bc = bytecode_newfromzb(expected, sizeof expected, NULL);
-
-    mu_assert("version minor", bc->version_minor == 0x1);
-    mu_assert("code_sz", bc->code_sz == 10);
-    mu_assert("code[0]", bc->code[0] == PUSH_N);
-    mu_assert("code[1]", bc->code[1] == 0xA7);
-    mu_assert("code[8]", bc->code[8] == 0x40);
-
-    bytecode_free(bc);
-
-    return 0;
-}
-
-
-static char* test_bytecode_simplecode(void)
-{
-    Bytecode* bc = bytecode_newfromcode("3.1416", NULL);
-
-    uint8_t* found;
-    size_t sz = bytecode_generatezb(bc, &found);
-
-    mu_assert("BZ size", sz == sizeof expected);
-    for(size_t i=0; i<sz; ++i) {
-        static char buf[100];
-        sprintf(buf, "%zuth byte", i);
-        mu_assert(buf, expected[i] == found[i]);
-    }
-    free(found);
-
-    bytecode_free(bc);
-
-    return 0;
-}
 
 // }}}
 
@@ -460,18 +481,19 @@ static char* test_array_operators(void)
 }
 
 // }}}
-*/
+#endif
 
 static char* all_tests(void)
 {
+    mu_run_test(test_bytecode_gen);
+    mu_run_test(test_bytecode_import);
+    mu_run_test(test_bytecode_simplecode);
+    mu_run_test(test_world);
     /*
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
     mu_run_test(test_zoe_string);
-    mu_run_test(test_bytecode_gen);
-    mu_run_test(test_bytecode_import);
-    mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
     mu_run_test(test_math_expressions);
@@ -497,7 +519,7 @@ int main(void)
     if(result != 0) {
         printf("\033[1;31merror: %s\033[0m\n", result);
     } else {
-        printf("\033[1;32mALL TESTS PASSED!\033[0m\n");
+        printf("\033[1;32m+++ ALL TESTS PASSED! +++\033[0m\n");
     }
     printf("Tests run: %d\n", tests_run);
 

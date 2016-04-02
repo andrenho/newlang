@@ -8,9 +8,10 @@ include build/config.mk
 SRC_LIB=lib/zoe.c		\
 	lib/bytecode.c		\
 	lib/lex.yy.c		\
-	lib/parser.tab.c #	\
-	lib/zvalue.c		\
-	lib/stack.c		\
+	lib/parser.tab.c 	\
+	lib/zworld.c 		\
+	lib/zvalue.c#		\
+	lib/stack.c
 
 SRC_EXE=src/main.c		\
 	src/options.c		\
@@ -170,8 +171,11 @@ splint:
 	${MAKE} maintainer-clean
 	splint -badflag ${CPPFLAGS} lib/*.h lib/*.c src/*.h src/*.c
 
-check-leaks: all
+check-leaks: zoe
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe -D
+
+check-leaks-check: runtests
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./runtests -D
 
 gen-suppressions: all
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
