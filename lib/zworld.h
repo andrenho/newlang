@@ -11,7 +11,7 @@ ZWorld* zworld_new(ERROR errorf);
 void    zworld_free(ZWorld* w);
 
 // ALLOCATION/DEALLOCATION
-ZValue* zworld_alloc(ZWorld* w);
+ZValue* zworld_alloc(ZWorld* w, ZType type);
 void    zworld_release(ZWorld* w, ZValue* value);
 
 // MEMORY MANAGEMENT

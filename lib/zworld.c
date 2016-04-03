@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-// {{{ CONSTRUCTOR/DESTRUCTOR
-
 typedef struct ZValueRef {
     ZValue* ptr;
     struct ZValueRef* next;
@@ -16,6 +14,8 @@ typedef struct ZWorld {
     ERROR      errorf;
 } ZWorld;
 
+
+// {{{ CONSTRUCTOR/DESTRUCTOR
 
 ZWorld*
 zworld_new(ERROR errorf)
@@ -39,10 +39,11 @@ zworld_free(ZWorld* w)
 // {{{ ALLOCATION/DEALLOCATION
 
 ZValue*
-zworld_alloc(ZWorld* w)
+zworld_alloc(ZWorld* w, ZType type)
 {
     // create value
     ZValue* value = calloc(sizeof(ZValue), 1);
+    value->type = type;
 
     // create reference
     ZValueRef* ref = calloc(sizeof(ZValueRef), 1);

@@ -82,9 +82,9 @@ ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing)
 }
 
 
-ZValue* zoe_stack_pushnew(Zoe* Z)
+ZValue* zoe_stack_pushnew(Zoe* Z, ZType type)
 {
-    ZValue* value = zworld_alloc(Z->world);
+    ZValue* value = zworld_alloc(Z->world, type);
     return zoe_stack_pushexisting(Z, value);
 }
 
@@ -150,31 +150,27 @@ zoe_stackabs(Zoe* Z, STPOS pos)
 void
 zoe_pushnil(Zoe* Z)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = NIL;
+    ZValue* value = zoe_stack_pushnew(Z, NIL);
 }
 
 void
 zoe_pushboolean(Zoe* Z, bool b)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = BOOLEAN;
+    ZValue* value = zoe_stack_pushnew(Z, BOOLEAN);
     value->boolean = b;
 }
 
 void
 zoe_pushnumber(Zoe* Z, double n)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = NUMBER;
+    ZValue* value = zoe_stack_pushnew(Z, NUMBER);
     value->number = n;
 }
 
 void
 zoe_pushbfunction(Zoe* Z, uint8_t* data, size_t sz)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = FUNCTION;
+    ZValue* value = zoe_stack_pushnew(Z, FUNCTION);
     value->function.type = BYTECODE;
     value->function.bytecode.data = malloc(sz);
     memcpy(value->function.bytecode.data, data, sz);
@@ -184,15 +180,13 @@ zoe_pushbfunction(Zoe* Z, uint8_t* data, size_t sz)
 void
 zoe_pushstring(Zoe* Z, char* s)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = STRING;
+    ZValue* value = zoe_stack_pushnew(Z, STRING);
     value->string = strdup(s);
 }
 
 void zoe_pusharray(Zoe* Z)
 {
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = ARRAY;
+    ZValue* value = zoe_stack_pushnew(Z, ARRAY);
     value->array.n = 0;
     value->array.items = NULL;
 }
@@ -508,8 +502,7 @@ void zoe_eval(Zoe* Z, const char* code)
     size_t sz = bytecode_generatezb(bc, &buffer);
 
     // we do all this so we won't have to copy the buffer
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = FUNCTION;
+    ZValue* value = zoe_stack_pushnew(Z, FUNCTION);
     value->function.bytecode.data = buffer;
     value->function.bytecode.sz = sz;
 

@@ -173,20 +173,17 @@ static char* test_world(void)
 {
     ZWorld* w = zworld_new(my_error);
 
-    ZValue* v1 = zworld_alloc(w);
-    v1->type = NUMBER;
+    ZValue* v1 = zworld_alloc(w, NUMBER);
     v1->number = 1;
     zworld_inc(w, v1);
     mu_assert("Count values = 1", zworld_ref_count(w) == 1);
 
-    ZValue* v2 = zworld_alloc(w);
-    v2->type = NUMBER;
+    ZValue* v2 = zworld_alloc(w, NUMBER);
     v2->number = 2;
     zworld_inc(w, v2);
     mu_assert("Count values = 2", zworld_ref_count(w) == 2);
 
-    ZValue* v3 = zworld_alloc(w);
-    v2->type = NUMBER;
+    ZValue* v3 = zworld_alloc(w, NUMBER);
     v2->number = 3;
     zworld_inc(w, v3);
     mu_assert("Count values = 3", zworld_ref_count(w) == 3);
@@ -200,8 +197,7 @@ static char* test_world(void)
     zworld_dec(w, v3);
     mu_assert("Record #3 eliminated", zworld_ref_count(w) == 0);
 
-    ZValue* v4 = zworld_alloc(w);
-    v4->type = NUMBER;
+    ZValue* v4 = zworld_alloc(w, NUMBER);
     v4->number = 4;
     zworld_inc(w, v4);
     mu_assert("Count values = 1", zworld_ref_count(w) == 1);
@@ -226,7 +222,7 @@ static void test_error(const char* s) {
 }
 
 extern ZValue* zoe_stack_pushexisting(Zoe* Z, ZValue* existing);
-extern ZValue* zoe_stack_pushnew(Zoe* Z);
+extern ZValue* zoe_stack_pushnew(Zoe* Z, ZType type);
 extern void zoe_stack_pop(Zoe* Z);
 extern ZValue* zoe_stack_get(Zoe* Z, STPOS pos);
 
@@ -236,8 +232,7 @@ static char* test_stack(void)
 
     mu_assert("stack size == 0", zoe_stacksize(Z) == 0);
 
-    ZValue* value = zoe_stack_pushnew(Z);
-    value->type = NIL;
+    ZValue* value = zoe_stack_pushnew(Z, NIL);
     mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
     mu_assert("stack abs 0 = 0", zoe_stackabs(Z, 0) == 0);
     mu_assert("stack abs -1 = 0", zoe_stackabs(Z, -1) == 0);
