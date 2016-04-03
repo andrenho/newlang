@@ -51,6 +51,7 @@ zoe_createvm(ERROR errorf)
 void
 zoe_free(Zoe* Z)
 {
+    zoe_pop(Z, zoe_stacksize(Z));
     zworld_free(Z->world);
     free(Z);
 }
@@ -261,7 +262,7 @@ zoe_popnumber(Zoe* Z)
 char*
 zoe_popstring(Zoe* Z)
 {
-    const char* r = strdup(zoe_checktype(Z, -1, STRING)->string);
+    char* r = strdup(zoe_checktype(Z, -1, STRING)->string);
     zoe_stack_pop(Z);
     return r;
 }
@@ -449,8 +450,8 @@ void zoe_oper(Zoe* Z, Operator oper)
             zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
         }
     } else if(oper == ZOE_EQ) {
-        ZValue *b = zoe_stack_get(Z->stack, -1),
-               *a = zoe_stack_get(Z->stack, -2);
+        ZValue *b = zoe_stack_get(Z, -1),
+               *a = zoe_stack_get(Z, -2);
         bool r = zoe_eq(Z, a, b);
         zoe_pop(Z, 2);
         zoe_pushboolean(Z, r);
@@ -580,7 +581,6 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case LEN:  zoe_len(Z);            ++p; break;
             case LOOKUP: zoe_lookup(Z);       ++p; break;
 
-            /*
             //
             // branches
             //
@@ -606,6 +606,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                 }
                 break;
 
+            /*
             //
             // array
             //
@@ -633,8 +634,6 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 
 void zoe_call(Zoe* Z, int n_args)
 {
-    // TODO - this whole function needs to be reviewed
-
     STPOS initial = zoe_stacksize(Z);
 
     // load function
@@ -648,17 +647,26 @@ void zoe_call(Zoe* Z, int n_args)
         zoe_error(Z, "Can only execute code in ZB format.");
     }
 
+    // copy function contents
+    // TODO - this is slow! we should just move the pointer, and remove the 
+    // function from the stack without freeing the pointer
+    size_t sz = f->bytecode.sz;
+    uint8_t* data = malloc(sz);
+    memcpy(data, f->bytecode.data, sz);
+
+    // remove function from stack
+    zoe_stack_pop(Z);
+
     // execute
-    zoe_execute(Z, f->bytecode.data, f->bytecode.sz);
+    zoe_execute(Z, data, sz);
 
     // verify if the stack has now is the same size as the beginning
     // (-1 function +1 return argument)
-    if(zoe_stacksize(Z) != initial + 1) {
+    if(zoe_stacksize(Z) != initial) {
         zoe_error(Z, "Function should have returned exaclty one argument.");
     }
 
-    // free
-    zoe_stack_remove(Z, -2);
+    free(data);
 }
 
 // }}}
@@ -914,7 +922,10 @@ static char* zvalue_inspect(Zoe* Z, ZValue* value)
                 // remove zeroes at the and
                 int lg;
                 while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
+                    bool br = (buf[lg] == '.');
                     buf[lg] = '\0';
+                    if(br) 
+                        break;
                 }
                 return buf;
             }
