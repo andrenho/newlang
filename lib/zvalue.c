@@ -14,6 +14,11 @@ void zvalue_free_structure(ZValue* value)
         case STRING:
             free(value->string);
             break;
+        case ARRAY:
+            if(value->array.items) {
+                free(value->array.items);
+            }
+            break;
         case FUNCTION:
             switch(value->function.type) {
                 case BYTECODE:
@@ -37,23 +42,6 @@ void zvalue_incref(ZValue* value)
 void zvalue_decref(ZValue* value)
 {
     --value->ref_count;
-}
-
-
-void zvalue_children(ZValue* value, ZValue** children)
-{
-    switch(value->type) {
-        case NIL:
-        case BOOLEAN:
-        case NUMBER:
-        case STRING:
-        case FUNCTION:
-            *children = NULL;
-            break;
-        case ARRAY:  // TODO
-            *children = NULL;
-            break;
-    }
 }
 
 // }}}

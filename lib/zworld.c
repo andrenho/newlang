@@ -110,7 +110,14 @@ void zworld_inc(ZWorld* w, ZValue* value)
 
 void zworld_dec(ZWorld* w, ZValue* value)
 {
-    (void) w;
+    // decrement reference of the children
+    if(value->type == ARRAY) {
+        for(size_t i=0; i < value->array.n; ++i) {
+            zworld_dec(w, value->array.items[i]);
+        }
+    }
+
+    // decrement reference and possibly collect it
     zvalue_decref(value);
     if(value->ref_count <= 0) {
         zworld_gc(w, value);
@@ -130,16 +137,6 @@ void zworld_gc(ZWorld* w, ZValue* value)
             ref = next;
         }
     } else {
-        ZValue* children;
-        zvalue_children(value, &children);
-        ZValue* v = children;
-        while(v) {
-            if(v->ref_count <= 0) {
-                zworld_release(w, v);
-            }
-            ++v;
-        }
-        free(children);   // alloc'd in zvalue_children
         zworld_release(w, value);
     }
 }

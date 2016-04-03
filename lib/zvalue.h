@@ -47,7 +47,6 @@ void zvalue_free_structure(ZValue* value);
 // REFERENCE COUNTING MANAGEMENT
 void zvalue_incref(ZValue* value);
 void zvalue_decref(ZValue* value);
-void zvalue_children(ZValue* value, ZValue** children);
 
 #endif
 
