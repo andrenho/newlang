@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "lib/bytecode.h"
+#include "lib/opcode.h"
 #include "lib/zworld.h"
 
 typedef struct Zoe {
@@ -85,6 +87,22 @@ ZValue* zoe_stack_pushnew(Zoe* Z)
 }
 
 
+void zoe_stack_remove(Zoe* Z, STPOS pos)
+{
+    pos = zoe_stackabs(Z, pos);
+    if(pos >= Z->stack_sz) {
+        zoe_error(Z, "Position > stack size.");
+        return NULL;
+    }
+    
+    zworld_dec(Z->world, Z->stack[pos]);
+    if(Z->stack_sz > 1) {
+        memmove(&Z->stack[pos], &Z->stack[pos+1], sizeof(ZValue*) * (STACK_MAX - pos));
+    }
+    --Z->stack_sz;
+}
+
+
 void zoe_stack_pop(Zoe* Z)
 {
     if(Z->stack_sz == 0) {
@@ -92,8 +110,7 @@ void zoe_stack_pop(Zoe* Z)
         return;
     }
     
-    zworld_dec(Z->world, Z->stack[Z->stack_sz-1]);
-    --Z->stack_sz;
+    zoe_stack_remove(Z, -1);
 }
 
 
@@ -255,192 +272,6 @@ inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
 // }}}
 
 /*
-// {{{ HIGH LEVEL STACK ACCESS
-
-void
-zoe_pushnil(Zoe* Z)
-{
-    stack_push(Z->stack, (ZValue){ .type=NIL });
-}
-
-
-void
-zoe_pushboolean(Zoe* Z, bool b)
-{
-    stack_push(Z->stack, (ZValue){ .type=BOOLEAN, .boolean=b });
-}
-
-
-void
-zoe_pushnumber(Zoe* Z, double n)
-{
-    stack_push(Z->stack, (ZValue){ .type=NUMBER, .number=n });
-}
-
-
-void
-zoe_pushfunction(Zoe* Z, ZFunction f)
-{
-    stack_push(Z->stack, (ZValue){ .type=FUNCTION, .function=f });
-}
-
-
-void
-zoe_pushstring(Zoe* Z, char* s)
-{
-    stack_push(Z->stack, (ZValue){ .type=STRING, .string=strdup(s) });
-}
-
-
-void
-zoe_pop(Zoe* Z, int count)
-{
-    for(int i=0; i<count; ++i) {
-        stack_popfree(Z->stack);
-    }
-}
-
-
-ZType
-zoe_peektype(Zoe* Z)
-{
-    return stack_peek(Z->stack, -1).type;
-}
-
-
-ZType
-zoe_gettype(Zoe* Z, int n)
-{
-    return stack_peek(Z->stack, n).type;
-}
-
-
-static ZValue
-zoe_checktype(Zoe* Z, ZType type_expected, int i)
-{
-    ZValue value = stack_peek(Z->stack, i);
-    if(value.type != type_expected) {
-        zoe_error(Z, "Expected %s, found %s\n", zoe_typename(type_expected), zoe_typename(value.type));
-    }
-    return value;
-}
-
-
-void
-zoe_peeknil(Zoe* Z)
-{
-    zoe_checktype(Z, NIL, -1);
-}
-
-
-bool
-zoe_peekboolean(Zoe* Z)
-{
-    return zoe_checktype(Z, BOOLEAN, -1).boolean;
-}
-
-
-double
-zoe_peeknumber(Zoe* Z)
-{
-    return zoe_checktype(Z, NUMBER, -1).number;
-}
-
-
-ZFunction
-zoe_peekfunction(Zoe* Z)
-{
-    return zoe_checktype(Z, FUNCTION, -1).function;
-}
-
-
-const char*
-zoe_peekstring(Zoe* Z)
-{
-    return zoe_checktype(Z, STRING, -1).string;
-}
-
-
-void
-zoe_getnil(Zoe* Z, int i)
-{
-    zoe_checktype(Z, NIL, i);
-}
-
-
-bool
-zoe_getboolean(Zoe* Z, int i)
-{
-    return zoe_checktype(Z, BOOLEAN, i).boolean;
-}
-
-
-double
-zoe_getnumber(Zoe* Z, int i)
-{
-    return zoe_checktype(Z, NUMBER, i).number;
-}
-
-
-ZFunction
-zoe_getfunction(Zoe* Z, int i)
-{
-    return zoe_checktype(Z, FUNCTION, i).function;
-}
-
-
-const char*
-zoe_getstring(Zoe* Z, int i)
-{
-    return zoe_checktype(Z, STRING, i).string;
-}
-
-
-void
-zoe_popnil(Zoe* Z)
-{
-    zoe_checktype(Z, NIL, -1);
-    stack_pop(Z->stack);
-}
-
-
-bool
-zoe_popboolean(Zoe* Z)
-{
-    bool b = zoe_checktype(Z, BOOLEAN, -1).boolean;
-    stack_pop(Z->stack);
-    return b;
-}
-
-
-double
-zoe_popnumber(Zoe* Z)
-{
-    double n = zoe_checktype(Z, NUMBER, -1).number;
-    stack_pop(Z->stack);
-    return n;
-}
-
-
-ZFunction
-zoe_popfunction(Zoe* Z)
-{
-    ZFunction f = zoe_checktype(Z, FUNCTION, -1).function;
-    stack_pop(Z->stack);
-    return f;
-}
-
-
-char*
-zoe_popstring(Zoe* Z)
-{
-    char* s = zoe_checktype(Z, STRING, -1).string;
-    stack_pop(Z->stack);
-    return s;
-}
-
-// }}}
-
 // {{{ ARRAY MANAGEMENT
 
 void zoe_pusharray(Zoe* Z)
@@ -505,7 +336,6 @@ char* zoe_typename(ZType type)
 
 // }}}
 
-/*
 // {{{ CODE EXECUTION
 
 // {{{ OPERATIONS
@@ -517,11 +347,13 @@ void zoe_len(Zoe* Z)
         char* str = zoe_popstring(Z);
         zoe_pushnumber(Z, strlen(str));
         free(str);
+    /*
     } else if(t == ARRAY) {
         ZArray *array = &stack_peek_ptr(Z->stack, -1)->array;
         int n = array->n;
         zoe_pop(Z, 1);
         zoe_pushnumber(Z, n);
+    */
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
     }
@@ -539,6 +371,7 @@ void zoe_lookup(Zoe* Z)
         // TODO - raise error if number is higher than the number of characters in the string
         zoe_pushstring(Z, (char[]) { str[k], 0 });
         free(str);
+        /*
     } else if(t == ARRAY) {
         // here, we free everything except the item looked up, which is inserted back
         // in the array again
@@ -553,26 +386,28 @@ void zoe_lookup(Zoe* Z)
         stack_pop(Z->stack);
         stack_push(Z->stack, array.items[k]);
         free(array.items);
+        */
     } else {
         zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
     }
 }
 
 
-static bool zoe_eq(Zoe* Z, ZValue a, ZValue b)
+static bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
 {
-    if(a.type != b.type) {
+    if(a->type != b->type) {
         return false;
     } else {
-        switch(a.type) {
+        switch(a->type) {
             case NIL:
                 return true;
             case BOOLEAN:
-                return a.boolean == b.boolean;
+                return a->boolean == b->boolean;
             case NUMBER:
-                return fabs(a.number - b.number) < DBL_EPSILON;
+                return fabs(a->number - b->number) < DBL_EPSILON;
             case STRING:
-                return strcmp(a.string, b.string) == 0;
+                return strcmp(a->string, b->string) == 0;
+            /*
             case ARRAY:
                 if(a.array.n != b.array.n) {
                     return false;
@@ -583,12 +418,12 @@ static bool zoe_eq(Zoe* Z, ZValue a, ZValue b)
                     }
                 }
                 return true;
+            */
             case FUNCTION:
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
-            case INVALID:
             default:
-                zoe_error(Z, "equality does not exists for type %s", zoe_typename(a.type));
+                zoe_error(Z, "equality does not exists for type %s", zoe_typename(a->type));
                 return false;
         }
     }
@@ -611,8 +446,8 @@ void zoe_oper(Zoe* Z, Operator oper)
             zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
         }
     } else if(oper == ZOE_EQ) {
-        ZValue b = stack_peek(Z->stack, -1),
-               a = stack_peek(Z->stack, -2);
+        ZValue *b = zoe_stack_get(Z->stack, -1),
+               *a = zoe_stack_get(Z->stack, -2);
         bool r = zoe_eq(Z, a, b);
         zoe_pop(Z, 2);
         zoe_pushboolean(Z, r);
@@ -669,18 +504,13 @@ void zoe_eval(Zoe* Z, const char* code)
     uint8_t* buffer;
     size_t sz = bytecode_generatezb(bc, &buffer);
 
+    // we do all this so we won't have to copy the buffer
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = FUNCTION;
+    value->function.bytecode.data = buffer;
+    value->function.bytecode.sz = sz;
+
     bytecode_free(bc);
-
-    ZFunction f = {
-        .type = BYTECODE,
-        .n_args = 0,
-        .bfunction = {
-            .bytecode = buffer,
-            .sz = sz,
-        },
-    };
-
-    zoe_pushfunction(Z, f);
 }
 
 
@@ -747,6 +577,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             case LEN:  zoe_len(Z);            ++p; break;
             case LOOKUP: zoe_lookup(Z);       ++p; break;
 
+            /*
             //
             // branches
             //
@@ -777,7 +608,8 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
             //
             case PUSHARY: zoe_pusharray(Z); ++p; break;
             case APPEND:  zoe_arrayappend(Z); ++p; break;
-
+            */
+            
             //
             // others
             //
@@ -798,35 +630,33 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 
 void zoe_call(Zoe* Z, int n_args)
 {
+    // TODO - this whole function needs to be reviewed
+
     STPOS initial = zoe_stacksize(Z);
 
     // load function
-    ZFunction f = zoe_popfunction(Z);
-    if(f.type != BYTECODE) {
-        zoe_error(Z, "Can only execute code in ZB format.");
+    ZValue* value = zoe_stack_get(Z, -1);
+    if(value->type != FUNCTION) {
+        zoe_error(Z, "Expected function, found '%s'.\n", zoe_typename(value->type));
     }
-    if(f.n_args != n_args) {
-        zoe_error(Z, "Wrong number of arguments: expected %d, found %d.", f.n_args, n_args);
+
+    ZFunction* f = &value->function;
+    if(f->type != BYTECODE) {
+        zoe_error(Z, "Can only execute code in ZB format.");
     }
 
     // execute
-    zoe_execute(Z, f.bfunction.bytecode, f.bfunction.sz);
-
-    // free
-    if(f.type == BYTECODE) {
-        free(f.bfunction.bytecode);
-    }
+    zoe_execute(Z, f->bytecode.data, f->bytecode.sz);
 
     // verify if the stack has now is the same size as the beginning
     // (-1 function +1 return argument)
-    if(zoe_stacksize(Z) != initial) {
+    if(zoe_stacksize(Z) != initial + 1) {
         zoe_error(Z, "Function should have returned exaclty one argument.");
     }
 
-    // remove arguments from stack
-    // TODO
+    // free
+    zoe_stack_remove(Z, -2);
 }
-
 
 // }}}
 
@@ -982,12 +812,18 @@ void zoe_disassemble(Zoe* Z)
 {
     char* buf = NULL;
 
-    ZFunction f = zoe_peekfunction(Z);
-    if(f.type != BYTECODE) {
-        zoe_error(Z, "Only bytecode functions can be disassembled.");
+    // load function
+    ZValue* value = zoe_stack_get(Z, -1);
+    if(value->type != FUNCTION) {
+        zoe_error(Z, "Expected function, found '%s'.\n", zoe_typename(value->type));
     }
 
-    Bytecode* bc = bytecode_newfromzb(f.bfunction.bytecode, f.bfunction.sz, Z->errorf);
+    ZFunction* f = &value->function;
+    if(f->type != BYTECODE) {
+        zoe_error(Z, "Can only execute code in ZB format.");
+    }
+
+    Bytecode* bc = bytecode_newfromzb(f->bytecode.data, f->bytecode.sz, Z->errorf);
     uint64_t p = 0;
 
     while(p < bc->code_sz) {
@@ -1061,19 +897,17 @@ static void zoe_dbgstack(Zoe* Z)
 // {{{ INSPECTION
 
 
-static char* zvalue_inspect(Zoe* Z, ZValue value)
+static char* zvalue_inspect(Zoe* Z, ZValue* value)
 {
-    switch(value.type) {
-        case INVALID:
-            return strdup("invalid");
+    switch(value->type) {
         case NIL:
             return strdup("nil");
         case BOOLEAN: {
-                return strdup(value.boolean ? "true" : "false");
+                return strdup(value->boolean ? "true" : "false");
             }
         case NUMBER: {
                 char* buf = calloc(128, 1);
-                snprintf(buf, 127, "%0.14f", value.number);
+                snprintf(buf, 127, "%0.14f", value->number);
                 // remove zeroes at the and
                 int lg;
                 while(lg = strlen(buf)-1, (buf[lg] == '0' || buf[lg] == '.') && lg > 0) {
@@ -1084,9 +918,10 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
         case FUNCTION:
             return strdup("function");
         case STRING: {
-                char* buf = zoe_escapestring(value.string);
+                char* buf = zoe_escapestring(value->string);
                 return buf;
             }
+        /*
         case ARRAY: {
                 char* buf = strdup("[");
                 for(size_t i=0; i<value.array.n; ++i) {
@@ -1103,17 +938,18 @@ static char* zvalue_inspect(Zoe* Z, ZValue value)
                 strcat(buf, "]");
                 return buf;
             }
+        */
         default: {
-            zoe_error(Z, "Invalid type (code %d) in the stack.", value.type);
+            zoe_error(Z, "Invalid type (code %d) in the stack.", value->type);
             return NULL;
         }
     }
 }
 
 
-void zoe_inspect(Zoe* Z, int i)
+void zoe_inspect(Zoe* Z, STPOS i)
 {
-    char *buf = zvalue_inspect(Z, stack_peek(Z->stack, i));
+    char *buf = zvalue_inspect(Z, zoe_stack_get(Z, i));
     zoe_pushstring(Z, buf);
     free(buf);
 }
@@ -1121,6 +957,5 @@ void zoe_inspect(Zoe* Z, int i)
 // }}}
 
 // }}}
-*/
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

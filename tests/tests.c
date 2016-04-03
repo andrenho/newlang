@@ -23,7 +23,6 @@
     if (message) return message; } while (0)
 extern int tests_run;
 
-/*
 static double number_expr(char* expr)
 {
     Zoe* Z = zoe_createvm(NULL);
@@ -80,7 +79,6 @@ static char* inspect_expr(char* expr)
 #define mu_assert_bexpr(expr, r) mu_assert(expr, boolean_expr(expr) == r);
 #define mu_assert_sexpr(expr, r) { char* s = string_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
 #define mu_assert_inspect(expr, r) { char* s = inspect_expr(expr); mu_assert(expr, strcmp(s, r) == 0); free(s); }
-*/
 
 static void my_error(const char* str)
 {
@@ -319,7 +317,6 @@ static char* test_zoe_string(void)
 
 // }}}
 
-#if 0
 // {{{ ZOE EXECUTION
 
 static char* test_execution(void) 
@@ -417,6 +414,7 @@ static char* test_shortcircuit_expressions(void)
 
 // }}}
 
+#if 0
 // {{{ ZOE STRINGS
 
 static char* test_strings(void)
@@ -535,11 +533,11 @@ static char* all_tests(void)
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
     mu_run_test(test_zoe_string);
-    /*
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
     mu_run_test(test_math_expressions);
     mu_run_test(test_shortcircuit_expressions);
+    /*
     mu_run_test(test_strings);
     mu_run_test(test_comments);
     mu_run_test(test_array);
