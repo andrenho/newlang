@@ -1,5 +1,6 @@
 #include "lib/zoe.h"
 
+#include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <inttypes.h>
@@ -140,7 +141,9 @@ zoe_stacksize(Zoe* Z)
 STPOS
 zoe_stackabs(Zoe* Z, STPOS pos)
 {
-    return (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
+    STPOS i = (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
+    assert(i >= 0);
+    return i;
 }
 
 void

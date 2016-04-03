@@ -10,14 +10,12 @@
 
 void repl_execute(Options* opt)
 {
-    /*
     Zoe* Z = zoe_createvm(NULL);
 #ifdef DEBUG
     if(opt->debug_asm) {
         zoe_asmdebugger(Z, true);
     }
 #endif
-    */
 
     char* buf;
     
@@ -36,7 +34,6 @@ void repl_execute(Options* opt)
         }
         add_history(buf);
 
-        /*
         // run code
         zoe_eval(Z, buf);
 #ifdef DEBUG
@@ -59,7 +56,6 @@ void repl_execute(Options* opt)
 
         // pop the result
         zoe_pop(Z, 1);
-        */
 
         free(buf);
     }
@@ -74,9 +70,7 @@ void repl_execute(Options* opt)
         }
     }
 
-    /*
     zoe_free(Z);
-    */
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c
