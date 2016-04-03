@@ -25,30 +25,27 @@ STPOS       zoe_stacksize(Zoe* Z);
 void        zoe_pushnil(Zoe* Z);
 void        zoe_pushboolean(Zoe* Z, bool b);
 void        zoe_pushnumber(Zoe* Z, double n);
-//void        zoe_pushfunction(Zoe* Z, ZFunction f);
+void        zoe_pushbfunction(Zoe* Z, uint8_t* data, size_t sz);
 void        zoe_pushstring(Zoe* Z, char* s);
 
-void        zoe_pop(Zoe* Z, int count);
+void        zoe_pop(Zoe* Z, size_t count);
 
 ZType       zoe_gettype(Zoe* Z, STPOS n);
 void        zoe_getnil(Zoe* Z, STPOS i);
 bool        zoe_getboolean(Zoe* Z, STPOS i);
 double      zoe_getnumber(Zoe* Z, STPOS i);
-//ZFunction   zoe_getfunction(Zoe* Z, int i);
-char const* zoe_getstring(Zoe* Z, STPOS i);
+char const* zoe_getstring(Zoe* Z, STPOS i);    // DO NOT FREE the result
 
 void        zoe_popnil(Zoe* Z);
 bool        zoe_popboolean(Zoe* Z);
 double      zoe_popnumber(Zoe* Z);
-//ZFunction   zoe_popfunction(Zoe* Z);
-char*       zoe_popstring(Zoe* Z);
+char*       zoe_popstring(Zoe* Z);             // FREE the result
 
-inline ZType       zoe_peektype(Zoe* Z) { return zoe_gettype(Z, -1); }
-inline void        zoe_peeknil(Zoe* Z) { zoe_getnil(Z, -1); }
-inline bool        zoe_peekboolean(Zoe* Z) { return zoe_getboolean(Z, -1); }
-inline double      zoe_peeknumber(Zoe* Z) { return zoe_getnumber(Z, -1); }
-inline char const* zoe_peekstring(Zoe* Z) { return zoe_getstring(Z, -1); }
-//ZFunction   zoe_peekfunction(Zoe* Z);
+ZType       zoe_peektype(Zoe* Z);
+void        zoe_peeknil(Zoe* Z);
+bool        zoe_peekboolean(Zoe* Z);
+double      zoe_peeknumber(Zoe* Z);
+char const* zoe_peekstring(Zoe* Z);
 
 /*
 //
@@ -67,9 +64,9 @@ void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 // INFORMATION
 //
 STPOS zoe_stackabs(Zoe* Z, STPOS pos);
-/*
 char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 
+/*
 //
 // CODE EXECUTION
 //

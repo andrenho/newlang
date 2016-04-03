@@ -260,7 +260,6 @@ static char* test_stack(void)
 
 // }}}
 
-#if 0
 // {{{ HIGH-LEVEL STACK
 
 static char* test_zoe_stack(void) 
@@ -320,6 +319,7 @@ static char* test_zoe_string(void)
 
 // }}}
 
+#if 0
 // {{{ ZOE EXECUTION
 
 static char* test_execution(void) 
@@ -532,10 +532,10 @@ static char* all_tests(void)
     mu_run_test(test_bytecode_simplecode);
     mu_run_test(test_world);
     mu_run_test(test_stack);
-    /*
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
     mu_run_test(test_zoe_string);
+    /*
     mu_run_test(test_execution);
     mu_run_test(test_inspect);
     mu_run_test(test_math_expressions);

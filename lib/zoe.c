@@ -126,6 +126,132 @@ zoe_stackabs(Zoe* Z, STPOS pos)
     return (pos >= 0) ? pos : zoe_stacksize(Z) + pos;
 }
 
+void
+zoe_pushnil(Zoe* Z)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = NIL;
+}
+
+void
+zoe_pushboolean(Zoe* Z, bool b)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = BOOLEAN;
+    value->boolean = b;
+}
+
+void
+zoe_pushnumber(Zoe* Z, double n)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = NUMBER;
+    value->number = n;
+}
+
+void
+zoe_pushbfunction(Zoe* Z, uint8_t* data, size_t sz)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = FUNCTION;
+    value->function.type = BYTECODE;
+    value->function.bytecode.data = malloc(sz);
+    memcpy(value->function.bytecode.data, data, sz);
+    value->function.bytecode.sz = sz;
+}
+
+void
+zoe_pushstring(Zoe* Z, char* s)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = STRING;
+    value->string = strdup(s);
+}
+
+void
+zoe_pop(Zoe* Z, size_t count)
+{
+    for(size_t i=0; i<count; ++i) {
+        zoe_stack_pop(Z);
+    }
+}
+
+ZType
+zoe_gettype(Zoe* Z, STPOS n)
+{
+    return zoe_stack_get(Z, n)->type;
+}
+
+static ZValue* zoe_checktype(Zoe* Z, STPOS n, ZType type) 
+{
+    ZValue* value = zoe_stack_get(Z, n);
+    if(value->type != type) {
+        zoe_error(Z, "Expected type '%s', found '%s'.", zoe_typename(type), zoe_typename(value->type));
+    }
+    return value;
+}
+
+void
+zoe_getnil(Zoe* Z, STPOS i)
+{
+    zoe_checktype(Z, i, NIL);
+}
+
+bool
+zoe_getboolean(Zoe* Z, STPOS i)
+{
+    return zoe_checktype(Z, i, BOOLEAN)->boolean;
+}
+
+double
+zoe_getnumber(Zoe* Z, STPOS i)
+{
+    return zoe_checktype(Z, i, NUMBER)->number;
+}
+
+char const*
+zoe_getstring(Zoe* Z, STPOS i)
+{
+    return zoe_checktype(Z, i, STRING)->string;
+}
+
+void
+zoe_popnil(Zoe* Z)
+{
+    zoe_checktype(Z, -1, NIL);
+    zoe_stack_pop(Z);
+}
+
+bool
+zoe_popboolean(Zoe* Z)
+{
+    bool r = zoe_checktype(Z, -1, BOOLEAN)->boolean;
+    zoe_stack_pop(Z);
+    return r;
+}
+
+double
+zoe_popnumber(Zoe* Z)
+{
+    double r = zoe_checktype(Z, -1, NUMBER)->number;
+    zoe_stack_pop(Z);
+    return r;
+}
+
+char*
+zoe_popstring(Zoe* Z)
+{
+    const char* r = strdup(zoe_checktype(Z, -1, STRING)->string);
+    zoe_stack_pop(Z);
+    return r;
+}
+
+inline ZType       zoe_peektype(Zoe* Z)    { return zoe_gettype(Z, -1); }
+inline void        zoe_peeknil(Zoe* Z)     { zoe_getnil(Z, -1); }
+inline bool        zoe_peekboolean(Zoe* Z) { return zoe_getboolean(Z, -1); }
+inline double      zoe_peeknumber(Zoe* Z)  { return zoe_getnumber(Z, -1); }
+inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
+
 // }}}
 
 /*
@@ -362,13 +488,11 @@ void zoe_error(Zoe* Z, char* fmt, ...)
 
 // }}}
 
-/*
 // {{{ INFORMATION
 
 char* zoe_typename(ZType type)
 {
     switch(type) {
-        case INVALID:  return "invalid";
         case NIL:      return "nil";
         case BOOLEAN:  return "boolean";
         case NUMBER:   return "number";
@@ -381,6 +505,7 @@ char* zoe_typename(ZType type)
 
 // }}}
 
+/*
 // {{{ CODE EXECUTION
 
 // {{{ OPERATIONS

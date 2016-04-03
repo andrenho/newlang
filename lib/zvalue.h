@@ -1,15 +1,34 @@
 #ifndef LIB_ZVALUE_H_
 #define LIB_ZVALUE_H_
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-typedef enum ZType { NIL, NUMBER } ZType;
+typedef enum ZType { NIL, BOOLEAN, NUMBER, STRING, FUNCTION, ARRAY } ZType;
+
+typedef enum ZFunctionType { BYTECODE } ZFunctionType;
+
+typedef struct ZFunctionBytecode {
+    uint8_t* data;
+    size_t   sz;
+} ZFunctionBytecode;
+
+typedef struct ZFunction {
+    ZFunctionType type;
+    union {
+        ZFunctionBytecode bytecode;
+    };
+} ZFunction;
 
 typedef struct ZValue {
     ZType   type;
     ssize_t ref_count;
     union {
-        double number;
+        bool      boolean;
+        double    number;
+        char*     string;
+        ZFunction function;
     };
 } ZValue;
 
