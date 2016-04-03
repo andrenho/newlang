@@ -189,6 +189,14 @@ zoe_pushstring(Zoe* Z, char* s)
     value->string = strdup(s);
 }
 
+void zoe_pusharray(Zoe* Z)
+{
+    ZValue* value = zoe_stack_pushnew(Z);
+    value->type = ARRAY;
+    value->array.n = 0;
+    value->array.items = NULL;
+}
+
 void
 zoe_pop(Zoe* Z, size_t count)
 {
@@ -275,19 +283,12 @@ inline char const* zoe_peekstring(Zoe* Z)  { return zoe_getstring(Z, -1); }
 
 // }}}
 
-/*
 // {{{ ARRAY MANAGEMENT
-
-void zoe_pusharray(Zoe* Z)
-{
-    stack_push(Z->stack, (ZValue){ .type=ARRAY, .array={ .n=0, .items=NULL }});
-}
-
 
 void zoe_arrayappend(Zoe* Z)
 {
     // get array
-    ZValue* varray = stack_peek_ptr(Z->stack, -2);
+    ZValue* varray = zoe_stack_get(Z, -2);
     if(varray->type != ARRAY) {
         zoe_error(Z, "Only arrays can be appended.");
         return;
@@ -295,17 +296,17 @@ void zoe_arrayappend(Zoe* Z)
     ZArray* array = &varray->array;
 
     // add item to array
-    ZValue value = stack_peek(Z->stack, -1);
+    ZValue* value = zoe_stack_get(Z, -1);
     ++array->n;
-    array->items = realloc(array->items, array->n * sizeof(ZValue));
+    array->items = realloc(array->items, array->n * sizeof(ZValue*));
     array->items[array->n-1] = value;
+    zworld_inc(Z->world, value);
 
-    // pop item out without freeing it
-    stack_pop(Z->stack);
+    // pop item from stack
+    zoe_pop(Z, 1);
 }
 
 // }}}
-*/
 
 // {{{ ERROR MANAGEMENT
 
@@ -411,18 +412,16 @@ static bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
                 return fabs(a->number - b->number) < DBL_EPSILON;
             case STRING:
                 return strcmp(a->string, b->string) == 0;
-            /*
             case ARRAY:
-                if(a.array.n != b.array.n) {
+                if(a->array.n != b->array.n) {
                     return false;
                 }
-                for(size_t i=0; i<a.array.n; ++i) {
-                    if(!zoe_eq(Z, a.array.items[i], b.array.items[i])) {
+                for(size_t i=0; i<a->array.n; ++i) {
+                    if(!zoe_eq(Z, a->array.items[i], b->array.items[i])) {
                         return false;
                     }
                 }
                 return true;
-            */
             case FUNCTION:
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
@@ -606,13 +605,11 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
                 }
                 break;
 
-            /*
             //
             // array
             //
-            case PUSHARY: zoe_pusharray(Z); ++p; break;
+            case PUSHARY: zoe_pusharray(Z);   ++p; break;
             case APPEND:  zoe_arrayappend(Z); ++p; break;
-            */
             
             //
             // others
@@ -935,12 +932,11 @@ static char* zvalue_inspect(Zoe* Z, ZValue* value)
                 char* buf = zoe_escapestring(value->string);
                 return buf;
             }
-        /*
         case ARRAY: {
                 char* buf = strdup("[");
-                for(size_t i=0; i<value.array.n; ++i) {
-                    bool last = (i == (value.array.n-1));
-                    char* nbuf = zvalue_inspect(Z, value.array.items[i]);
+                for(size_t i=0; i<value->array.n; ++i) {
+                    bool last = (i == (value->array.n-1));
+                    char* nbuf = zvalue_inspect(Z, value->array.items[i]);
                     buf = realloc(buf, strlen(buf) + strlen(nbuf) + (last ? 1 : 3));
                     strcat(buf, nbuf);
                     if(!last) {
@@ -952,7 +948,6 @@ static char* zvalue_inspect(Zoe* Z, ZValue* value)
                 strcat(buf, "]");
                 return buf;
             }
-        */
         default: {
             zoe_error(Z, "Invalid type (code %d) in the stack.", value->type);
             return NULL;

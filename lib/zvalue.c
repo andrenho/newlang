@@ -50,6 +50,9 @@ void zvalue_children(ZValue* value, ZValue** children)
         case FUNCTION:
             *children = NULL;
             break;
+        case ARRAY:  // TODO
+            *children = NULL;
+            break;
     }
 }
 

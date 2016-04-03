@@ -456,7 +456,6 @@ static char* test_comments(void)
 
 // }}}
 
-#if 0
 // {{{ ZOE ARRAYS
 
 static char* test_array(void)
@@ -521,7 +520,6 @@ static char* test_array_operators(void)
 }
 
 // }}}
-#endif
 
 static char* all_tests(void)
 {
@@ -539,8 +537,8 @@ static char* all_tests(void)
     mu_run_test(test_shortcircuit_expressions);
     mu_run_test(test_strings);
     mu_run_test(test_comments);
-    /*
     mu_run_test(test_array);
+    /*
     mu_run_test(test_array_equality);
     mu_run_test(test_array_access);
     mu_run_test(test_array_slices);

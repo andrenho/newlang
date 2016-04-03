@@ -5,7 +5,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// TYPES
 typedef enum ZType { NIL, BOOLEAN, NUMBER, STRING, FUNCTION, ARRAY } ZType;
+
+// TYPES SPECIFICATION
+typedef struct ZArray {
+    uint64_t n;
+    struct ZValue** items;
+} ZArray;
 
 typedef enum ZFunctionType { BYTECODE } ZFunctionType;
 
@@ -21,6 +28,7 @@ typedef struct ZFunction {
     };
 } ZFunction;
 
+// VALUES
 typedef struct ZValue {
     ZType   type;
     ssize_t ref_count;
@@ -29,6 +37,7 @@ typedef struct ZValue {
         double    number;
         char*     string;
         ZFunction function;
+        ZArray    array;
     };
 } ZValue;
 

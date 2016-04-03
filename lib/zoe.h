@@ -47,13 +47,11 @@ bool        zoe_peekboolean(Zoe* Z);
 double      zoe_peeknumber(Zoe* Z);
 char const* zoe_peekstring(Zoe* Z);
 
-/*
 //
 // ARRAY MANAGEMENT
 // 
 void zoe_pusharray(Zoe* Z);
 void zoe_arrayappend(Zoe* Z);
-*/
 
 //
 // ERROR MANAGEMENT
