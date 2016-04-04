@@ -150,7 +150,7 @@ zoe_stackabs(Zoe* Z, STPOS pos)
 void
 zoe_pushnil(Zoe* Z)
 {
-    ZValue* value = zoe_stack_pushnew(Z, NIL);
+    zoe_stack_pushnew(Z, NIL);
 }
 
 void
@@ -209,7 +209,7 @@ static ZValue* zoe_checktype(Zoe* Z, STPOS n, ZType type)
 {
     ZValue* value = zoe_stack_get(Z, n);
     if(value->type != type) {
-        zoe_error(Z, "Expected type '%s', found '%s'.", zoe_typename(type), zoe_typename(value->type));
+        zoe_error(Z, "Expected type '%s', found '%s'.", zvalue_typename(type), zvalue_typename(value->type));
     }
     return value;
 }
@@ -318,23 +318,6 @@ void zoe_error(Zoe* Z, char* fmt, ...)
 
 // }}}
 
-// {{{ INFORMATION
-
-char* zoe_typename(ZType type)
-{
-    switch(type) {
-        case NIL:      return "nil";
-        case BOOLEAN:  return "boolean";
-        case NUMBER:   return "number";
-        case FUNCTION: return "function";
-        case STRING:   return "string";
-        case ARRAY:    return "array";
-        default:       return "undefined (?)";
-    }
-}
-
-// }}}
-
 // {{{ CODE EXECUTION
 
 // {{{ OPERATIONS
@@ -354,7 +337,7 @@ void zoe_len(Zoe* Z)
         zoe_pushnumber(Z, n);
     */
     } else {
-        zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
+        zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }
 }
 
@@ -387,7 +370,7 @@ void zoe_lookup(Zoe* Z)
         free(array.items);
         */
     } else {
-        zoe_error(Z, "Expected string or array, found %s\n", zoe_typename(t));
+        zoe_error(Z, "Expected string or array, found %s\n", zvalue_typename(t));
     }
 }
 
@@ -420,7 +403,7 @@ static bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
             default:
-                zoe_error(Z, "equality does not exists for type %s", zoe_typename(a->type));
+                zoe_error(Z, "equality does not exists for type %s", zvalue_typename(a->type));
                 return false;
         }
     }
@@ -440,7 +423,7 @@ void zoe_oper(Zoe* Z, Operator oper)
         } else if(t == BOOLEAN) {
             zoe_pushboolean(Z, !zoe_popboolean(Z));
         } else {
-            zoe_error(Z, "Expected number or boolean, found %s\n", zoe_typename(t));
+            zoe_error(Z, "Expected number or boolean, found %s\n", zvalue_typename(t));
         }
     } else if(oper == ZOE_EQ) {
         ZValue *b = zoe_stack_get(Z, -1),
@@ -524,6 +507,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
 #ifdef DEBUG
         if(Z->debug_asm) {
             zoe_dbgopcode(bc->code, p);
+            printf("\n");
         }
 #endif
         Opcode op = bc->code[p];
@@ -613,7 +597,7 @@ static void zoe_execute(Zoe* Z, uint8_t* data, size_t sz)
         }
 #ifdef DEBUG
         if(Z->debug_asm) {
-            zoe_dbgstack(Z);
+            //zoe_dbgstack(Z);
         }
 #endif
     }
@@ -629,7 +613,7 @@ void zoe_call(Zoe* Z, int n_args)
     // load function
     ZValue* value = zoe_stack_get(Z, -1);
     if(value->type != FUNCTION) {
-        zoe_error(Z, "Expected function, found '%s'.\n", zoe_typename(value->type));
+        zoe_error(Z, "Expected function, found '%s'.\n", zvalue_typename(value->type));
     }
 
     ZFunction* f = &value->function;
@@ -816,7 +800,7 @@ void zoe_disassemble(Zoe* Z)
     // load function
     ZValue* value = zoe_stack_get(Z, -1);
     if(value->type != FUNCTION) {
-        zoe_error(Z, "Expected function, found '%s'.\n", zoe_typename(value->type));
+        zoe_error(Z, "Expected function, found '%s'.\n", zvalue_typename(value->type));
     }
 
     ZFunction* f = &value->function;
@@ -862,6 +846,12 @@ void zoe_disassemble(Zoe* Z)
 void zoe_asmdebugger(Zoe* Z, bool value)
 {
     Z->debug_asm = value;
+}
+
+
+void zoe_gcdebugger(Zoe* Z, bool value)
+{
+    zworld_gcdebugger(Z->world, value);
 }
 
 

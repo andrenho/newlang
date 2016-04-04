@@ -458,6 +458,7 @@ static char* test_array(void)
     mu_assert_inspect("[]", "[]");
     mu_assert_inspect("[2,3]", "[2, 3]");
     mu_assert_inspect("[2,3,]", "[2, 3]");
+    mu_assert_inspect("[[1]]", "[[1]]");
     mu_assert_inspect("[2, 3, []]", "[2, 3, []]");
     mu_assert_inspect("[2, 3, ['abc', true, [nil]]]", "[2, 3, ['abc', true, [nil]]]");
 

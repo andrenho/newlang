@@ -22,7 +22,7 @@ options_parse(int argc, char* argv[])
             { "debug-asm",        no_argument, NULL, 'A' },
             { "debug-bison",      no_argument, NULL, 'B' },
             { "repl-disassemble", no_argument, NULL, 'D' },
-            { "debug-flex",       no_argument, NULL, 'F' },
+            { "debug-gc",         no_argument, NULL, 'G' },
 #endif
             { "help",             no_argument, NULL, 'h' },
             { "version",          no_argument, NULL, 'v' },
@@ -32,7 +32,7 @@ options_parse(int argc, char* argv[])
         int opt_idx = 0;
         static const char* opts = "hv"
 #ifdef DEBUG
-            "ABDF"
+            "ABDG"
 #endif
         ;
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
@@ -43,11 +43,11 @@ options_parse(int argc, char* argv[])
             case 'B':
                 yydebug = 1;
                 break;
-            case 'F':
-                // yy_flex_debug = 1; TODO
-                break;
             case 'D':
                 opt->repl_options.disassemble = true;
+                break;
+            case 'G':
+                opt->debug_gc = true;
                 break;
 #endif
 
@@ -97,7 +97,7 @@ options_printhelp(FILE* f, int exit_status)
     fprintf(f, "   -A, --debug-asm           debug ASM code being debugger\n");
     fprintf(f, "   -B, --debug-bison         activate BISON debugger\n");
     fprintf(f, "   -D, --repl-disassemble    disassemble when using REPL\n");
-    fprintf(f, "   -F, --debug-flex          activate FLEX debugger\n");
+    fprintf(f, "   -G, --debug-gc            activate GC debugger\n");
 #endif
     fprintf(f, "   -h, --help                display this help and exit\n");
     fprintf(f, "   -v, --version             show version and exit\n");

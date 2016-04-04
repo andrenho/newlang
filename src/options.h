@@ -16,6 +16,7 @@ typedef struct {
     REPL_Options  repl_options;
 #ifdef DEBUG
     bool          debug_asm;
+    bool          debug_gc;
 #endif
 } Options;
 

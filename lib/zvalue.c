@@ -46,4 +46,21 @@ void zvalue_decref(ZValue* value)
 
 // }}}
 
+// {{{ INFORMATION
+
+char* zvalue_typename(ZType type)
+{
+    switch(type) {
+        case NIL:      return "nil";
+        case BOOLEAN:  return "boolean";
+        case NUMBER:   return "number";
+        case FUNCTION: return "function";
+        case STRING:   return "string";
+        case ARRAY:    return "array";
+        default:       return "undefined (?)";
+    }
+}
+
+// }}}
+
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

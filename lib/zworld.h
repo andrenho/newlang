@@ -22,6 +22,11 @@ void zworld_gc(ZWorld* w, ZValue* value);
 // INFORMATION
 size_t zworld_ref_count(ZWorld* w);
 
+// DEBUGGING
+#ifdef DEBUG
+void zworld_gcdebugger(ZWorld* w, bool value);
+#endif
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c

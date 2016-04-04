@@ -62,7 +62,6 @@ void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 // INFORMATION
 //
 STPOS zoe_stackabs(Zoe* Z, STPOS pos);
-char* zoe_typename(ZType type);  // DO NOT FREE the returning string
 
 //
 // CODE EXECUTION
@@ -86,6 +85,7 @@ void zoe_inspect(Zoe* Z, STPOS i);
 #ifdef DEBUG
 void zoe_disassemble(Zoe* Z);
 void zoe_asmdebugger(Zoe* Z, bool value);
+void zoe_gcdebugger(Zoe* Z, bool value);
 #endif
 
 #endif

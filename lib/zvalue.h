@@ -48,6 +48,9 @@ void zvalue_free_structure(ZValue* value);
 void zvalue_incref(ZValue* value);
 void zvalue_decref(ZValue* value);
 
+// INFORMATION
+char* zvalue_typename(ZType type);  // DO NOT FREE the returning string
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c
