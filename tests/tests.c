@@ -376,6 +376,8 @@ static char* test_math_expressions(void)
     mu_assert_bexpr("2 < 3", true);
     mu_assert_bexpr("2 == 3", false);
     mu_assert_bexpr("2 != 3", true);
+    mu_assert_bexpr("?3", false);
+    mu_assert_bexpr("?nil", true);
 
     return 0;
 }

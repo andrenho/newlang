@@ -62,6 +62,7 @@ typedef struct String {
 %left       CONCAT
 %precedence _NOT
 %precedence _NEG
+%precedence ISNIL
 %precedence '['
 
 %error-verbose
@@ -111,7 +112,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '-' exp %prec _NEG { bytecode_addcode(b, NEG);  }
    | exp '[' exp ']'    { bytecode_addcode(b, LOOKUP);  }
 /* | exp '[' lookup_pos ']'    { bytecode_addcode(b, LOOKUP);  } */
-   | exp %prec ISNIL '?' { bytecode_addcode(b, NEG); }
+   | '?' exp %prec ISNIL { bytecode_addcode(b, PUSH_Nil); bytecode_addcode(b, EQ); }
    | '(' exp ')'
    ;
 
