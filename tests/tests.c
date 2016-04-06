@@ -234,8 +234,8 @@ static char* test_stack(void)
 
     ZValue* value = zoe_stack_pushnew(Z, NIL);
     mu_assert("stack size == 1 (after push)", zoe_stacksize(Z) == 1);
-    mu_assert("stack abs 0 = 0", zoe_stackabs(Z, 0) == 0);
-    mu_assert("stack abs -1 = 0", zoe_stackabs(Z, -1) == 0);
+    mu_assert("stack abs 0 = 0", zoe_absindex(Z, 0) == 0);
+    mu_assert("stack abs -1 = 0", zoe_absindex(Z, -1) == 0);
 
     mu_assert("push & peek", zoe_stack_get(Z, -1)->type == NIL);
 
@@ -534,9 +534,9 @@ static char* all_tests(void)
     mu_run_test(test_strings);
     mu_run_test(test_comments);
     mu_run_test(test_array);
-    /*
     mu_run_test(test_array_equality);
     mu_run_test(test_array_access);
+    /*
     mu_run_test(test_array_slices);
     mu_run_test(test_array_operators);
     */

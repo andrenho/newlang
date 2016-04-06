@@ -61,7 +61,7 @@ void zoe_error(Zoe* Z, char* fmt, ...) __attribute__ ((format (printf, 2, 3)));
 //
 // INFORMATION
 //
-STPOS zoe_stackabs(Zoe* Z, STPOS pos);
+STPOS zoe_absindex(Zoe* Z, STPOS pos);
 
 //
 // CODE EXECUTION
