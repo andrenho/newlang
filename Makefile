@@ -156,7 +156,7 @@ dist: distclean
 # TESTS
 #
 
-cloc:
+cloc: maintainer-clean
 	cloc --exclude-dir=old .
 
 runtests: ${OBJ_LIB} ${OBJ_TST}
