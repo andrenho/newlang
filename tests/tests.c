@@ -617,7 +617,7 @@ static char* test_hash_stress(void)
 
 // }}}
 
-// {{{
+// {{{ TABLES
 
 static char* test_table(void)
 {
@@ -626,7 +626,7 @@ static char* test_table(void)
     mu_assert_inspect("{hello: 'world',}", "{hello: 'world'}");
     mu_assert_inspect("{b: {a:1}}", "{b: {a: 1}}");
     mu_assert_inspect("{hello: []}", "{hello: []}");
-    mu_assert_inspect("{[2]: 3, abc: {d: {e: 42}}}", "{[2]: 3, abc: {d: {e: 42}}}"); 
+    mu_assert_inspect("{[2]: 3, abc: {d: 3}}", "{[2]: 3, abc: {d: 3}}"); 
 
     return 0;
 }
@@ -654,7 +654,7 @@ static char* test_table_equality(void)
     mu_assert_bexpr("{}=={}", true);
     mu_assert_bexpr("{hello: 'world'}=={hello: 'world'}", true);
     mu_assert_bexpr("{b: {a:1}}=={b: {a:1}}", true);
-    mu_assert_bexpr("{[2]: 3, abc: {d: {e: 42}}}=={[2]: 3, abc: {d: {e: 42}}}", true);
+    mu_assert_bexpr("{[2]: 3, abc: {d: {e: 42}} }=={[2]: 3, abc: {d: {e: 42} }}", true);
     mu_assert_bexpr("{}=={hello: 'world'}", false);
     mu_assert_bexpr("{hello: 'world'}=={}", false);
     mu_assert_bexpr("{b: {a:1}}=={b: 1}", false);

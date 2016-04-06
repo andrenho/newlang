@@ -596,15 +596,20 @@ void zoe_lookup(Zoe* Z)
 }
 
 
-struct Eq { Zoe* Z; Hash* h; bool* r; };
+struct Eq { Zoe* Z; Hash* other_hash; bool r; };
 static void table_eq(ZValue* key, ZValue* value, void* data)
 {
     struct Eq* eq = data;
-    ZValue* nvalue = hash_get(eq->h, key);
+
+    if(eq->r == false) {
+        return false;
+    }
+
+    ZValue* nvalue = hash_get(eq->other_hash, key);
     if(!nvalue) {
-        *(eq->r) = false;
+        eq->r = false;
     } else {
-        *(eq->r) = zoe_eq(eq->Z, value, nvalue);
+        eq->r = zoe_eq(eq->Z, value, nvalue);
     }
 }
 
@@ -637,9 +642,12 @@ bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
             case TABLE: {
-                    bool r;
-                    struct Eq eq = { Z, a->table, &r };
+                    struct Eq eq = { Z, b->table, true };
                     hash_iterate(a->table, table_eq, &eq);
+                    if(eq.r) {
+                        eq.other_hash = a->table;
+                        hash_iterate(b->table, table_eq, &eq);
+                    }
                     return eq.r;
                 }
             default:

@@ -165,6 +165,10 @@ hash_set(Hash* h, ZValue* key, ZValue* value)
 
 ZValue* hash_get(Hash* h, ZValue* key)
 {
+    if(h->n_buckets == 0) {
+        return NULL;
+    }
+
     // find key
     uint64_t k = zoe_hash_value(h->Z, key);
     uint64_t bk = k % h->n_buckets;
