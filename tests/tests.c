@@ -3,6 +3,7 @@
 
 #include "lib/bytecode.h"
 #include "lib/opcode.h"
+#include "lib/hash.h"
 #include "lib/zworld.h"
 #include "lib/zoe.h"
 
@@ -533,6 +534,42 @@ static char* test_array_operators(void)
 
 // }}}
 
+// {{{ HASHES
+
+static char* test_hash(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+    zoe_pushstring(Z, "hello");
+    zoe_pushstring(Z, "world");
+    zoe_pushnumber(Z, 13);
+    zoe_pushnumber(Z, 24);
+
+    Hash* h = hash_new(Z);
+
+    hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -2));  // hello = world
+    hash_set(h, zoe_stack_get(Z, -3), zoe_stack_get(Z, -4));  // 13 = 24
+    hash_set(h, zoe_stack_get(Z, -4), zoe_stack_get(Z, -2));  // 24 = world
+
+    mu_assert("fetch #1", hash_get(h, zoe_stack_get(Z, -1)) == zoe_stack_get(Z, -2));
+    mu_assert("fetch #2", hash_get(h, zoe_stack_get(Z, -3)) == zoe_stack_get(Z, -4));
+    mu_assert("fetch #3", hash_get(h, zoe_stack_get(Z, -4)) == zoe_stack_get(Z, -2));
+
+    error_found = false;
+    hash_get(h, zoe_stack_get(Z, -2));
+    mu_assert("fetch #4 - key error", error_found);
+
+    hash_del(h, zoe_stack_get(Z, -1));
+    error_found = false;
+    hash_get(h, zoe_stack_get(Z, -1));
+    mu_assert("fetch #5 - key error after delete", error_found);
+
+    hash_free(h);
+    zoe_free(Z);
+    return 0;
+}
+
+// }}}
+
 static char* all_tests(void)
 {
     mu_run_test(test_bytecode_gen);
@@ -555,6 +592,7 @@ static char* all_tests(void)
     mu_run_test(test_array_access);
     mu_run_test(test_array_slices);
     mu_run_test(test_array_operators);
+    mu_run_test(test_hash);
     return 0;
 }
 
