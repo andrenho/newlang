@@ -31,13 +31,13 @@ Next steps:
 Other:
  - tables (ok)
    - equality (ok)
-   - insert an existing record
-   - delete
+   - insert an existing record (ok)
 
 Other steps:
 
  - environments
  - assingment + scope
+   - delete record from table
  - garbage collection
  - control structures
  - regular expressions
