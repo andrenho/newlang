@@ -642,6 +642,8 @@ bool zoe_eq(Zoe* Z, ZValue* a, ZValue* b)
                 zoe_error(Z, "function comparison not implemented yet"); // TODO
                 abort();
             case TABLE: {
+                    // TODO - this comparison is slow because it doesn't stop
+                    // when a difference is found
                     struct Eq eq = { Z, b->table, true };
                     hash_iterate(a->table, table_eq, &eq);
                     if(eq.r) {

@@ -151,12 +151,28 @@ hash_set(Hash* h, ZValue* key, ZValue* value)
     if(!h->buckets[bk]) {
         h->buckets[bk] = new;
     } else {
-        ZValueLL* place = h->buckets[bk];
-        while(place->next) {
+        ZValueLL *place = h->buckets[bk],
+                 *prev = NULL;
+        while(place) {
+            // check if it needs to be replaced
+            if(zoe_eq(h->Z, key, place->key)) {
+                zoe_dec_ref(h->Z, place->key);
+                zoe_dec_ref(h->Z, place->value);
+                if(!prev) { 
+                    h->buckets[bk] = new; 
+                } else {
+                    prev->next = new;
+                }
+                new->next = place->next;
+                free(place);
+                goto done;
+            }
+            prev = place;
             place = place->next;
         }
-        place->next = new;
+        prev->next = new;
     }
+done:
 
     // increase usage
     ++h->n_items;

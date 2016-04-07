@@ -567,6 +567,23 @@ static char* test_hash(void)
     return 0;
 }
 
+static char* test_hash_update(void)
+{
+    Zoe* Z = zoe_createvm(NULL);
+    zoe_pushnumber(Z, 13);
+    zoe_pushnumber(Z, 24);
+
+    Hash* h = hash_new(Z);
+
+    hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -2));  // 24 = 13
+    hash_set(h, zoe_stack_get(Z, -1), zoe_stack_get(Z, -1));  // 24 = 24
+    mu_assert("verify updated", hash_get(h, zoe_stack_get(Z, -1)) == zoe_stack_get(Z, -1));
+    
+    hash_free(h);
+    zoe_free(Z);
+    return 0;
+}
+
 static char* test_hash_grow_shrink(void) 
 {
     Zoe* Z = zoe_createvm(NULL);
@@ -666,7 +683,6 @@ static char* test_table_equality(void)
 
 // }}}
 
-
 static char* all_tests(void)
 {
     mu_run_test(test_bytecode_gen);
@@ -690,6 +706,7 @@ static char* all_tests(void)
     mu_run_test(test_array_slices);
     mu_run_test(test_array_operators);
     mu_run_test(test_hash);
+    mu_run_test(test_hash_update);
     mu_run_test(test_hash_grow_shrink);
     mu_run_test(test_hash_stress);
     mu_run_test(test_table);
