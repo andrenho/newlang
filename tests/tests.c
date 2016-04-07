@@ -672,6 +672,7 @@ static char* test_table_equality(void)
     mu_assert_bexpr("{hello: 'world'}=={hello: 'world'}", true);
     mu_assert_bexpr("{b: {a:1}}=={b: {a:1}}", true);
     mu_assert_bexpr("{[2]: 3, abc: {d: {e: 42}} }=={[2]: 3, abc: {d: {e: 42} }}", true);
+    mu_assert_bexpr("{a: 1, b: 2} == {b: 2, a: 1}", true);
     mu_assert_bexpr("{}=={hello: 'world'}", false);
     mu_assert_bexpr("{hello: 'world'}=={}", false);
     mu_assert_bexpr("{b: {a:1}}=={b: 1}", false);
