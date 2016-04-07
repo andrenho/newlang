@@ -35,10 +35,10 @@ Other:
 
 Other steps:
 
- - environments
  - assingment + scope
    - delete record from table
- - garbage collection
+ - complex garbage collection
+ - environments
  - control structures
  - regular expressions
  - functions + closures + yields
