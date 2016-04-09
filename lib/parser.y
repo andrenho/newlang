@@ -50,8 +50,8 @@ typedef struct String {
 %token <_string> STRING
 %token <str>     IDENTIFIER
 %token NIL LET
-%token SEP
 
+%token SEP
 %precedence '='
 %precedence '?'
 %precedence ':'
@@ -79,19 +79,17 @@ typedef struct String {
 
 %%
 
-code: expressions      { bytecode_addcode(b, END); }
-    ;
-
-seps: seps SEP
+code: optsep exps optsep
     | SEP
     ;
 
-expressions: %empty
-           | expression
-           | expression seps expressions
-           ;
+optsep: %empty
+      | SEP
+      ;
 
-expression: { bytecode_addcode(b, POP); } exp;
+exps: exps SEP { bytecode_addcode(b, POP); } exp
+    | { bytecode_addcode(b, POP); } exp
+    ;
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
@@ -135,6 +133,8 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
                            bytecode_addcodestr(b, $3); free($3);
                            bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
+   | '{' { bytecode_addcode(b, PUSH_Nil); } code '}'
+   | '{' { bytecode_addcode(b, PUSH_Nil); } '}'
    ;
 
 // local variable assingment (TODO)

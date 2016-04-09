@@ -317,7 +317,7 @@ static char* test_math_expressions(void)
     mu_assert_nexpr("3 / 2", 1.5);
     mu_assert_nexpr("1 + 2 * 3", 7);
     mu_assert_nexpr("(1 + 2) * 3", 9);
-    mu_assert_nexpr("3 // 2", 1);
+    mu_assert_nexpr("3 %/ 2", 1);
     mu_assert_nexpr("3 % 2", 1);
     mu_assert_nexpr("-3 + 2", -1);
     mu_assert_nexpr("2 ** 3", 8);
@@ -668,19 +668,21 @@ static char* test_multiple_assignment(void)
 
 // }}}
 
+// {{{ SCOPES
+
 static char* test_scopes(void)
 {
     mu_assert_nexpr("{ 4 }", 4);
     mu_assert_nexpr("{ 4; 5 }", 5);
     mu_assert_nexpr("{ 4; 5; }", 5);
     mu_assert_nexpr("{ 4\n 5 }", 5);
-    mu_assert_nexpr("{ 4 { 5 } }", 5);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; } }", 5);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
     // mu_assert_nexpr("{ 4\n { 5; { 6; 7;; } } } 8", 8);
     //mu_assert_nexpr("{ 4 } 5", 5);
-    mu_assert_nexpr("{ 4 } 5", 5);
+    mu_assert_nexpr("{ 4 }; 5", 5);
     mu_assert_nexpr("{ \n 4 \n }\n 5", 5);
 
     return 0;
@@ -688,7 +690,7 @@ static char* test_scopes(void)
 
 static char* test_scope_vars(void)
 {
-    mu_assert_nexpr("let a = 4; { 4 } a", 4);
+    mu_assert_nexpr("let a = 4; { 4 }; a", 4);
 
     return 0;
 }
@@ -697,9 +699,11 @@ static char* test_scope_vars(void)
 
 static char* all_tests(void)
 {
+    /*
     mu_run_test(test_bytecode_gen);
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
+    */
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
