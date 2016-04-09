@@ -79,8 +79,7 @@ typedef struct String {
 
 %%
 
-expr: %empty
-    | { bytecode_addcode(b, POP); } exp;
+expr: { bytecode_addcode(b, POP); } exp;
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
@@ -128,6 +127,7 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '{' '}'
    | '{' SEP '}'
    | exp SEP { bytecode_addcode(b, POP); } exp
+   | exp SEP
    ;
 
 // local variable assingment (TODO)
@@ -295,20 +295,8 @@ int parse(Bytecode* b, const char* code)
     // parse code
     void *scanner;
     yylex_init_extra(b, &scanner);
-
-    char* cd = strdup(code);
-
-    while(cd[0] == '\n' || cd[0] == ';') {
-        ++cd;
-    }
-
-    while(cd[strlen(cd)-1] == '\n' || cd[strlen(cd)-1] == ';') {
-        cd[strlen(cd)-1] = '\0';
-    }
-
-    yy_scan_bytes(cd, strlen(cd), scanner);
+    yy_scan_bytes(code, strlen(code), scanner);
     int r = yyparse(scanner, b);
-    free(cd);
     yylex_destroy(scanner);
     return r;
 }

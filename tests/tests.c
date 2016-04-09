@@ -317,7 +317,7 @@ static char* test_math_expressions(void)
     mu_assert_nexpr("3 / 2", 1.5);
     mu_assert_nexpr("1 + 2 * 3", 7);
     mu_assert_nexpr("(1 + 2) * 3", 9);
-    mu_assert_nexpr("3 // 2", 1);
+    mu_assert_nexpr("3 %/ 2", 1);
     mu_assert_nexpr("3 % 2", 1);
     mu_assert_nexpr("-3 + 2", -1);
     mu_assert_nexpr("2 ** 3", 8);

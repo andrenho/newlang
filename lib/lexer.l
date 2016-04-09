@@ -83,7 +83,7 @@ let             { return LET; }
 
 {IDENTIFIER}    { yylval->str = strdup(yytext); return IDENTIFIER; }
 
-\/\/            { return _IDIV; }
+\%\/            { return _IDIV; }
 \*\*            { return _POW; }
 \<\<            { return _SHL; }
 \>\>            { return _SHR; }
