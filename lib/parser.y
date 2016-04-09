@@ -80,6 +80,7 @@ typedef struct String {
 %%
 
 code: optsep exps optsep
+    | SEP
     ;
 
 optsep: %empty
