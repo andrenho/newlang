@@ -676,13 +676,13 @@ static char* test_scopes(void)
     mu_assert_nexpr("{ 4; 5 }", 5);
     mu_assert_nexpr("{ 4; 5; }", 5);
     mu_assert_nexpr("{ 4\n 5 }", 5);
-    mu_assert_nexpr("{ 4 { 5 } }", 5);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
-    mu_assert_nexpr("{ 4 { 5 { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; } }", 5);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
+    mu_assert_nexpr("{ 4; { 5; { 6; 7 } } }", 7);
     // mu_assert_nexpr("{ 4\n { 5; { 6; 7;; } } } 8", 8);
     //mu_assert_nexpr("{ 4 } 5", 5);
-    mu_assert_nexpr("{ 4 } 5", 5);
+    mu_assert_nexpr("{ 4 }; 5", 5);
     mu_assert_nexpr("{ \n 4 \n }\n 5", 5);
 
     return 0;
@@ -690,7 +690,7 @@ static char* test_scopes(void)
 
 static char* test_scope_vars(void)
 {
-    mu_assert_nexpr("let a = 4; { 4 } a", 4);
+    mu_assert_nexpr("let a = 4; { 4 }; a", 4);
 
     return 0;
 }
