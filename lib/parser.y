@@ -125,7 +125,6 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
    | '(' exp ')'
    | '{' exp '}'
    | '{' '}'
-   | '{' SEP '}'
    | exp SEP { bytecode_addcode(b, POP); } exp
    | exp SEP
    ;
