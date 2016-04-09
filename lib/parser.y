@@ -50,8 +50,8 @@ typedef struct String {
 %token <_string> STRING
 %token <str>     IDENTIFIER
 %token NIL LET
-%token SEP
 
+%left       SEP
 %precedence '='
 %precedence '?'
 %precedence ':'
@@ -73,25 +73,14 @@ typedef struct String {
 
 
 %error-verbose
-%start code
+%start expr
 
 /* %expect 1  /* TODO */
 
 %%
 
-code: expressions      { bytecode_addcode(b, END); }
-    ;
-
-seps: seps SEP
-    | SEP
-    ;
-
-expressions: %empty
-           | expression
-           | expression seps expressions
-           ;
-
-expression: { bytecode_addcode(b, POP); } exp;
+expr: %empty
+    | { bytecode_addcode(b, POP); } exp;
 
 exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1); }
    | BOOLEAN            { bytecode_addcode(b, $1 ? PUSH_Bt : PUSH_Bf); }
@@ -135,6 +124,10 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
                            bytecode_addcodestr(b, $3); free($3);
                            bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
+   | '{' exp '}'
+   | '{' '}'
+   | '{' SEP '}'
+   | exp SEP { bytecode_addcode(b, POP); } exp
    ;
 
 // local variable assingment (TODO)
@@ -302,8 +295,20 @@ int parse(Bytecode* b, const char* code)
     // parse code
     void *scanner;
     yylex_init_extra(b, &scanner);
-    yy_scan_bytes(code, strlen(code), scanner);
+
+    char* cd = strdup(code);
+
+    while(cd[0] == '\n' || cd[0] == ';') {
+        ++cd;
+    }
+
+    while(cd[strlen(cd)-1] == '\n' || cd[strlen(cd)-1] == ';') {
+        cd[strlen(cd)-1] = '\0';
+    }
+
+    yy_scan_bytes(cd, strlen(cd), scanner);
     int r = yyparse(scanner, b);
+    free(cd);
     yylex_destroy(scanner);
     return r;
 }

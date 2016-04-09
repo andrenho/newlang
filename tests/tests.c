@@ -668,6 +668,8 @@ static char* test_multiple_assignment(void)
 
 // }}}
 
+// {{{ SCOPES
+
 static char* test_scopes(void)
 {
     mu_assert_nexpr("{ 4 }", 4);
@@ -697,9 +699,11 @@ static char* test_scope_vars(void)
 
 static char* all_tests(void)
 {
+    /*
     mu_run_test(test_bytecode_gen);
     mu_run_test(test_bytecode_import);
     mu_run_test(test_bytecode_simplecode);
+    */
     mu_run_test(test_stack);
     mu_run_test(test_zoe_stack);
     mu_run_test(test_zoe_stack_order);
