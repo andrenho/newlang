@@ -67,6 +67,12 @@ void      bytecode_multivaradd(Bytecode* bc, const char* varname);
 void      bytecode_addcodemultivarcounter(Bytecode* bc);
 void      bytecode_addmultivarassignment(Bytecode* bc, bool mutable);
 
+// 
+// SCOPES
+//
+void      bytecode_pushscope(Bytecode* bc);
+void      bytecode_popscope(Bytecode* bc);
+
 //
 // GENERATE ZB FILE
 //

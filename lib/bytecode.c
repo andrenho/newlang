@@ -27,6 +27,9 @@ struct B_Priv {
     size_t    locals_sz;
     size_t    locals_alloc;
     char*     multivar[255];
+    size_t*   fp;
+    size_t    fp_sz;
+    size_t    fp_alloc;
 };
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -278,6 +281,33 @@ bytecode_addmultivarassignment(Bytecode* bc, bool mutable)
         bytecode_addlocalassignment(bc, bc->_->multivar[i++], mutable);
     }
 }
+
+// }}}
+
+// {{{ SCOPES
+
+void
+bytecode_pushscope(Bytecode* bc)
+{
+    if(bc->_->fp_sz == bc->_->fp_alloc) {
+        bc->_->fp_alloc = bc->_->fp_alloc * 2 + 1;
+        bc->_->fp = realloc(bc->_->fp, bc->_->fp_alloc * sizeof(size_t));
+    }
+    bc->_->fp[bc->_->fp_sz++] = bc->_->locals_sz;
+}
+
+
+void
+bytecode_popscope(Bytecode* bc)
+{
+    if(bc->_->fp_sz == 0) {
+        bc->_->errorf("Framepointer underflow");
+        abort();
+    }
+
+    size_t new_locals = bc->_->fp[--bc->_->fp_sz];    
+}
+
 
 // }}}
 

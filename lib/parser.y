@@ -133,8 +133,8 @@ exp: NUMBER             { bytecode_addcode(b, PUSH_N); bytecode_addcodef64(b, $1
                            bytecode_addcodestr(b, $3); free($3);
                            bytecode_addcode(b, LOOKUP); }
    | '(' exp ')'
-   | '{' { bytecode_addcode(b, PUSH_Nil); } code '}'
-   | '{' { bytecode_addcode(b, PUSH_Nil); } '}'
+   | '{' { bytecode_pushscope(b); bytecode_addcode(b, PUSH_Nil); } code '}' { bytecode_popscope(b); }
+   | '{' { bytecode_pushscope(b); bytecode_addcode(b, PUSH_Nil); } '}' { bytecode_popscope(b); }
    ;
 
 // local variable assingment (TODO)
