@@ -8,13 +8,11 @@
 
 #include "bytecode.h"
 #include "parser.tab.h"
-#include "lexer.h"
+#include "lex.yy.h"
 
 void yyerror(void* scanner, Bytecode* bc, const char *s);
 
 %}
-
-%output "lib/parser.cc"
 
 %code requires {
 #include "bytecode.h"
@@ -30,7 +28,7 @@ typedef struct String {
 
 %define api.pure full
 %param { void* scanner }
-%parse-param { Bytecode& b }
+%parse-param { Bytecode* b }
 
 %verbose
 %printer { fprintf(yyoutput, "%f", $$); } NUMBER;
@@ -299,7 +297,7 @@ ternary: exp '?' {
 %%
 
 
-int parse(Bytecode& b, string const& code)
+int parse(Bytecode* b, const char* code)
 {
     // parse code
     void *scanner;

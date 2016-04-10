@@ -1,7 +1,8 @@
 #ifndef ZOE_BYTECODE_H_
 #define ZOE_BYTECODE_H_
 
-// TODO - move these tests somewhere else
+// {{{ ARCHITETURE TESTS
+
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #error Sorry, Zoe is not yet implemented for big endian machines.
 #endif
@@ -9,75 +10,90 @@
 #error Sorry, Zoe is not yet implemented for machines where sizeof(double) != 8.
 #endif
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
+// }}}
 
-#include "lib/global.h"
+#include <string>
+#include <vector>
+using namespace std;
 
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
 
-struct B_Priv;
+typedef size_t Label;
 
-typedef struct Bytecode {
-    uint8_t        version_minor;
-    uint8_t        version_major;
-    uint8_t*       code;
-    size_t         code_sz;
-    struct B_Priv* _;
-} Bytecode;
+class Bytecode {
+public:
+    //
+    // CONSTRUCTOR/DESTRUCTOR
+    //
+    Bytecode();
+    Bytecode(string const& code);               // build from zoe code
+    Bytecode(vector<uint8_t> const& data);      // build from bytecode
+    Bytecode(uint8_t const* data, size_t sz);   //   "     "      "
 
-typedef size_t Label;  // TODO
+    //
+    // ADD TO CODE
+    //
+    void Add(uint8_t code);
+    void AddF64(double code);
+    void AddString(string const& str);
 
-//
-// CONSTRUCTOR/DESTRUCTOR
-//
-Bytecode* bytecode_new(ERROR errorf);
-Bytecode* bytecode_newfromzb(uint8_t* data, size_t sz, ERROR errorf);
-Bytecode* bytecode_newfromcode(const char* code, ERROR errorf);   // here is where the magic happens
-void      bytecode_free(Bytecode* bc);
+    // 
+    // LABELS
+    //
+    Label CreateLabel();
+    Label SetLabel(Label const& lbl);
+    void  AddLabel(Label const& lbl);
 
-//
-// ADD CODE
-//
-void      bytecode_addcode(Bytecode* bc, uint8_t code);
-void      bytecode_addcodef64(Bytecode* bc, double code);
-void      bytecode_addcodestr(Bytecode* bc, const char* str);
+    // 
+    // LOCAL VARIABLES
+    //
+    void  AddVariableAssignment(string const& var, bool _mutable);
+    void  AddVariable(string const& var);
 
-//
-// LABELS
-//
-Label     bytecode_createlabel(Bytecode* bc);
-void      bytecode_setlabel(Bytecode* bc, Label lbl);
-void      bytecode_addcodelabel(Bytecode* bc, Label lbl);
+    // 
+    // MULTIPLE VARIABLES
+    //
+    void  MultivarReset();
+    void  MultivarCreate(string const& var);
+    void  AddMultivarCounter();
+    void  AddMultivarAssignment(bool _mutable);
 
-// 
-// LOCAL VARIABLES
-//
-void      bytecode_addlocalassignment(Bytecode* bc, const char* varname, bool mutable);
-void      bytecode_addcodelocal(Bytecode* bc, const char* varname);
+    // 
+    // SCOPES
+    //
+    void  PushScope();
+    void  PopScope();
 
-// 
-// MULTIPLE VARIABLES
-//
-void      bytecode_multivarreset(Bytecode* bc);
-void      bytecode_multivaradd(Bytecode* bc, const char* varname);
-void      bytecode_addcodemultivarcounter(Bytecode* bc);
-void      bytecode_addmultivarassignment(Bytecode* bc, bool mutable);
+    // 
+    // GENERATE ZB FILE
+    //
+    vector<uint8_t> GenerateZB() const;
 
-// 
-// SCOPES
-//
-void      bytecode_pushscope(Bytecode* bc);
-void      bytecode_popscope(Bytecode* bc);
+    // 
+    // DATA VIEW
+    //
+    inline uint8_t VersionMinor() const { return version_minor; }
+    inline uint8_t VersionMajor() const { return version_major; }
+    inline vector<uint8_t> const& Code() const { return code; }
 
-//
-// GENERATE ZB FILE
-//
-size_t    bytecode_generatezb(Bytecode* bc, uint8_t** data);
+private:
+
+    // 
+    // PRIVATE DATA
+    //
+    uint8_t version_minor = 0,
+            version_major = 0;
+    vector<uint8_t> code = {};
+
+    // 
+    // NON-COPYABLE OR MOVEABLE
+    //
+    Bytecode(Bytecode const &)        = delete;
+    void operator=(Bytecode const &t) = delete;
+    Bytecode(Bytecode &&)             = delete;
+};
 
 #endif
 
-// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=c
+// vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

@@ -6,4 +6,4 @@ MANPREFIX = ${PREFIX}/share/man
 # DEBUG = 1
 
 # compiler and linker
-CC = gcc
+CXX = g++

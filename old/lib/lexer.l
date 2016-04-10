@@ -14,8 +14,6 @@ static char* remove_undersc(char* t);
 
 %}
 
-%option header-file="lib/lexer.h"
-%option outfile="lib/lexer.cc"
 %option noyywrap
 %option reentrant
 %option bison-bridge
