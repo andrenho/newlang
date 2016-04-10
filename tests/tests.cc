@@ -167,6 +167,11 @@ static const char* bytecode_import(void)
 }
 
 
+static const char* bytecode_labels(void)
+{
+}
+
+
 static const char* bytecode_simplecode(void)
 {
     Bytecode bc("3.1416");
@@ -193,7 +198,7 @@ static const char* all_tests()
     // bytecode
     run_test(bytecode_gen);
     run_test(bytecode_import);
-    run_test(bytecode_simplecode);
+    //run_test(bytecode_simplecode);
 
     return nullptr;
 }

@@ -18,8 +18,14 @@ using namespace std;
 
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
+#define NO_ADDRESS 0xFFFFFFFF
 
 typedef size_t Label;
+
+struct LabelRef {
+    uint64_t         address;
+    vector<uint64_t> refs;
+};
 
 class Bytecode {
 public:
@@ -42,7 +48,7 @@ public:
     // LABELS
     //
     Label CreateLabel();
-    Label SetLabel(Label const& lbl);
+    void  SetLabel(Label const& lbl);
     void  AddLabel(Label const& lbl);
 
     // 
@@ -78,6 +84,7 @@ public:
     inline vector<uint8_t> const& Code() const { return code; }
 
 private:
+    void AdjustLabels();
 
     // 
     // PRIVATE DATA
@@ -85,6 +92,7 @@ private:
     uint8_t version_minor = 0,
             version_major = 0;
     vector<uint8_t> code = {};
+    vector<LabelRef> labels = {};
 
     // 
     // NON-COPYABLE OR MOVEABLE

@@ -14,7 +14,7 @@ extern int parse(Bytecode&, string const&);  // defined in parser.y
 
 Bytecode::Bytecode(string const& code)
 {
-    parse(*this, code);
+    // TODO parse(*this, code);
 }
 
 
@@ -72,19 +72,42 @@ void Bytecode::AddString(string const& str)
 
 Label Bytecode::CreateLabel()
 {
-    return 0;
+    labels.push_back({ NO_ADDRESS, {} });
+    return labels.size() - 1;
 }
 
 
-Label Bytecode::SetLabel(Label const& lbl)
+void Bytecode::SetLabel(Label const& lbl)
 {
-    return 0;
+    labels[lbl].address = code.size();
 }
 
 
 void Bytecode::AddLabel(Label const& lbl)
 {
+    // add reference
+    labels[lbl].refs.push_back(code.size());
+
+    // add filler bytes
+    for(int i=0; i<8; ++i) {
+        Add(0);
+    }
 }
+
+void Bytecode::AdjustLabels()
+{
+    for(auto const& label: labels) {
+        for(auto const& ref: label.refs) {
+            if(ref.address == NO_ADDRESS) {
+                throw "Label without a corresponding address.";
+            }
+            if(ref.address > (code.size() + 8)) {
+                throw "Label beyond code size.";
+            }
+        }
+    }
+}
+
 
 // }}}
 
