@@ -169,6 +169,27 @@ static const char* bytecode_import(void)
 
 static const char* bytecode_labels(void)
 {
+    Bytecode bc;
+    Label x = bc.CreateLabel();
+
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(i);
+    }
+    bc.SetLabel(x);
+
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(i);
+    }
+    bc.AddLabel(x);
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(i);
+    }
+    bc.GenerateZB();
+
+    massert(bc.Code()[0x20] == 0x10);
+    massert(bc.Code()[0x21] == 0x00);
+
+    return nullptr;
 }
 
 
@@ -198,6 +219,7 @@ static const char* all_tests()
     // bytecode
     run_test(bytecode_gen);
     run_test(bytecode_import);
+    run_test(bytecode_labels);
     //run_test(bytecode_simplecode);
 
     return nullptr;
