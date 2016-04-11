@@ -1,5 +1,9 @@
 #include "lib/bytecode.h"
 
+#include <cassert>
+#include <cinttypes>
+#include <cstring>
+
 #include <algorithm>
 #include <iterator>
 
@@ -97,13 +101,11 @@ void Bytecode::AddLabel(Label const& lbl)
 void Bytecode::AdjustLabels()
 {
     for(auto const& label: labels) {
+        assert(label.address != NO_ADDRESS);  // Label without a corresponding address.
         for(auto const& ref: label.refs) {
-            if(ref.address == NO_ADDRESS) {
-                throw "Label without a corresponding address.";
-            }
-            if(ref.address > (code.size() + 8)) {
-                throw "Label beyond code size.";
-            }
+            assert(ref <= (code.size() + 8)); 
+            // overwrite 8 bytes of code with address
+            memcpy(&code[ref], &label.address, __SIZEOF_DOUBLE__);
         }
     }
 }
@@ -162,9 +164,10 @@ void Bytecode::PopScope()
 
 // {{{ GENERATE ZB FILE
 
-vector<uint8_t> Bytecode::GenerateZB() const
+vector<uint8_t> Bytecode::GenerateZB()
 {
-    // TODO - adjust labels
+    // adjust labels
+    AdjustLabels();
 
     // headers
     vector<uint8_t> data = {

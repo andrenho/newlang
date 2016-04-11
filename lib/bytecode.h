@@ -33,9 +33,9 @@ public:
     // CONSTRUCTOR/DESTRUCTOR
     //
     Bytecode();
-    Bytecode(string const& code);               // build from zoe code
-    Bytecode(vector<uint8_t> const& data);      // build from bytecode
-    Bytecode(uint8_t const* data, size_t sz);   //   "     "      "
+    explicit Bytecode(string const& code);           // build from zoe code
+    explicit Bytecode(vector<uint8_t> const& data);  // build from bytecode
+    Bytecode(uint8_t const* data, size_t sz);        //   "     "      "
 
     //
     // ADD TO CODE
@@ -74,7 +74,7 @@ public:
     // 
     // GENERATE ZB FILE
     //
-    vector<uint8_t> GenerateZB() const;
+    vector<uint8_t> GenerateZB();
 
     // 
     // DATA VIEW
