@@ -10,20 +10,20 @@ Zoe::Push(T const& t)
 }
 
 
-template<class T> inline typename enable_if<is_floating_point<T>::value, T>::type 
+template<class T> T const& 
 Zoe::Peek() const
 {
-    return 0;
+    // TODO - underflow?
+    return stack.back()->Value<T>();
 }
 
-// }}}
 
-// {{{
-
-template<class T> typename enable_if<is_floating_point<T>::value, T>::type 
+template<class T> T
 Zoe::Pop()
 {
-    return 0;
+    T t = stack.back()->Value<T>();
+    stack.pop_back();
+    return t;
 }
 
 // }}}

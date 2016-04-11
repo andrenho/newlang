@@ -19,10 +19,8 @@ public:
     // STACK ACCESS
     //
     template<class T> void Push(T const& t);
-
-    template<class T> typename enable_if<is_floating_point<T>::value, T>::type Peek() const;
-
-    template<class T> typename enable_if<is_floating_point<T>::value, T>::type Pop();
+    template<class T> T const& Peek() const;
+    template<class T> T Pop();
 
     inline ZStack const& Stack() const { return stack; }
 

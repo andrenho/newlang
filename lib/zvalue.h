@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <type_traits>
 #include <vector>
 using namespace std;
 
@@ -52,6 +53,9 @@ struct ZValue {
 
     ZValue(nullptr_t const&) : type(NIL) {}
     ZValue(double const& d) : type(NUMBER), number(d) {}
+
+    template<class T> inline typename enable_if<is_same<T, nullptr_t>::value, T>::type const& Value() const { return nullptr; }
+    template<class T> inline typename enable_if<is_same<T, double>::value, T>::type const& Value() const { return number; }
 };
 
 //
