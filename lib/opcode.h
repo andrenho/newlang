@@ -32,6 +32,9 @@ typedef enum Opcode {
     // local variables
     ADDCNST, ADDMCNST, GETLOCAL,
 
+    // scopes
+    PUSH_Sc, POP_Sc,
+
     // others
     END,
 

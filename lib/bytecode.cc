@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iterator>
 
+#include "lib/opcode.h"
+
 // {{{ CONSTRUCTOR/DESTRUCTOR
 
 Bytecode::Bytecode()
@@ -72,6 +74,17 @@ void Bytecode::AddString(string const& str)
 
 // }}}
 
+// {{{ READ CODE
+
+double Bytecode::GetF64(ssize_t pos) const
+{
+    uint8_t bytes[8];
+    copy(begin(code)+pos, begin(code)+pos+8, bytes);
+    return *reinterpret_cast<double*>(bytes);
+}
+
+// }}}
+
 // {{{ LABELS
 
 Label Bytecode::CreateLabel()
@@ -115,13 +128,24 @@ void Bytecode::AdjustLabels()
 
 // {{{ LOCAL VARIABLES
 
-void Bytecode::AddVariableAssignment(string const& var, bool _mutable)
+void Bytecode::VariableAssignment(string const& varname, bool _mutable)
 {
+    vars.push_back({ varname, _mutable });
 }
 
 
-void Bytecode::AddVariable(string const& var)
+void Bytecode::AddVariable(string const& varname)
 {
+    for(ssize_t j=static_cast<ssize_t>(vars.size())-1; j >= 0; --j) {
+        if(vars[static_cast<size_t>(j)].name == varname) {
+            double idx = static_cast<double>(-1 - j);
+            Add(PUSH_N);
+            AddF64(idx);   // TODO - don't use floating point here
+            Add(GETLOCAL);
+            return;
+        }
+    }
+    throw "Variable '" + varname + "' not found.";
 }
 
 // }}}
@@ -130,21 +154,30 @@ void Bytecode::AddVariable(string const& var)
 
 void Bytecode::MultivarReset()
 {
+    multivar.clear();
 }
 
 
 void Bytecode::MultivarCreate(string const& var)
 {
+    multivar.push_back(var);
 }
 
 
 void Bytecode::AddMultivarCounter()
 {
+    if(multivar.size() > 255) {
+        throw "There can only be 255 multivars.";
+    }
+    Add(static_cast<uint8_t>(multivar.size()));
 }
 
 
 void Bytecode::AddMultivarAssignment(bool _mutable)
 {
+    for(auto const& mv: multivar) {
+        VariableAssignment(mv, _mutable);
+    }
 }
 
 // }}}
@@ -153,11 +186,24 @@ void Bytecode::AddMultivarAssignment(bool _mutable)
 
 void Bytecode::PushScope()
 {
+    frame_pointers.push_back(vars.size());
+    Add(PUSH_Sc);
 }
 
 
 void Bytecode::PopScope()
 {
+    if(frame_pointers.empty()) {
+        throw "Stack underflow.";
+    }
+
+    uint64_t goal = frame_pointers.back();
+    while(vars.size() > goal) {
+        vars.pop_back();
+    }
+    frame_pointers.pop_back();
+
+    Add(POP_Sc);
 }
 
 // }}}

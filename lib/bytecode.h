@@ -12,19 +12,24 @@
 
 // }}}
 
-#include <string>
-#include <vector>
-using namespace std;
-
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
 #define NO_ADDRESS 0xFFFFFFFF
+
+#include <string>
+#include <vector>
+using namespace std;
 
 typedef size_t Label;
 
 struct LabelRef {
     uint64_t         address;
     vector<uint64_t> refs;
+};
+
+struct Variable {
+    string name;
+    bool   _mutable;
 };
 
 class Bytecode {
@@ -44,6 +49,11 @@ public:
     void AddF64(double code);
     void AddString(string const& str);
 
+    //
+    // READ CODE
+    //
+    double GetF64(ssize_t pos) const;
+
     // 
     // LABELS
     //
@@ -54,7 +64,7 @@ public:
     // 
     // LOCAL VARIABLES
     //
-    void  AddVariableAssignment(string const& var, bool _mutable);
+    void  VariableAssignment(string const& var, bool _mutable);
     void  AddVariable(string const& var);
 
     // 
@@ -89,10 +99,13 @@ private:
     // 
     // PRIVATE DATA
     //
-    uint8_t version_minor = 0,
-            version_major = 0;
-    vector<uint8_t> code = {};
+    uint8_t          version_minor = 0,
+                     version_major = 0;
+    vector<uint8_t>  code = {};
     vector<LabelRef> labels = {};
+    vector<Variable> vars = {};
+    vector<string>   multivar = {};
+    vector<uint64_t> frame_pointers = {};
 
     // 
     // NON-COPYABLE OR MOVEABLE
