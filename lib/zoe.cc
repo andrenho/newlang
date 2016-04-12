@@ -21,7 +21,7 @@ Zoe::Zoe()
 
 inline STPOS Zoe::AbsIndex(STPOS pos) const
 {
-    STPOS i = (pos >= 0) ? pos : stack.size() + pos;
+    STPOS i = (pos >= 0) ? pos : static_cast<STPOS>(stack.size()) + pos;
     assert(i >= 0);
     return i;
 }
@@ -30,10 +30,10 @@ inline STPOS Zoe::AbsIndex(STPOS pos) const
 ZValue const& Zoe::Get(STPOS idx) const
 {
     STPOS p = AbsIndex(idx);
-    if(p >= stack.size()) {
+    if(p >= static_cast<STPOS>(stack.size())) {
         throw "Index greater than stack size.";
     }
-    return *stack.at(p);
+    return *stack.at(static_cast<size_t>(p));
 }
 
 

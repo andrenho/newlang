@@ -52,7 +52,7 @@ public:
     //
     // READ CODE
     //
-    double GetF64(ssize_t pos) const;
+    double GetF64(uint64_t pos) const;
 
     // 
     // LABELS

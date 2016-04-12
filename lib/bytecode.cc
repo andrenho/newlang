@@ -77,7 +77,7 @@ void Bytecode::AddString(string const& str)
 
 // {{{ READ CODE
 
-double Bytecode::GetF64(ssize_t pos) const
+double Bytecode::GetF64(uint64_t pos) const
 {
     uint8_t bytes[8];
     copy(begin(code)+pos, begin(code)+pos+8, bytes);
