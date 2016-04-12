@@ -20,7 +20,8 @@ public:
     //
     template<class T> void Push(T const& t);
     template<class T> T const& Peek() const;
-    template<class T> T Pop();
+    template<class T> typename enable_if<is_same<T, nullptr_t>::value, T>::type Pop();
+    template<class T> typename enable_if<!is_same<T, nullptr_t>::value, T>::type Pop();
     void Pop();
 
     inline ZStack const& Stack() const { return stack; }

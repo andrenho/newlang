@@ -325,6 +325,23 @@ static const char* zoe_stack_invalid(void)
     return nullptr;
 }
 
+static const char* zoe_stack_order(void)
+{
+    Zoe Z;
+
+    Z.Push(1);
+    Z.Push(2);
+    Z.Push(3);
+    massert(Z.Stack().size() == 4);
+    massert(Z.Pop<double>() == 3);
+    massert(Z.Pop<double>() == 2);
+    massert(Z.Pop<double>() == 1);
+    mnothrow([&]() { Z.Pop<nullptr_t>(); });
+    massert(Z.Stack().size() == 0);
+
+    return nullptr;
+}
+
 // }}}
 
 static const char* all_tests()
@@ -345,6 +362,7 @@ static const char* all_tests()
     // ZoeVM
     run_test(zoe_stack);
     run_test(zoe_stack_invalid);
+    run_test(zoe_stack_order);
 
     return nullptr;
 }
