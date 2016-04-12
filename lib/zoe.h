@@ -21,6 +21,7 @@ public:
     template<class T> void Push(T const& t);
     template<class T> T const& Peek() const;
     template<class T> T Pop();
+    void Pop();
 
     inline ZStack const& Stack() const { return stack; }
 

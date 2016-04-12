@@ -309,6 +309,19 @@ static const char* zoe_stack(void)
     massert(Z.Pop<double>() == f);
     massert(Z.Stack().size() == 1, "stack size == 2 (after push/pop)");
 
+    Z.Pop();
+    mthrows([&](){ Z.Pop(); }, "stack underflow");
+
+    return nullptr;
+}
+
+static const char* zoe_stack_invalid(void)
+{
+    Zoe Z;
+
+    Z.Push(3.14);
+    mthrows([&]() { Z.Pop<bool>(); });
+
     return nullptr;
 }
 
@@ -331,6 +344,7 @@ static const char* all_tests()
 
     // ZoeVM
     run_test(zoe_stack);
+    run_test(zoe_stack_invalid);
 
     return nullptr;
 }

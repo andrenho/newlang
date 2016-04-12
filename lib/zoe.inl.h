@@ -13,7 +13,9 @@ Zoe::Push(T const& t)
 template<class T> T const& 
 Zoe::Peek() const
 {
-    // TODO - underflow?
+    if(stack.empty()) {
+        throw "Stack underflow.";
+    }
     return stack.back()->Value<T>();
 }
 
@@ -21,7 +23,7 @@ Zoe::Peek() const
 template<class T> T
 Zoe::Pop()
 {
-    T t = stack.back()->Value<T>();
+    T t = Peek<T>();  // copy value
     stack.pop_back();
     return t;
 }

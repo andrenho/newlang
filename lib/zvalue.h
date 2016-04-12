@@ -16,6 +16,8 @@ enum ZType {
     NIL, BOOLEAN, NUMBER, STRING, FUNCTION, ARRAY, TABLE,
 };
 
+string Typename(ZType type);
+
 //
 // ZFUNCTION
 //
@@ -54,14 +56,22 @@ struct ZValue {
     ZValue(nullptr_t const&) : type(NIL) {}
     ZValue(double const& d) : type(NUMBER), number(d) {}
 
-    template<class T> inline typename enable_if<is_same<T, nullptr_t>::value, T>::type const& Value() const { return nullptr; }
-    template<class T> inline typename enable_if<is_same<T, double>::value, T>::type const& Value() const { return number; }
-};
+    template<class T> inline typename enable_if<is_same<T, nullptr_t>::value, T>::type const& Value() const { 
+        ExpectType(NIL);
+        return nullptr; 
+    }
+    template<class T> inline typename enable_if<is_same<T, bool>::value, T>::type const& Value() const { 
+        ExpectType(BOOLEAN);
+        return boolean; 
+    }
+    template<class T> inline typename enable_if<is_same<T, double>::value, T>::type const& Value() const { 
+        ExpectType(NUMBER);
+        return number; 
+    }
 
-//
-// INFORMATION
-//
-string Typename(ZType type);
+private:
+    void ExpectType(ZType expect) const;
+};
 
 #endif
 

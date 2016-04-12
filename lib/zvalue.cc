@@ -14,4 +14,14 @@ string Typename(ZType type)
     }
 }
 
+
+void 
+ZValue::ExpectType(ZType expect) const
+{
+    if(type != expect) {
+        throw "Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.";
+    }
+}
+
+
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
