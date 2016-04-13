@@ -681,20 +681,20 @@ static const char* table_access(void)
     return nullptr;
 }
 
-static char* test_table_equality(void)
+static const char* table_equality()
 {
-    mu_assert_bexpr("%{}==%{}", true);
-    mu_assert_bexpr("%{hello: 'world'}==%{hello: 'world'}", true);
-    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{a:1}}", true);
-    mu_assert_bexpr("%{[2]: 3, abc: %{d: %{e: 42}} }==%{[2]: 3, abc: %{d: %{e: 42} }}", true);
-    mu_assert_bexpr("%{a: 1, b: 2} == %{b: 2, a: 1}", true);
-    mu_assert_bexpr("%{}==%{hello: 'world'}", false);
-    mu_assert_bexpr("%{hello: 'world'}==%{}", false);
-    mu_assert_bexpr("%{b: %{a:1}}==%{b: 1}", false);
-    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{a:2}}", false);
-    mu_assert_bexpr("%{b: %{a:1}}==%{b: %{c:1}}", false);
+    zassert("%{}==%{}", true);
+    zassert("%{hello: 'world'}==%{hello: 'world'}", true);
+    zassert("%{b: %{a:1}}==%{b: %{a:1}}", true);
+    zassert("%{[2]: 3, abc: %{d: %{e: 42}} }==%{[2]: 3, abc: %{d: %{e: 42} }}", true);
+    zassert("%{a: 1, b: 2} == %{b: 2, a: 1}", true);
+    zassert("%{}==%{hello: 'world'}", false);
+    zassert("%{hello: 'world'}==%{}", false);
+    zassert("%{b: %{a:1}}==%{b: 1}", false);
+    zassert("%{b: %{a:1}}==%{b: %{a:2}}", false);
+    zassert("%{b: %{a:1}}==%{b: %{c:1}}", false);
 
-    return 0;
+    return nullptr;
 }
 
 // }}}
@@ -739,6 +739,7 @@ static const char* all_tests()
     // tables
     run_test(table);
     run_test(table_access);
+    run_test(table_equality);
 
     return nullptr;
 }
