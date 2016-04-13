@@ -305,7 +305,14 @@ void Zoe::Lookup()
         // TODO - raise error if number is higher than the number of characters in the string
         Push(string(1, str[k]));
     } else if(t == ARRAY) {
-        abort();  // TODO
+        int64_t i = static_cast<int64_t>(Pop<double>());
+        ZArray const& ary = Get(-1).ary;
+        uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : ary.size() + i;
+        if(k >= ary.size()) {
+            throw "Subscript out of range.";
+        }
+        stack.push_back(ary[k]);
+        Remove(-2);
     } else if(t == TABLE) {
         abort();  // TODO
     } else {

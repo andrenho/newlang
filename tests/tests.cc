@@ -610,8 +610,7 @@ static const char* array_equality()
     return nullptr;
 }
 
-/*
-static char* test_array_access(void)
+static const char* array_lookup()
 {
     zassert("[2,3,4][0]", 2);
     zassert("[2,3,4][1]", 3);
@@ -621,9 +620,10 @@ static char* test_array_access(void)
 
     // TODO - test key error
 
-    return 0;
+    return nullptr;
 }
 
+/*
 static char* test_array_slices(void)
 {
     mu_assert_inspect("[2,3,4][0:1]", "[2]");
@@ -683,6 +683,7 @@ static const char* all_tests()
     run_test(comments);
     run_test(arrays);
     run_test(array_equality);
+    run_test(array_lookup);
 
     return nullptr;
 }
