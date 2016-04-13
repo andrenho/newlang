@@ -30,7 +30,14 @@ public:
     void                          Remove(STPOS pos);
 private:
     ZValue const& Get(STPOS idx) const;
+    shared_ptr<ZValue> GetPtr(STPOS idx) const;
 public:
+
+    //
+    // ARRAY
+    //
+    void PushArray();
+    void ArrayAppend();
 
     // 
     // VM EXECUTION

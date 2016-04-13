@@ -63,16 +63,16 @@ nil             { return NIL; }
 let             { return LET; }
 
 '                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }
-<STR>\\n              { (*yylval->str) += '\n'; }
-<STR>\\r              { (*yylval->str) += '\r'; }
-<STR>\\\\             { (*yylval->str) += '\\'; }
-<STR>\\x{HEXDIGIT}{2} { (*yylval->str) += (char)strtol(&yytext[2], NULL, 16); }
-<STR>\\               { (*yylval->str) += '\\'; }
-<STR>[^'\\\$]*        { (*yylval->str) += yytext; }
-<STR>\$'              { (*yylval->str) += '$';
+<STR>\\n              { yylval->str->append(1, '\n'); }
+<STR>\\r              { yylval->str->append(1, '\r'); }
+<STR>\\\\             { yylval->str->append(1, '\\'); }
+<STR>\\x{HEXDIGIT}{2} { yylval->str->append(1, (char)strtol(&yytext[2], NULL, 16)); }
+<STR>\\               { yylval->str->append(1, '\\'); }
+<STR>[^'\\\$]*        { yylval->str->append(yytext); }
+<STR>\$'              { yylval->str->append(1, '$');
                         yy_pop_state(yyscanner); 
                         return STRING; }
-<STR>\$[^\{]          { (*yylval->str) += yytext; }
+<STR>\$[^\{]          { yylval->str->append(yytext); }
 <STR>\$\{             { yy_push_state(SB, yyscanner); return STRING; }
 <STR>'                { yy_pop_state(yyscanner); return STRING; }
 

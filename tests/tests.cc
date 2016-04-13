@@ -120,6 +120,33 @@ static int tests_run = 0;
 
 #define sassert(code, expected) zassert(code, string(expected))
         
+#define zinspect(code, expected) {                                           \
+    do {                                                                     \
+        Zoe Z;                                                               \
+        try {                                                                \
+            Z.Eval(code);                                                    \
+            Z.Call(0);                                                       \
+            Z.Inspect(-1); \
+            string r = Z.Pop<string>(); \
+            if(r == expected) {                                              \
+                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
+                     << expected << endl;                                    \
+            } else {                                                         \
+                cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
+                     << r << ", expected " << expected << endl;              \
+                return code;                                                 \
+            }                                                                \
+        } catch(const exception& e) {                                        \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
+                 << e.what() << endl;                                        \
+            throw;                                                           \
+        } catch(const string& e) {                                           \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
+                 << e << endl;                                               \
+            throw;                                                           \
+        }                                                                    \
+    } while(0);                                                              \
+}
 
 static const char* all_tests();
 
@@ -540,6 +567,91 @@ static const char* string_subscripts(void)
 
 // }}}
 
+// {{{ ZOE COMMENTS
+
+static const char* comments(void)
+{
+    zassert("2 + 3 /* test */", 5);
+    zassert("/* test */ 2 + 3", 5);
+    zassert("2 /* test */ + 3", 5);
+    zassert("2 /* t\ne\nst */ + 3", 5);
+    zassert("// test\n2 + 3", 5);
+    zassert("2 + 3//test\n", 5);
+    zassert("2 /* a /* b */ */", 2);  // nested comments
+    zassert("2 /* /* / */ */", 2);  // nested comments
+    return 0;
+}
+
+// }}}
+
+// {{{ ZOE ARRAYS
+
+static const char* arrays()
+{
+    zinspect("[]", "[]");
+    zinspect("[2,3]", "[2, 3]");
+    zinspect("[2,3,]", "[2, 3]");
+    zinspect("[[1]]", "[[1]]");
+    zinspect("[2, 3, []]", "[2, 3, []]");
+    zinspect("[2, 3, ['abc', true, [nil]]]", "[2, 3, ['abc', true, [nil]]]");
+
+    return nullptr;
+}
+
+static const char* array_equality()
+{
+    zassert("[]==[]", true);
+    zassert("[2,3,]==[2,3]", true);
+    zassert("[2,3,[4,'abc'],nil] == [ 2, 3, [ 4, 'abc' ], nil ]", true);
+    zassert("[2,3,4]==[2,3]", false);
+    zassert("[2,3,4]==[2,3,5]", false);
+    zassert("[2,3,4]!=[2,3,5]", true);
+
+    return nullptr;
+}
+
+/*
+static char* test_array_access(void)
+{
+    zassert("[2,3,4][0]", 2);
+    zassert("[2,3,4][1]", 3);
+    zassert("[2,3,4][-1]", 4);
+    zassert("[2,3,4][-2]", 3);
+    sassert("[2,3,'hello'][2]", "hello");
+
+    // TODO - test key error
+
+    return 0;
+}
+
+static char* test_array_slices(void)
+{
+    mu_assert_inspect("[2,3,4][0:1]", "[2]");
+    mu_assert_inspect("[2,3,4][0:2]", "[2, 3]");
+    mu_assert_inspect("[2,3,4][1:3]", "[3, 4]");
+    mu_assert_inspect("[2,3,4][1:]", "[3, 4]");
+    mu_assert_inspect("[2,3,4][:2]", "[2, 3]");
+    mu_assert_inspect("[2,3,4][:]", "[2, 3, 4]");
+    mu_assert_inspect("[2,3,4][-1:]", "[4]");
+    mu_assert_inspect("[2,3,4][-2:-1]", "[3]");
+    mu_assert_inspect("[2,3,4][:-2]", "[2]");
+
+    return 0;
+}
+
+static char* test_array_operators(void)
+{
+    zassert("#[2, 3, 4]", 3);
+    zassert("#[]", 0);
+    mu_assert_inspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
+    mu_assert_inspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
+
+    return 0;
+}
+*/
+
+// }}}
+
 static const char* all_tests()
 {
     // test tool
@@ -568,6 +680,9 @@ static const char* all_tests()
     run_test(shortcircuit_expressions);
     run_test(strings);
     run_test(string_subscripts);
+    run_test(comments);
+    run_test(arrays);
+    run_test(array_equality);
 
     return nullptr;
 }

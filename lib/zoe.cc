@@ -39,6 +39,16 @@ ZValue const& Zoe::Get(STPOS idx) const
 }
 
 
+shared_ptr<ZValue> Zoe::GetPtr(STPOS idx) const
+{
+    STPOS p = AbsIndex(idx);
+    if(p >= static_cast<STPOS>(stack.size())) {
+        throw "Index greater than stack size.";
+    }
+    return stack.at(static_cast<size_t>(p));
+}
+
+
 ZType Zoe::GetType(STPOS p) const
 {
     return Get(p).type;
@@ -71,6 +81,26 @@ void Zoe::Remove(STPOS idx)
         throw "Index greater than stack size.";
     }
     stack.erase(begin(stack) + p);
+}
+
+// }}}
+
+// {{{ ARRAYS
+
+void Zoe::PushArray()
+{
+    stack.emplace_back(make_shared<ZValue>(ARRAY));
+}
+
+
+void Zoe::ArrayAppend()
+{
+    if(GetType(-2) != ARRAY) {
+        throw "Only arrays can be appended.";
+    }
+
+    GetPtr(-2)->ary.emplace_back(GetPtr(-1));
+    Pop();
 }
 
 // }}}
@@ -175,6 +205,12 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case JMP: p = bc.Get64<uint64_t>(p+1); break;
             case Bfalse: p = Pop<bool>() ? p+9 : bc.Get64<uint64_t>(p+1); break;
             case Btrue: p = Pop<bool>() ? bc.Get64<uint64_t>(p+1) : p+9; break;
+
+            //
+            // array
+            //
+            case PUSHARY: PushArray();   ++p; break;
+            case APPEND:  ArrayAppend(); ++p; break;
 
             //
             // others
@@ -307,7 +343,7 @@ void Zoe::Slice()
 
     // slice
     if(t == STRING) {
-        Push(Pop<string>().substr(start, end-1));
+        Push(Pop<string>().substr(start, end-start));
     } else if(t == ARRAY) {
         abort();  // TODO
     } else if(t == TABLE) {
