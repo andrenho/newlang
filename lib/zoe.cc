@@ -180,7 +180,7 @@ void Zoe::AddMultipleVariables(uint8_t count, bool _mutable)
     if(ary.size() != count) {
         throw "The number of assignment elements doesn't match the number of "
               "items in the array (" + to_string(ary.size()) + " found, "
-              "expected " + to_string(count) + ".";
+              "expected " + to_string(static_cast<int>(count)) + ".";
     }
 
     for(auto const& item: ary) {

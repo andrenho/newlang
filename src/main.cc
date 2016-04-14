@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 
     switch(opt.mode) {
         case Options::REPL:
-            repl_execute(opt);
+            REPL().Execute(opt);
             break;
     }
 }

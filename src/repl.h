@@ -1,7 +1,16 @@
 #ifndef EXE_REPL_H_
 #define EXE_REPL_H_
 
-void repl_execute(class Options const& opt);
+#include <string>
+using namespace std;
+
+class REPL {
+public:
+    void Execute(class Options const& opt);
+
+private:
+    string ReadLine(bool& alive);
+};
 
 #endif
 

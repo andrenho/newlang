@@ -1,8 +1,35 @@
 #include "src/repl.h"
 
-void repl_execute(class Options const& opt)
+#include <iostream>
+
+#include "lib/zoe.h"
+
+void REPL::Execute(class Options const& opt)
 {
+    Zoe Z;
+
+    bool alive;
+    ReadLine(alive);
 }
+
+
+string REPL::ReadLine(bool& alive)
+{
+    int c;
+    string s;
+
+    cout << "(zoe) ";
+
+    while((c = getchar()) != '\n') {
+        if(c == EOF) {
+            alive = false;
+            return "";
+        }
+        s += static_cast<char>(c);
+    }
+    return s;
+}
+
 
 /*
 void repl_execute(Options* opt)

@@ -1,12 +1,22 @@
 #ifndef EXE_OPTIONS_H_
 #define EXE_OPTIONS_H_
 
+#include <ostream>
+using namespace std;
+
 class Options {
 public:
     Options(int argc, char* argv[]);
 
     enum OperationMode { REPL };
-    OperationMode mode;
+    OperationMode mode = OperationMode::REPL;
+
+    bool repl_disassemble = false;
+    bool debug_assembly = false;
+    bool debug_bison = false;
+
+private:
+    [[noreturn]] void PrintHelp(ostream& ss, int status) const;
 };
 
 #endif

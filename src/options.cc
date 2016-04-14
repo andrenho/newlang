@@ -1,36 +1,30 @@
 #include "src/options.h"
-    
+
+#include <getopt.h>
+#include <iostream>
+using namespace std;
+
+#ifdef DEBUG
+#include "lib/parser.h"
+#include "lib/lexer.h"
+#endif
+
 Options::Options(int argc, char* argv[])
 {
     mode = OperationMode::REPL;
     
-    // TODO: debug-asm, disassemble
     //       debug-bison (yydebug = 1)
-}
-
-/*
-#ifdef DEBUG
-#include "lib/parser.tab.h"
-#include "lib/lex.yy.h"
-#endif
-
-static void options_printhelp(FILE* f, int exit_status);
-
-Options*
-options_parse(int argc, char* argv[])
-{
-    Options* opt = calloc(sizeof(Options), 1);
 
     while(1) {
         static struct option long_options[] = {
 #ifdef DEBUG
-            { "debug-asm",        no_argument, NULL, 'A' },
-            { "debug-bison",      no_argument, NULL, 'B' },
-            { "repl-disassemble", no_argument, NULL, 'D' },
+            { "debug-asm",        no_argument, nullptr, 'A' },
+            { "debug-bison",      no_argument, nullptr, 'B' },
+            { "repl-disassemble", no_argument, nullptr, 'D' },
 #endif
-            { "help",             no_argument, NULL, 'h' },
-            { "version",          no_argument, NULL, 'v' },
-            { NULL, 0, NULL, 0 },
+            { "help",             no_argument, nullptr, 'h' },
+            { "version",          no_argument, nullptr, 'v' },
+            { nullptr, 0, nullptr, 0 },
         };
 
         int opt_idx = 0;
@@ -42,23 +36,23 @@ options_parse(int argc, char* argv[])
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
 #ifdef DEBUG
             case 'A':
-                opt->debug_asm = true;
+                debug_assembly = true;
                 break;
             case 'B':
                 yydebug = 1;
                 break;
             case 'D':
-                opt->repl_options.disassemble = true;
+                repl_disassemble = true;
                 break;
 #endif
 
             case 'v':
-                printf("zoe " VERSION " - a programming language.\n");
-                printf("Avaliable under the LGPLv3 license. See COPYING file.\n");
-                printf("Written by André Wagner.\n");
+                cout << "zoe " VERSION " - a programming language.\n";
+                cout << "Avaliable under the LGPLv3 license. See COPYING file.\n";
+                cout << "Written by André Wagner.\n";
                 exit(EXIT_SUCCESS);
             case 'h':
-                options_printhelp(stdout, EXIT_SUCCESS);
+                PrintHelp(cout, EXIT_SUCCESS);
                 break;
 
             case 0:
@@ -66,7 +60,7 @@ options_parse(int argc, char* argv[])
             case -1:
                 goto done;
             case '?':
-                options_printhelp(stderr, EXIT_FAILURE);
+                PrintHelp(cout, EXIT_FAILURE);
                 break;
             default:
                 abort();
@@ -74,36 +68,27 @@ options_parse(int argc, char* argv[])
     }
 done:
     if(optind < argc) {
-        fprintf(stderr, "Running scripts is still not supported.\n");
+        cerr << "Running scripts is still not supported.\n";
         abort();
     }
 
-    return opt;
 }
 
 
-void
-options_free(Options* opt)
+void Options::PrintHelp(ostream& ss, int status) const
 {
-    free(opt);
-}
-
-
-static void
-options_printhelp(FILE* f, int exit_status)
-{
-    fprintf(f, "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n");
-    fprintf(f, "Avaliable options are:\n");
+    ss << "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n";
+    ss << "Avaliable options are:\n";
 #ifdef DEBUG
-    fprintf(f, "   -A, --debug-asm           debug ASM code being debugger\n");
-    fprintf(f, "   -B, --debug-bison         activate BISON debugger\n");
-    fprintf(f, "   -D, --repl-disassemble    disassemble when using REPL\n");
-    fprintf(f, "   -G, --debug-gc            activate GC debugger\n");
+    ss << "   -A, --debug-asm           debug ASM code being debugger\n";
+    ss << "   -B, --debug-bison         activate BISON debugger\n";
+    ss << "   -D, --repl-disassemble    disassemble when using REPL\n";
+    ss << "   -G, --debug-gc            activate GC debugger\n";
 #endif
-    fprintf(f, "   -h, --help                display this help and exit\n");
-    fprintf(f, "   -v, --version             show version and exit\n");
-    exit(exit_status);
+    ss << "   -h, --help                display this help and exit\n";
+    ss << "   -v, --version             show version and exit\n";
+    exit(status);
 }
-*/
+
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
