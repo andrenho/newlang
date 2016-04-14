@@ -166,6 +166,29 @@ void Zoe::TableSet()
 
 // }}}
 
+// {{{ VARIABLES
+
+void Zoe::AddVariable(bool _mutable)
+{
+    variables.push_back({ GetPtr(-1), _mutable });
+}
+
+
+void Zoe::AddMultipleVariables(uint8_t count, bool _mutable)
+{
+    abort();
+}
+
+
+void Zoe::PushVariableContents()
+{
+    uint64_t idx = static_cast<uint64_t>(Pop<double>());
+    stack.push_back(variables[idx].value);
+}
+
+
+// }}}
+
 // {{{ CODE EXECUTION
 
 void Zoe::Eval(string const& code)
@@ -278,6 +301,13 @@ void Zoe::Execute(vector<uint8_t> const& data)
             //
             case PUSHTBL: PushTable(); ++p; break;
             case TBLSET:  TableSet();  ++p; break;
+
+            //
+            // local variables
+            //
+            case ADDCNST:  AddVariable(false); ++p; break;
+            case ADDMCNST: AddMultipleVariables(bc.Code()[p+1], false); p += 2; break;
+            case GETLOCAL: PushVariableContents(); ++p; break;
 
             //
             // others

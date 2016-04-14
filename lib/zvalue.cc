@@ -3,6 +3,8 @@
 #include <cmath>
 #include <limits>
 
+#include <iostream>  // TODO
+
 // {{{ ZVALUE CONSTRUCTOR/DESTRUCTOR
 
 /* A brief explanation about this constructor and destructor:
@@ -137,6 +139,17 @@ bool ZValue::operator==(ZValue const& other) const
             }
             for(size_t i=0; i<ary.size(); ++i) {
                 if(!(*ary[i] == *other.ary[i])) {
+                    return false;
+                }
+            }
+            return true;
+        case TABLE:
+            if(table.items.size() != other.table.items.size()) {
+                return false;
+            }
+            for(auto const& kv: table.items) {
+                auto it = other.table.items.find(kv.first);
+                if(it == other.table.items.end() || !(*it->second == *kv.second)) {
                     return false;
                 }
             }

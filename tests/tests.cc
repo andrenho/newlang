@@ -294,8 +294,8 @@ static const char* bytecode_variables()
     bc.AddVariable("a");
     bc.AddVariable("b");
 
-    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
-    massert(bc.Get64<int64_t>(0x0B) == -2, "Variable 'b'");
+    massert(bc.Get64<double>(0x01) == 0, "Variable 'a'");
+    massert(bc.Get64<double>(0x0B) == 1, "Variable 'b'");
 
     mthrows([&](){ bc.AddVariable("c"); });
 
@@ -314,8 +314,8 @@ static const char* bytecode_multivar()
     bc.AddMultivarAssignment(false);
     bc.AddVariable("a");
     bc.AddVariable("b");
-    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
-    massert(bc.Get64<int64_t>(0x0B) == -2, "Variable 'b'");
+    massert(bc.Get64<double>(0x01) == -1, "Variable 'a'");
+    massert(bc.Get64<double>(0x0B) == -2, "Variable 'b'");
 
     bc.AddMultivarCounter();
     massert(bc.Code()[0x14] == 3, "Multivar counter before reset");
@@ -342,9 +342,9 @@ static const char* bytecode_scopes()
 
     bc.AddVariable("a");
 
-    massert(bc.Get64<int64_t>(0x01) == -1, "Variable 'a'");
-    massert(bc.Get64<int64_t>(0x0C) == -2, "Variable 'a' (inside scope)");
-    massert(bc.Get64<int64_t>(0x17) == -1, "Variable 'a' (outside scope)");
+    massert(bc.Get64<double>(0x01) == -1, "Variable 'a'");
+    massert(bc.Get64<double>(0x0C) == -2, "Variable 'a' (inside scope)");
+    massert(bc.Get64<double>(0x17) == -1, "Variable 'a' (outside scope)");
 
     mthrows([&](){ bc.PopScope(); }, "Stack underflow");
     
@@ -699,6 +699,39 @@ static const char* table_equality()
 
 // }}}
 
+// {{{ VARIABLES
+
+static const char* variables()
+{
+    zassert("let a = 4", 4);
+    zassert("let a = 4; a", 4);
+    zassert("let a = 4; let b = 25; a", 4);
+    zassert("let a = 4; let b = 25; b", 25);
+    zassert("let a = let b = 25; a", 25);
+    zassert("let a = let b = 25; b", 25);
+    zassert("let a = 25; let b = a; b", 25);
+    zassert("let a = 25; let b = a; let c = b; c", 25);
+    zassert("let a = 25, b = 13; a", 25);
+    zassert("let a = 25, b = 13, c = 48; b", 13);
+    zassert("let a = 25, b = a, c = b; b", 25);
+
+    return nullptr;
+}
+
+static const char* multiple_assignment(void)
+{
+    zassert("let [a, b] = [3, 4]; a", 3);
+    zassert("let [a, b, c] = [3, 4, 5]; b", 4);
+    zassert("let x = 8, [a, b, c] = [3, x, 5]; b", 8);
+    zassert("let [a, b, c] = [3, 4, 5], x = b; x", 4);
+    
+    // TODO - test errors
+
+    return nullptr;
+}
+
+// }}}
+
 static const char* all_tests()
 {
     // test tool
@@ -740,6 +773,10 @@ static const char* all_tests()
     run_test(table);
     run_test(table_access);
     run_test(table_equality);
+
+    // variables
+    run_test(variables);
+    run_test(multiple_assignment);
 
     return nullptr;
 }

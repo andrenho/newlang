@@ -33,7 +33,10 @@ private:
     shared_ptr<ZValue> GetPtr(STPOS idx) const;
     ZArray& GetArray(STPOS idx) const;
     ZTable& GetTable(STPOS idx) const;
+
+    ZStack stack = {};
 public:
+    inline ZStack const& Stack() const { return stack; }
 
     //
     // ARRAY
@@ -49,6 +52,21 @@ public:
     //
     ZTable& PushTable();
     void    TableSet();
+
+    // 
+    // VARIABLES
+    //
+    void AddVariable(bool _mutable);
+    void AddMultipleVariables(uint8_t count, bool _mutable);
+    void PushVariableContents();
+private:
+    struct Variable {
+        shared_ptr<ZValue> value;
+        bool               _mutable;
+    };
+
+    vector<Variable> variables = {};
+public:
 
     // 
     // VM EXECUTION
@@ -75,14 +93,6 @@ public:
     // DEBUGGING
     //
     void Inspect(STPOS pos);
-
-    // 
-    // DATA
-    //
-    inline ZStack const& Stack() const { return stack; }
-
-private:
-    ZStack stack = {};
 };
 
 #include "lib/zoe.inl.h"
