@@ -93,6 +93,17 @@ public:
     // DEBUGGING
     //
     void Inspect(STPOS pos);
+#ifdef DEBUG
+    bool Tracer = false;
+
+    string Disassemble(STPOS pos) const;
+private:
+    struct Disassembly { 
+        string desc; 
+        size_t sz; 
+    };  
+    Disassembly DisassembleOpcode(class Bytecode const& bc, size_t p) const;
+#endif
 };
 
 #include "lib/zoe.inl.h"

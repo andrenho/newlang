@@ -59,7 +59,7 @@ CPPLINT_FILTERS=-legal,-build/include,-whitespace,-readability/namespace,-build/
 # ALL 
 #
 
-all: depend libzoe.so.${VERSION} zoe
+all: libzoe.so.${VERSION} zoe
 
 #
 # LEXER AND PARSER
@@ -86,7 +86,7 @@ lib/parser.h:
 # COMPILATION RULES
 #
 
--include depends
+-include DEPEND
 
 %.o: %.cc
 	${CXX} -c ${CPPFLAGS} @build/WARNINGS -o $@ $<
@@ -99,9 +99,9 @@ libzoe.so.${VERSION}: ${OBJ_LIB}
 
 depend: ${HEADERS} ${SRC_LIB} ${SRC_EXE} ${SRC_TST}
 	@echo checking dependencies
-	@${CXX} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -re 's/^([^ ])/lib\/\1/' > depends
-	@${CXX} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -re 's/^([^ ])/src\/\1/' >> depends
-	@${CXX} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/tests\/\1/' >> depends
+	@${CXX} -MM ${CPPFLAGS} ${SRC_LIB} ${SRC_LIB:.cc=.h} | sed -re 's/^([^ ])/lib\/\1/' > DEPEND
+	@${CXX} -MM ${CPPFLAGS} ${SRC_EXE} $(filter-out src/main.h,${SRC_EXE:.cc=.h}) | sed -re 's/^([^ ])/src\/\1/' >> DEPEND
+	@${CXX} -MM ${CPPFLAGS} ${SRC_TST} | sed -re 's/^([^ ])/tests\/\1/' >> DEPEND
 
 # 
 # DESCRIBE VARIABLES
@@ -143,7 +143,7 @@ clean:
 
 distclean:
 	${MAKE} clean
-	rm -f depends
+	rm -f DEPEND
 
 maintainer-clean:
 	${MAKE} distclean

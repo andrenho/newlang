@@ -36,7 +36,7 @@ Other:
 Migration to C++
  - advanced REPL
  - inspection/debugging
- - asserts/review
+ - asserts/review - what are the tests? - const
  - HACKING documentation
 
 Other steps:

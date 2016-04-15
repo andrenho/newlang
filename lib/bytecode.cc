@@ -131,7 +131,7 @@ void Bytecode::AddVariable(string const& varname)
     for(ssize_t j=static_cast<ssize_t>(vars.size())-1; j >= 0; --j) {
         if(vars[static_cast<size_t>(j)].name == varname) {
             Add(GETLOCAL);
-            Add64<uint64_t>(j);
+            Add64<uint64_t>(static_cast<uint64_t>(j));
             return;
         }
     }

@@ -44,11 +44,10 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
-   fun:strdup
-   fun:_nc_setupterm
-   fun:tgetent_sp
-   fun:_rl_init_terminal_io
-   fun:rl_initialize
+   fun:xmalloc
+   fun:expand_prompt
+   fun:rl_expand_prompt
+   fun:rl_set_prompt
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
    fun:main
@@ -59,9 +58,8 @@
    match-leak-kinds: reachable
    fun:malloc
    fun:xmalloc
-   fun:expand_prompt
-   fun:rl_expand_prompt
-   fun:rl_set_prompt
+   fun:_rl_read_init_file
+   fun:rl_initialize
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
    fun:main
@@ -88,8 +86,10 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
-   fun:xmalloc
-   fun:_rl_read_init_file
+   fun:strdup
+   fun:_nc_setupterm
+   fun:tgetent_sp
+   fun:_rl_init_terminal_io
    fun:rl_initialize
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
@@ -174,8 +174,7 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
-   fun:_nc_read_termtype
-   obj:/usr/lib/libncursesw.so.6.0
+   fun:_nc_first_db
    fun:_nc_read_entry
    fun:_nc_setup_tinfo
    fun:_nc_setupterm
@@ -191,10 +190,10 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
-   fun:_nc_first_db
-   fun:_nc_read_entry
-   fun:_nc_setup_tinfo
-   fun:_nc_setupterm
+   fun:_nc_tparm_analyze
+   fun:tparm
+   obj:/usr/lib/libncursesw.so.6.0
+   fun:_nc_trim_sgr0
    fun:tgetent_sp
    fun:_rl_init_terminal_io
    fun:rl_initialize
@@ -223,13 +222,38 @@
    <insert_a_suppression_name_here>
    Memcheck:Leak
    match-leak-kinds: reachable
-   fun:malloc
-   fun:_nc_tparm_analyze
-   fun:tparm
-   obj:/usr/lib/libncursesw.so.6.0
-   fun:_nc_trim_sgr0
+   fun:calloc
+   fun:_nc_setupterm
    fun:tgetent_sp
    fun:_rl_init_terminal_io
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_nc_read_termtype
+   obj:/usr/lib/libncursesw.so.6.0
+   fun:_nc_read_entry
+   fun:_nc_setup_tinfo
+   fun:_nc_setupterm
+   fun:tgetent_sp
+   fun:_rl_init_terminal_io
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
    fun:rl_initialize
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
@@ -247,30 +271,6 @@
    fun:_nc_setupterm
    fun:tgetent_sp
    fun:_rl_init_terminal_io
-   fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:calloc
-   fun:_nc_setupterm
-   fun:tgetent_sp
-   fun:_rl_init_terminal_io
-   fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
    fun:rl_initialize
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
@@ -291,6 +291,84 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:init_line_structures
+   fun:rl_redisplay
+   fun:readline_internal_setup
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
    fun:_nc_read_termtype
    obj:/usr/lib/libncursesw.so.6.0
    fun:_nc_read_entry
@@ -299,84 +377,6 @@
    fun:tgetent_sp
    fun:_rl_init_terminal_io
    fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:init_line_structures
-   fun:rl_redisplay
-   fun:readline_internal_setup
    fun:readline
    fun:_ZN4REPL7ExecuteERK7Options
    fun:main
@@ -557,55 +557,83 @@
    <insert_a_suppression_name_here>
    Memcheck:Leak
    match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:rl_make_bare_keymap
+   fun:rl_generic_bind
+   fun:bind_termcap_arrow_keys
+   fun:_rl_init_terminal_io
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:rl_make_bare_keymap
+   fun:rl_generic_bind
+   fun:bind_termcap_arrow_keys
+   fun:_rl_init_terminal_io
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:rl_make_bare_keymap
+   fun:rl_generic_bind
+   fun:bind_termcap_arrow_keys
+   fun:_rl_init_terminal_io
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:rl_make_bare_keymap
+   fun:rl_generic_bind
+   fun:bind_arrow_keys_internal
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   fun:rl_make_bare_keymap
+   fun:rl_generic_bind
+   fun:bind_arrow_keys_internal
+   fun:rl_initialize
+   fun:readline
+   fun:_ZN4REPL7ExecuteERK7Options
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
    fun:calloc
    obj:/usr/lib/libncursesw.so.6.0
    fun:_nc_find_type_entry
    fun:tgetstr_sp
-   fun:_rl_init_terminal_io
-   fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:rl_make_bare_keymap
-   fun:rl_generic_bind
-   fun:bind_termcap_arrow_keys
-   fun:_rl_init_terminal_io
-   fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:rl_make_bare_keymap
-   fun:rl_generic_bind
-   fun:bind_termcap_arrow_keys
-   fun:_rl_init_terminal_io
-   fun:rl_initialize
-   fun:readline
-   fun:_ZN4REPL7ExecuteERK7Options
-   fun:main
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:xmalloc
-   fun:rl_make_bare_keymap
-   fun:rl_generic_bind
-   fun:bind_termcap_arrow_keys
    fun:_rl_init_terminal_io
    fun:rl_initialize
    fun:readline
