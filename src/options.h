@@ -12,7 +12,7 @@ public:
     OperationMode mode = OperationMode::REPL;
 
     bool repl_disassemble = false;
-    bool debug_assembly = false;
+    bool trace = false;
     bool debug_bison = false;
 
 private:

@@ -13,12 +13,10 @@ Options::Options(int argc, char* argv[])
 {
     mode = OperationMode::REPL;
     
-    //       debug-bison (yydebug = 1)
-
     while(1) {
         static struct option long_options[] = {
 #ifdef DEBUG
-            { "debug-asm",        no_argument, nullptr, 'A' },
+            { "trace",            no_argument, nullptr, 'T' },
             { "debug-bison",      no_argument, nullptr, 'B' },
             { "repl-disassemble", no_argument, nullptr, 'D' },
 #endif
@@ -30,13 +28,13 @@ Options::Options(int argc, char* argv[])
         int opt_idx = 0;
         static const char* opts = "hv"
 #ifdef DEBUG
-            "ABD"
+            "TBD"
 #endif
         ;
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
 #ifdef DEBUG
-            case 'A':
-                debug_assembly = true;
+            case 'T':
+                trace = true;
                 break;
             case 'B':
                 yydebug = 1;
@@ -80,10 +78,9 @@ void Options::PrintHelp(ostream& ss, int status) const
     ss << "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n";
     ss << "Avaliable options are:\n";
 #ifdef DEBUG
-    ss << "   -A, --debug-asm           debug ASM code being debugger\n";
     ss << "   -B, --debug-bison         activate BISON debugger\n";
     ss << "   -D, --repl-disassemble    disassemble when using REPL\n";
-    ss << "   -G, --debug-gc            activate GC debugger\n";
+    ss << "   -T, --trace               trace assembly code execution\n";
 #endif
     ss << "   -h, --help                display this help and exit\n";
     ss << "   -v, --version             show version and exit\n";
