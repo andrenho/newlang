@@ -62,6 +62,8 @@ void REPL::Execute(class Options const& opt)
             // display result
             Z.Inspect(-1);
             cout << GREEN << Z.Pop<string>() << NORMAL << endl;
+
+        // catch errors
         } catch(string& e) {
             cout << RED << e << NORMAL << endl;
         } catch(const char* e) {
