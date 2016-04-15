@@ -25,7 +25,7 @@ HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h} lib/opcode.
 
 DIST=COPYING INSTALL README.md Makefile build/config.mk HACKING \
      build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)  \
-     lib/lexer.l lib/parser.y doc/zoe.html
+     lib/lexer.l lib/parser.y doc/zoe.html lib/zoe.inl.h
 
 CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c++14 -march=native -fPIC
 
@@ -165,7 +165,7 @@ maintainer-clean:
 # PACKAGING RULES
 #
 
-dist: distclean
+dist: distclean lib/lexer.cc lib/lexer.h lib/parser.h lib/parser.cc
 	mkdir -p zoe-${VERSION}
 	cp --parents ${DIST} ${SRC_LIB} ${SRC_EXE} ${HEADERS} zoe-${VERSION}
 	tar cf zoe-${VERSION}.tar zoe-${VERSION}
