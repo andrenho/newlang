@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <stdexcept>
 
 #include "lib/opcode.h"
 
@@ -29,12 +30,12 @@ Bytecode::Bytecode(vector<uint8_t> const& data)
     // validate magic code
     vector<uint8_t> magic = { 0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00 };
     if(data.size() < 0x38 || !equal(begin(magic), end(magic), begin(data))) {
-        throw "Not a ZB file.";
+        throw domain_error("Not a ZB file.");
     }
 
     // validate version
     if(data[6] != 1 || data[7] != 0) {
-        throw "ZB version unsupported";
+        throw domain_error("ZB version unsupported");
     }
 
     // load public fields
@@ -63,7 +64,7 @@ void Bytecode::Add(uint8_t data)
 void Bytecode::AddString(string const& str)
 {
     copy(begin(str), end(str), back_inserter(code));
-    Add(0);
+    Add(0);   // NULL terminator
 }
 
 // }}}
@@ -135,7 +136,7 @@ void Bytecode::AddVariable(string const& varname)
             return;
         }
     }
-    throw "Variable '" + varname + "' not found.";
+    throw runtime_error("Variable '" + varname + "' not found.");
 }
 
 // }}}
@@ -157,7 +158,7 @@ void Bytecode::MultivarCreate(string const& var)
 void Bytecode::AddMultivarCounter()
 {
     if(multivar.size() > 255) {
-        throw "There can only be 255 multivars.";
+        throw length_error("There can only be 255 multivars.");
     }
     Add(static_cast<uint8_t>(multivar.size()));
 }
@@ -184,7 +185,7 @@ void Bytecode::PushScope()
 void Bytecode::PopScope()
 {
     if(frame_pointers.empty()) {
-        throw "Stack underflow.";
+        throw underflow_error("Stack underflow.");
     }
 
     uint64_t goal = frame_pointers.back();

@@ -19,12 +19,12 @@
 
 void repl_execute(class Options const& opt)
 {
+    (void) opt;
+
     char* buf;
     rl_bind_key('\t', rl_abort);     // disable TAB in readline
 
-    //
     // initialize VM
-    // 
     Zoe Z;
 #ifdef DEBUG
     if(opt.trace) {
@@ -45,42 +45,38 @@ void repl_execute(class Options const& opt)
         }
         add_history(buf);
 
-        // run code
+#ifndef DEBUG
+        // we catch errors only if not in development mode
         try {
-
-            //
+#endif
             // evaluate expression
-            // 
             cout << DIMMAGENTA << flush;
             Z.Eval(string(buf)); free(buf);
             cout << NORMAL << flush;
 
-            // 
             // disassemble expression
-            //
 #ifdef DEBUG
             if(opt.repl_disassemble) {
                 cout << GRAY << Z.Disassemble(-1) << NORMAL;
             }
 #endif
 
-            // 
             // execute expression
-            //
             Z.Call(0);
 
-            //
+            // verify execution
+
             // display result
-            // 
             Z.Inspect(-1);
             cout << GREEN << Z.Pop<string>() << NORMAL << endl;
 
+#ifndef DEBUG
         // catch errors
-        } catch(string& e) {
-            cout << RED << e << NORMAL << endl;
-        } catch(const char* e) {
-            cout << RED << e << NORMAL << endl;
+        } catch(exception const& e) {
+            cout << RED << "error: " << e.what() << NORMAL << endl;
+            exit(EXIT_FAILURE);
         }
+#endif
     }
 
     // free history list (for a "almost" clear valgrind output)

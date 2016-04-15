@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "lib/bytecode.h"
+#include "lib/except.h"
 #include "lib/opcode.h"
 
 // {{{ CONSTRUCTOR/DESTRUCTOR
@@ -33,7 +34,7 @@ ZValue const& Zoe::Get(STPOS idx) const
 {
     STPOS p = AbsIndex(idx);
     if(p >= static_cast<STPOS>(stack.size())) {
-        throw "Index greater than stack size.";
+        throw stack_error("Index greater than stack size.");
     }
     return *stack.at(static_cast<size_t>(p));
 }
@@ -43,7 +44,7 @@ shared_ptr<ZValue> Zoe::GetPtr(STPOS idx) const
 {
     STPOS p = AbsIndex(idx);
     if(p >= static_cast<STPOS>(stack.size())) {
-        throw "Index greater than stack size.";
+        throw stack_error("Index greater than stack size.");
     }
     return stack.at(static_cast<size_t>(p));
 }
@@ -53,7 +54,7 @@ ZArray& Zoe::GetArray(STPOS idx) const
 {
     auto ptr = GetPtr(idx);
     if(ptr->type != ARRAY) {
-        throw "Expected array, found " + Typename(ptr->type) + ".";
+        throw type_error("Expected array, found " + Typename(ptr->type) + ".");
     }
     return ptr->ary;
 }
@@ -63,7 +64,7 @@ ZTable& Zoe::GetTable(STPOS idx) const
 {
     auto ptr = GetPtr(idx);
     if(ptr->type != TABLE) {
-        throw "Expected table, found " + Typename(ptr->type) + ".";
+        throw type_error("Expected table, found " + Typename(ptr->type) + ".");
     }
     return ptr->table;
 }
@@ -78,7 +79,7 @@ ZType Zoe::GetType(STPOS p) const
 ZType Zoe::PeekType() const
 {
     if(stack.empty()) {
-        throw "Stack underflow.";
+        throw stack_error("Stack underflow.");
     }
     return stack.back()->type;
 }
@@ -87,7 +88,7 @@ ZType Zoe::PeekType() const
 void Zoe::Pop(int n)
 {
     if(stack.empty()) {
-        throw "Stack underflow.";
+        throw stack_error("Stack underflow.");
     }
     for(int i=0; i<n; ++i) {
         stack.pop_back();
@@ -98,7 +99,7 @@ void Zoe::Remove(STPOS idx)
 {
     STPOS p = AbsIndex(idx);
     if(p >= static_cast<STPOS>(stack.size())) {
-        throw "Index greater than stack size.";
+        throw stack_error("Index greater than stack size.");
     }
     stack.erase(begin(stack) + p);
 }
@@ -118,7 +119,7 @@ ZArray& Zoe::PushArray()
 void Zoe::ArrayAppend()
 {
     if(GetType(-2) != ARRAY) {
-        throw "Only arrays can be appended.";
+        throw type_error("Only arrays can be appended.");
     }
 
     GetPtr(-2)->ary.emplace_back(GetPtr(-1));
@@ -130,7 +131,7 @@ void Zoe::ArrayMul()
 {
     double d = Pop<double>();
     if(d < 0) {
-        throw "Arrays can only be multiplied by positive values.";
+        throw domain_error("Arrays can only be multiplied by positive values.");
     }
 
     uint64_t mul = static_cast<uint64_t>(d);
@@ -178,9 +179,9 @@ void Zoe::AddMultipleVariables(uint8_t count, bool _mutable)
 {
     ZArray const& ary = GetArray(-1);
     if(ary.size() != count) {
-        throw "The number of assignment elements doesn't match the number of "
-              "items in the array (" + to_string(ary.size()) + " found, "
-              "expected " + to_string(static_cast<int>(count)) + ".";
+        throw out_of_range("The number of assignment elements doesn't match the number of "
+                           "items in the array (" + to_string(ary.size()) + " found, "
+                           "expected " + to_string(static_cast<int>(count)) + ".");
     }
 
     for(auto const& item: ary) {
@@ -215,12 +216,12 @@ void Zoe::Call(int n_args)
 
     // load function
     if(stack.empty()) {
-        throw "Stack underflow.";
+        throw stack_error("Stack underflow.");
     }
     auto const& f = stack.back();
     f->ExpectType(FUNCTION);
     if(f->func.type != BYTECODE) {
-        throw "Can only execute code in ZB format.";
+        throw domain_error("Can only execute code in ZB format.");
     }
     auto data = f->func.bytecode;
 
@@ -232,7 +233,7 @@ void Zoe::Call(int n_args)
 
     // final verification
     if(static_cast<STPOS>(stack.size()) != initial - 1) {
-        throw "Function should have returned exactly one argument.";
+        throw stack_error("Function should have returned exactly one argument.");
     }
 }
 
@@ -334,7 +335,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             default: {
                     stringstream s;
                     s << "Invalid opcode 0x" << setfill('0') << setw(2) << hex << static_cast<int>(op) << '.';
-                    throw s.str();
+                    throw runtime_error(s.str());
                 }
         }
 #ifdef DEBUG
@@ -395,7 +396,7 @@ void Zoe::Op(Operator op)
             case ZOE_NOT:
             case ZOE_BNOT:
             default:
-                throw "Invalid operator code " + to_string(static_cast<int>(op)) + ".";
+                throw runtime_error("Invalid operator code " + to_string(static_cast<int>(op)) + ".");
         }
     }
 }
@@ -416,7 +417,7 @@ void Zoe::Concat()
         Remove(-3);
         Remove(-2);
     } else {
-        throw "Expected string or array, found " + Typename(t) + ".";
+        throw type_error("Expected string or array, found " + Typename(t) + ".");
     }
 }
 
@@ -440,7 +441,7 @@ void Zoe::Lookup()
         ZArray const& ary = GetArray(-1);
         uint64_t k = (i >= 0) ? static_cast<uint64_t>(i) : ary.size() + static_cast<uint64_t>(i);
         if(k >= ary.size()) {
-            throw "Subscript out of range.";
+            throw out_of_range("Subscript out of range.");
         }
         stack.push_back(ary[k]);
         Remove(-2);
@@ -450,7 +451,7 @@ void Zoe::Lookup()
         Remove(-3);
         Remove(-2);
     } else {
-        throw "Expected string, array or table, found " + Typename(t) + ".";
+        throw type_error("Expected string, array or table, found " + Typename(t) + ".");
     }
 }
 
@@ -467,7 +468,7 @@ void Zoe::Slice()
     } else if(t == TABLE) {
         abort();  // TODO
     } else {
-        throw "Expected string or array, found " + Typename(t) + ".";
+        throw type_error("Expected string or array, found " + Typename(t) + ".");
     }
 
     // find start & finish
@@ -477,9 +478,9 @@ void Zoe::Slice()
     finish = (finish >= 0) ? finish : (sz + finish);
 
     if(start > sz || finish > sz) {
-        throw "Subscript out of range";
+        throw out_of_range("Subscript out of range");
     } else if(start >= finish) {
-        throw "start <= finish";
+        throw out_of_range("start <= finish");
     }
 
     // slice
@@ -508,12 +509,12 @@ string Zoe::Disassemble(STPOS pos) const
 {
     STPOS const idx = AbsIndex(pos);
     if(GetType(idx) != FUNCTION) {
-        throw "Not a function";
+        throw type_error("Not a function");
     }
 
     ZFunction const& f = Get(idx).func;
     if(f.type != BYTECODE) {
-        throw "For now, only bytecode functions can be disassembled.";
+        throw not_implemented("For now, only bytecode functions can be disassembled.");
     }
 
     stringstream ss;

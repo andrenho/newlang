@@ -21,7 +21,7 @@ OBJ_LIB=${SRC_LIB:.cc=.o}
 OBJ_EXE=${SRC_EXE:.cc=.o}
 OBJ_TST=${SRC_TST:.cc=.o}
 
-HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h} lib/opcode.h
+HEADERS=$(filter-out src/main.h,${SRC_EXE:.cc=.h}) ${SRC_LIB:.cc=.h} lib/opcode.h lib/except.h
 
 DIST=COPYING INSTALL README.md Makefile build/config.mk HACKING \
      build/version.mk build/WARNINGS zoe.1 $(wildcard tests/*)  \
@@ -29,24 +29,36 @@ DIST=COPYING INSTALL README.md Makefile build/config.mk HACKING \
 
 CPPFLAGS+=-DVERSION=\"${VERSION}\" -D_GNU_SOURCE -I. -std=c++14 -march=native -fPIC
 
+# profiler flags
 ifdef PROFILE
   CPPFLAGS+=-pg
   LDFLAGS+=-pg
 endif
 
+# coverage flags
 ifdef COV
   CPPFLAGS+=-fprofile-arcs -ftest-coverage
   LDFLAGS+=-lgcov --coverage
 endif
 
+# debugging flags
 ifdef DEBUG
-  CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG -fno-inline-functions -fno-inline-small-functions
+  CPPFLAGS+=-g -ggdb3 -O0 -DDEBUG -fno-inline-functions 
+  ifeq ($(CXX),g++)
+    CPPFLAGS+=-fno-inline-small-functions
+  endif
   LDFLAGS+=-g
   BISON_FLAGS+=--debug
   FLEX_FLAGS+=--debug
 else
   CPPFLAGS+=-DNDEBUG -Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
   LDFLAGS+=-flto
+endif
+
+# add warnings incompatible with clang
+WARNINGS=@build/WARNINGS
+ifeq ($(CXX),g++)
+  WARNINGS+=-Wunsafe-loop-optimizations -Wzero-as-null-pointer-constant -Wuseless-cast 
 endif
 
 # libraries
@@ -67,7 +79,7 @@ all: libzoe.so.${VERSION} zoe
 
 # relax warnings in generation of lexer/parser C units
 lib/lexer.o: lib/lexer.cc lib/parser.cc
-	${CXX} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
+	${CXX} ${CPPFLAGS} -Wno-deprecated-register -fPIC -c -I. -Ilib -o $@ $<
 
 lib/parser.o: lib/parser.cc lib/lexer.cc
 	${CXX} ${CPPFLAGS} -fPIC -c -I. -Ilib -o $@ $<
@@ -89,7 +101,7 @@ lib/parser.h:
 -include DEPEND
 
 %.o: %.cc
-	${CXX} -c ${CPPFLAGS} @build/WARNINGS -o $@ $<
+	${CXX} -c ${CPPFLAGS} ${WARNINGS} -o $@ $<
 
 zoe: ${OBJ_EXE} ${OBJ_LIB}
 	${CXX} -o $@ ${OBJ_EXE} ${OBJ_LIB} ${LDFLAGS}

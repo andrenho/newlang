@@ -2,8 +2,11 @@
 
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 #include <iostream>  // TODO
+
+#include "lib/except.h"
 
 // {{{ ZVALUE CONSTRUCTOR/DESTRUCTOR
 
@@ -26,7 +29,7 @@ ZValue::ZValue(ZType type)
     } else if(type == TABLE) {
         new(&ary) ZTable();
     } else {
-        throw "Use the other constructors";
+        throw invalid_argument("Use the other constructors");
     }
 }
 
@@ -49,7 +52,7 @@ ZValue::~ZValue() {
 void ZValue::ExpectType(ZType expect) const
 {
     if(type != expect) {
-        throw "Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.";
+        throw type_error("Expected '" + Typename(expect) + "', found '" + Typename(type) + "'.");
     }
 }
 
@@ -113,7 +116,7 @@ uint64_t ZValue::Len() const
     } else if(type == ARRAY) {
         return ary.size();
     } else {
-        throw "Expected 'string' or 'array', found '" + Typename(type) + "'.";
+        throw type_error("Expected 'string' or 'array', found '" + Typename(type) + "'.");
     }
 }
 
@@ -178,10 +181,10 @@ size_t ZValueHash::operator()(shared_ptr<ZValue> const& k) const
             return hash<string>()(k->str);
         case TABLE:
             // TODO - look for hash function
-            throw "No hash function for this value.";
+            throw not_implemented("No hash function for this value.");
         case FUNCTION:
         case ARRAY:
-            throw "No hash function for this value.";
+            throw not_implemented("No hash function for this value.");
         default:
             abort();
     }

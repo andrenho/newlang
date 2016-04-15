@@ -78,13 +78,9 @@ static int tests_run = 0;
         try {                                                           \
             test();                                                     \
             cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
-        } catch(const exception& e) {                                   \
+        } catch(exception const& e) {                                   \
             cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
                  << e.what() << endl;                                   \
-            throw;                                                      \
-        } catch(const string& e) {                                      \
-            cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
-                 << e << endl;                                          \
             throw;                                                      \
         }                                                               \
     } while (0);                                                        \
@@ -106,13 +102,9 @@ static int tests_run = 0;
                      << r << ", expected " << expected << endl;              \
                 return code;                                                 \
             }                                                                \
-        } catch(const exception& e) {                                        \
+        } catch(exception const& e) {                                        \
             cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
                  << e.what() << endl;                                        \
-            throw;                                                           \
-        } catch(const string& e) {                                           \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
-                 << e << endl;                                               \
             throw;                                                           \
         }                                                                    \
     } while(0);                                                              \
@@ -136,13 +128,9 @@ static int tests_run = 0;
                      << r << ", expected " << expected << endl;              \
                 return code;                                                 \
             }                                                                \
-        } catch(const exception& e) {                                        \
+        } catch(exception const& e) {                                        \
             cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
                  << e.what() << endl;                                        \
-            throw;                                                           \
-        } catch(const string& e) {                                           \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
-                 << e << endl;                                               \
             throw;                                                           \
         }                                                                    \
     } while(0);                                                              \
@@ -172,11 +160,8 @@ int main()
 {
     try {
         return run_all_tests();
-    } catch(const exception& e) {
+    } catch(exception const& e) {
         cout << DIMRED << "exception: " << e.what() << NORMAL << endl;
-        throw;
-    } catch(const string& e) {
-        cout << DIMRED << "exception: " << e << NORMAL << endl;
         throw;
     }
 }

@@ -1,6 +1,7 @@
 #ifndef LIB_ZVALUE_H_
 #define LIB_ZVALUE_H_
 
+#include <cassert>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -83,7 +84,7 @@ struct ZValue {
 
     // helper constructors
     template<class T, class = typename enable_if<is_scalar<T>::value, T>::type> explicit ZValue(T const& i) : ZValue(static_cast<double>(i)) {}
-    explicit ZValue(const char s[]) : ZValue(string(s)) {}
+    explicit ZValue(const char s[]) : ZValue(string(s)) { assert(s); }
 
     // NOTE: see an important observation for this constructor/destructor in `zvalue.cc`
     explicit ZValue(ZType type);

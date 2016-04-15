@@ -14,7 +14,7 @@
 
 #define ZB_VERSION_MINOR 1
 #define ZB_VERSION_MAJOR 0
-#define NO_ADDRESS 0xFFFFFFFF
+#define NO_ADDRESS (0xFFFFFFFF)
 
 #include <string>
 #include <vector>

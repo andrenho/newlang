@@ -61,4 +61,4 @@ const vector<string> opcode_names = {
 
 #endif
 
-/* vim: ts=4:sw=4:sts=4:expandtab */
+// vim: ts=4:sw=4:sts=4:expandtab
