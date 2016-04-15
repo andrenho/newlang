@@ -34,8 +34,8 @@ Other:
    - insert an existing record (ok)
 
 Migration to C++
- - advanced REPL
- - inspection/debugging
+ - advanced REPL (ok - sort of)
+ - inspection/debugging (ok)
  - asserts/review - what are the tests? - const
  - HACKING documentation
 

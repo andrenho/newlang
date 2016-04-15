@@ -13,9 +13,13 @@ Options::Options(int argc, char* argv[])
 {
     mode = OperationMode::REPL;
     
+    //
+    // load options using getopt_long(3)
+    //
     while(1) {
-        static struct option long_options[] = {
+        static struct option const long_options[] = {
 #ifdef DEBUG
+            // these options are only avaliable when compiled in debugging mode
             { "trace",            no_argument, nullptr, 'T' },
             { "debug-bison",      no_argument, nullptr, 'B' },
             { "repl-disassemble", no_argument, nullptr, 'D' },
@@ -31,6 +35,7 @@ Options::Options(int argc, char* argv[])
             "TBD"
 #endif
         ;
+
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
 #ifdef DEBUG
             case 'T':
@@ -69,7 +74,6 @@ done:
         cerr << "Running scripts is still not supported.\n";
         abort();
     }
-
 }
 
 

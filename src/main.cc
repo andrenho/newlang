@@ -5,11 +5,11 @@
 
 int main(int argc, char* argv[])
 {
-    Options opt(argc, argv);
+    Options const opt(argc, argv);
 
     switch(opt.mode) {
         case Options::REPL:
-            REPL().Execute(opt);
+            repl_execute(opt);
             break;
     }
 }

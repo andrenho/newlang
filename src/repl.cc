@@ -1,5 +1,6 @@
 #include "src/repl.h"
 
+#include <cstdio>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -8,32 +9,36 @@
 #include "src/options.h"
 #include "lib/zoe.h"
 
+// ANSI colors for console output
 #define DIMMAGENTA "\033[2;34m"
 #define GREEN      "\033[1;32m"
 #define RED        "\033[1;31m"
 #define GRAY       "\033[1;30m"
 #define NORMAL     "\033[0m"
 
-void REPL::Execute(class Options const& opt)
-{
-    Zoe Z;
-    char* buf;
 
+void repl_execute(class Options const& opt)
+{
+    char* buf;
+    rl_bind_key('\t', rl_abort);     // disable TAB in readline
+
+    //
+    // initialize VM
+    // 
+    Zoe Z;
 #ifdef DEBUG
     if(opt.trace) {
         Z.Tracer = true;
     }
 #endif
     
-    rl_bind_key('\t', rl_abort);
-
+    // read input
     while((buf = readline("(zoe) ")) != NULL) {
 
         if(!buf) {
             continue;
         }
 
-        // read input
         if(strcmp(buf, ".q") == 0) {
             free(buf);
             break;
@@ -42,17 +47,31 @@ void REPL::Execute(class Options const& opt)
 
         // run code
         try {
+
+            //
+            // evaluate expression
+            // 
             cout << DIMMAGENTA << flush;
             Z.Eval(string(buf)); free(buf);
             cout << NORMAL << flush;
+
+            // 
+            // disassemble expression
+            //
 #ifdef DEBUG
             if(opt.repl_disassemble) {
                 cout << GRAY << Z.Disassemble(-1) << NORMAL;
             }
 #endif
+
+            // 
+            // execute expression
+            //
             Z.Call(0);
 
+            //
             // display result
+            // 
             Z.Inspect(-1);
             cout << GREEN << Z.Pop<string>() << NORMAL << endl;
 
@@ -64,9 +83,9 @@ void REPL::Execute(class Options const& opt)
         }
     }
 
-    // free history list
+    // free history list (for a "almost" clear valgrind output)
     if(where_history() > 0) {
-        HIST_ENTRY** h = history_list();
+        HIST_ENTRY* const* h = history_list();
         size_t i = 0;
         while(h[i]) {
             free_history_entry(h[i]);
