@@ -50,7 +50,7 @@ else
 endif
 
 # libraries
-LDFLAGS+=-fuse-ld=gold -lm
+LDFLAGS+=-fuse-ld=gold -lm -lreadline
 
 # cpplint filters
 CPPLINT_FILTERS=-legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
