@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 using namespace std;
 
 #include "lib/bytecode.h"
@@ -21,203 +22,156 @@ using namespace std;
 
 static int tests_run = 0;
 
-#define run_test(test) {                                 \
-    cout << BLUE "{{ " << #test << " }}" NORMAL << endl; \
-    do {                                                 \
-        const char* message = test();                    \
-        if(message) {                                    \
-            return message;                              \
-        }                                                \
-    } while(0);                                          \
-    ++tests_run;                                         \
+// 
+// exceptions
+//
+class bad_assertion : public runtime_error {
+public:
+    bad_assertion(const char* msg) : runtime_error(msg) {}
+    bad_assertion(string const& msg) : runtime_error(msg) {}
+};
+
+
+// 
+// util functions
+//
+template<typename T> string to_string(vector<T> const& v) {
+    string s = "[";
+    for(size_t i=0; i<v.size(); ++i) {
+        if(i != 0) {
+            s.append(", ");
+        }
+        s.append(to_string(v[i]));
+    }
+    return s + "]";
+}
+
+string to_string(string const& s) {
+    return s;
 }
 
 
-#define massert(test, ...) {                                                    \
-    bool _v = (test);                                                           \
-    do {                                                                        \
-        const char* message = #test;                                            \
-        if(string(#__VA_ARGS__) != string("")) {                                \
-            message = "" __VA_ARGS__;                                           \
-        }                                                                       \
-        string color = string("\033[2;3") + (_v ? "2" : "1") + "m";             \
-        cout << "   " << color << "[" << (!_v ? "err" : "ok") << "]" NORMAL " " \
-             << message << endl;                                                \
-        if(!_v) {                                                               \
-            return message;                                                     \
-        }                                                                       \
-    } while (0);                                                                \
-    ++tests_run;                                                                \
-}
+//
+// test list
+//
+struct Test {
+    string desc;
+    function<void()> f;
+};
+static vector<Test> test_list;
 
-
-#define mthrows(test, ...) {                                            \
-    do {                                                                \
-        const char* message = #test;                                    \
-        if(string(#__VA_ARGS__) != string("")) {                        \
-            message = "" __VA_ARGS__;                                   \
-        }                                                               \
-        try {                                                           \
-            test();                                                     \
-            cout << DIMRED "   [err]" NORMAL " " << message             \
-                 << " - did not throw" << endl;                         \
-        } catch(...) {                                                  \
-            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
-        }                                                               \
-    } while (0);                                                        \
-    ++tests_run;                                                        \
-}
-
-
-#define mnothrow(test, ...) {                                           \
-    do {                                                                \
-        const char* message = #test;                                    \
-        if(string(#__VA_ARGS__) != string("")) {                        \
-            message = "" __VA_ARGS__;                                   \
-        }                                                               \
-        try {                                                           \
-            test();                                                     \
-            cout << DIMGREEN "   [ok]" NORMAL " " << message << endl;   \
-        } catch(exception const& e) {                                   \
-            cout << DIMRED "   [err]" NORMAL " " << message << ": "     \
-                 << e.what() << endl;                                   \
-            throw;                                                      \
-        }                                                               \
-    } while (0);                                                        \
-}
-
-
-#define zassert(code, expected) {                                            \
-    do {                                                                     \
-        Zoe Z;                                                               \
-        try {                                                                \
-            Z.Eval(code);                                                    \
-            Z.Call(0);                                                       \
-            decltype(expected) r = Z.Pop<decltype(expected)>();              \
-            if(r == expected) {                                              \
-                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
-                     << expected << endl;                                    \
-            } else {                                                         \
-                cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
-                     << r << ", expected " << expected << endl;              \
-                return code;                                                 \
-            }                                                                \
-        } catch(exception const& e) {                                        \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
-                 << e.what() << endl;                                        \
-            throw;                                                           \
-        }                                                                    \
-    } while(0);                                                              \
-}
-
-
-#define zassertnil(code) {                                                  \
-    do {                                                                    \
-        Zoe Z;                                                              \
-        try {                                                               \
-            Z.Eval(code);                                                   \
-            Z.Call(0);                                                      \
-            if(Z.GetType(-1) == NIL) {                                      \
-                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "     \
-                     << "nil"    << endl;                                   \
-            } else {                                                        \
-                decltype(expected) r = Z.Pop<decltype(expected)>();         \
-                cout << DIMRED "   [err]" NORMAL " " << code << ": found "  \
-                     << r << ", expected nil" << endl;                      \
-                return code;                                                \
-            }                                                               \
-        } catch(exception const& e) {                                       \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "            \
-                 << e.what() << endl;                                       \
-            throw;                                                          \
-        }                                                                   \
-    } while(0);                                                             \
-}
-
-
-#define sassert(code, expected) zassert(code, string(expected))
-        
-#define zinspect(code, expected) {                                           \
-    do {                                                                     \
-        Zoe Z;                                                               \
-        try {                                                                \
-            Z.Eval(code);                                                    \
-            Z.Call(0);                                                       \
-            Z.Inspect(-1); \
-            string r = Z.Pop<string>(); \
-            if(r == expected) {                                              \
-                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "      \
-                     << expected << endl;                                    \
-            } else {                                                         \
-                cout << DIMRED "   [err]" NORMAL " " << code << ": found "   \
-                     << r << ", expected " << expected << endl;              \
-                return code;                                                 \
-            }                                                                \
-        } catch(exception const& e) {                                        \
-            cout << DIMRED "   [err]" NORMAL " " << code << ": "             \
-                 << e.what() << endl;                                        \
-            throw;                                                           \
-        }                                                                    \
-    } while(0);                                                              \
-}
-
-#define zthrows(code) {                                         \
-    Zoe Z;                                                      \
-    try {                                                       \
-        Z.Eval(code);                                           \
-        Z.Call(0);                                              \
-        cout << DIMRED "   [err]" NORMAL " " << code            \
-             << ": did not throw" << endl;                      \
-        return code;                                            \
-    } catch(...) {                                              \
-        cout << DIMGREEN "   [ok]" NORMAL " " << code           \
-        << ": exception thrown" << endl;                        \
-    }                                                           \
-}
-
-
-static const char* all_tests();
-
-static int run_all_tests()
+static void _run_test(string const& desc, function<void()> f)
 {
-    const char *result = all_tests();
-    cout << endl;
-    if(result) {
-        cout << RED "error: " << result << NORMAL << endl;
-    } else {
+    test_list.push_back({ desc, f });
+}
+#define run_test(test) _run_test(#test, test)
+
+
+//
+// BASIC assertions
+//
+template<typename T> static void _mequals(string const& code, function<T()> const& f, T const& expected, string const& message="")
+{
+    ++tests_run;
+    string m = (message != "") ? message : code;
+    try {
+        T result = f();
+        if(result != expected) {
+            throw bad_assertion("expected " + to_string(expected) + ", received " + to_string(result));
+        }
+        cout << DIMGREEN "   [ok] " NORMAL << m << " == " << to_string(expected) << endl;
+    } catch(exception const& e) {
+        cout << DIMRED "   [err] " NORMAL << m << endl;
+        throw;
+    }
+}
+#define mequals(code, expected, ...) _mequals<decltype(expected)>(string(#code), [&]() { return code; }, expected, ##__VA_ARGS__)
+
+
+static void _mthrows(string const& code, function<void()> const& f, string const& message="")
+{
+    ++tests_run;
+    string m = (message != "") ? message : code;
+    try {
+        f();
+        cout << DIMRED "   [err] " NORMAL << m << endl;
+        throw bad_assertion(m + ": expected exception");
+    } catch(...) {
+        cout << DIMGREEN "   [ok] " NORMAL << m << endl;
+    }
+}
+#define mthrows(code, ...) _mthrows(string(#code), [&]() { code; }, ##__VA_ARGS__)
+
+
+static void _mnothrow(string const& code, function<void()> const& f, string const& message="")
+{
+    ++tests_run;
+    string m = (message != "") ? message : code;
+    try {
+        f();
+        cout << DIMGREEN "   [ok] " NORMAL << m << endl;
+    } catch(...) {
+        cout << DIMRED "   [err] " NORMAL << m << endl;
+        throw bad_assertion(m + ": exception thrown");
+    }
+}
+#define mnothrow(code, ...) _mnothrow(string(#code), [&]() { code; }, ##__VA_ARGS__)
+
+
+template<typename S, typename T> static void zequals(S const& code, T const& expected)
+{
+    Zoe Z;
+    Z.Eval(string(code));
+    Z.Call(0);
+    T r = Z.Pop<T>();
+    _mequals<T>(code, [&]() { return r; }, expected);
+}
+
+
+template<typename S> static void zequals(S const& code, const char* expected)
+{
+    zequals(code, string(expected));
+}
+
+
+//
+// MAIN PROCEDURE
+//
+static void prepare_tests();
+
+int main()
+{
+    prepare_tests();
+
+    string current_test;
+    try {
+        for(auto const& test: test_list) {
+            current_test = test.desc;
+            cout << BLUE "{{ " << test.desc << " }}" NORMAL << endl;
+            test.f();
+        }
         cout << GREEN;
         cout << ".-----------------------." << endl
              << "|   ALL TESTS PASSED!   |" << endl
              << "'-----------------------'" << endl << NORMAL;
-    }
-    cout << "Tests run: " << tests_run << endl;
-
-    return result != nullptr;
-}
-
-
-int main()
-{
-    try {
-        return run_all_tests();
     } catch(exception const& e) {
-        cout << DIMRED << "exception: " << e.what() << NORMAL << endl;
+        cout << RED "what(): " << e.what() << NORMAL << endl;
         throw;
     }
+        
+    cout << "Tests run: " << tests_run << endl;
 }
 
 // }}}
 
 // {{{ TEST TOOL
 
-static const char* test_tool()
+static void test_tool()
 {
-    massert(1 + 1 == 2);
-    massert(1 + 1 != 3);
-    massert(1 + 1 == 2, "test with message");
-    mthrows([](){ vector<int> i(1); i.at(20) = 1; }, "catching exceptions");
-    mnothrow([](){}, "no exceptions");
-    return nullptr;
+    mequals(1 + 1, 2);
+    mequals(1 + 1, 2, "test with message");
+    mthrows(vector<int> i(1); i.at(20) = 1;, "catching exceptions");
+    mnothrow(1, "no exceptions");
 }
 
 // }}}
@@ -236,7 +190,7 @@ static vector<uint8_t> expected = {
 };
 
 
-static const char* bytecode_gen() 
+static void bytecode_gen() 
 {
     Bytecode bc;
 
@@ -245,44 +199,38 @@ static const char* bytecode_gen()
     bc.Add64<double>(3.1416);
 
     vector<uint8_t> found = bc.GenerateZB();
-    massert(found == expected);
-
-    return nullptr;
+    mequals(found, expected);
 }
 
 
-static const char* bytecode_string()
+static void bytecode_string()
 {
     Bytecode bc;
 
     bc.AddString("ABC");
-    massert(bc.Code().size() == 4, "no NULL terminator");
-    massert(bc.Code()[0] == 'A');
-    massert(bc.Code()[1] == 'B');
-    massert(bc.Code()[2] == 'C');
-    massert(bc.Code()[3] == 0);
-
-    return nullptr;
+    mequals(bc.Code().size(), 4, "no NULL terminator");
+    mequals(bc.Code()[0], 'A');
+    mequals(bc.Code()[1], 'B');
+    mequals(bc.Code()[2], 'C');
+    mequals(bc.Code()[3], 0);
 }
 
 
-static const char* bytecode_import()
+static void bytecode_import()
 {
     Bytecode bc(expected);
 
-    massert(bc.VersionMinor() == 0x1);
-    massert(bc.Code().size() == 10);
-    massert(bc.Code()[1] == PUSH_N);
-    massert(bc.Code()[2] == 0xA7);
-    massert(bc.Code()[9] == 0x40);
+    mequals(bc.VersionMinor(), 0x1);
+    mequals(bc.Code().size(), 10);
+    mequals(bc.Code()[1], static_cast<uint8_t>(PUSH_N));
+    mequals(bc.Code()[2], 0xA7);
+    mequals(bc.Code()[9], 0x40);
 
-    mthrows([](){ Bytecode b(vector<uint8_t>{ 0x00 }); }, "Invalid bytecode file");
-
-    return nullptr;
+    mthrows(Bytecode b(vector<uint8_t>{ 0x00 }), "Invalid bytecode file");
 }
 
 
-static const char* bytecode_labels()
+static void bytecode_labels()
 {
     Bytecode bc;
     Label x = bc.CreateLabel();
@@ -301,14 +249,12 @@ static const char* bytecode_labels()
     }
     bc.GenerateZB();
 
-    massert(bc.Code()[0x20] == 0x10, "Label set (byte #0)");
-    massert(bc.Code()[0x21] == 0x00, "Label set (byte #1)");
-
-    return nullptr;
+    mequals(bc.Code()[0x20], 0x10, "Label set (byte #0)");
+    mequals(bc.Code()[0x21], 0x00, "Label set (byte #1)");
 }
 
 
-static const char* bytecode_variables()
+static void bytecode_variables()
 {
     Bytecode bc;
 
@@ -317,16 +263,14 @@ static const char* bytecode_variables()
     bc.AddVariable("a");
     bc.AddVariable("b");
 
-    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
-    massert(bc.Get64<uint64_t>(0x0A) == 1, "Variable 'b'");
+    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x0A), 1, "Variable 'b'");
 
-    mthrows([&](){ bc.AddVariable("c"); });
-
-    return nullptr;
+    mthrows(bc.AddVariable("c"));
 }
 
 
-static const char* bytecode_multivar()
+static void bytecode_multivar()
 {
     Bytecode bc;
 
@@ -337,21 +281,19 @@ static const char* bytecode_multivar()
     bc.AddMultivarAssignment(false);
     bc.AddVariable("a");
     bc.AddVariable("b");
-    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
-    massert(bc.Get64<uint64_t>(0x0A) == 1, "Variable 'b'");
+    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x0A), 1, "Variable 'b'");
 
     bc.AddMultivarCounter();
-    massert(bc.Code()[0x12] == 3, "Multivar counter before reset");
+    mequals(bc.Code()[0x12], 3, "Multivar counter before reset");
 
     bc.MultivarReset();
     bc.AddMultivarCounter();
-    massert(bc.Code()[0x13] == 0, "Multivar counter after reset");
-
-    return nullptr;
+    mequals(bc.Code()[0x13], 0, "Multivar counter after reset");
 }
 
 
-static const char* bytecode_scopes()
+static void bytecode_scopes()
 {
     Bytecode bc;
 
@@ -365,24 +307,20 @@ static const char* bytecode_scopes()
 
     bc.AddVariable("a");
 
-    massert(bc.Get64<uint64_t>(0x01) == 0, "Variable 'a'");
-    massert(bc.Get64<uint64_t>(0x0B) == 1, "Variable 'a' (inside scope)");
-    massert(bc.Get64<uint64_t>(0x15) == 0, "Variable 'a' (outside scope)");
+    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x0B), 1, "Variable 'a' (inside scope)");
+    mequals(bc.Get64<uint64_t>(0x15), 0, "Variable 'a' (outside scope)");
 
-    mthrows([&](){ bc.PopScope(); }, "Stack underflow");
-    
-    return nullptr;
+    mthrows(bc.PopScope(), "Stack underflow");
 }
 
 
-static const char* bytecode_simplecode()
+static void bytecode_simplecode()
 {
     Bytecode bc("3.1416");
 
     vector<uint8_t> found = bc.GenerateZB();
-    massert(found == expected);
-
-    return nullptr;
+    mequals(found, expected);
 }
 
 
@@ -390,66 +328,58 @@ static const char* bytecode_simplecode()
 
 // {{{ ZOE STACK
 
-static const char* zoe_stack() 
+static void zoe_stack() 
 {
     Zoe Z;
 
-    massert(Z.Stack().size() == 1);
+    mequals(Z.Stack().size(), 1);
 
     double f = 3.24;
     Z.Push(f);
 
-    massert(Z.Stack().size() == 2, "stack size == 2 (after push)");
-    massert(Z.Peek<double>() == f);
-    massert(Z.Pop<double>() == f);
-    massert(Z.Stack().size() == 1, "stack size == 2 (after push/pop)");
+    mequals(Z.Stack().size(), 2, "stack size, 2 (after push)");
+    mequals(Z.Peek<double>(), f);
+    mequals(Z.Pop<double>(), f);
+    mequals(Z.Stack().size(), 1, "stack size, 2 (after push/pop)");
 
     Z.Pop();
-    mthrows([&](){ Z.Pop(); }, "stack underflow");
-
-    return nullptr;
+    mthrows(Z.Pop(), "stack underflow");
 }
 
-static const char* zoe_stack_invalid()
+static void zoe_stack_invalid()
 {
     Zoe Z;
 
     Z.Push(3.14);
-    mthrows([&]() { Z.Pop<bool>(); });
-
-    return nullptr;
+    mthrows(Z.Pop<bool>());
 }
 
-static const char* zoe_stack_order()
+static void zoe_stack_order()
 {
     Zoe Z;
 
     Z.Push(1);
     Z.Push(2);
     Z.Push(3);
-    massert(Z.Stack().size() == 4);
-    massert(Z.Pop<double>() == 3);
-    massert(Z.Pop<double>() == 2);
-    massert(Z.Pop<double>() == 1);
-    mnothrow([&]() { Z.Pop<nullptr_t>(); });
-    massert(Z.Stack().size() == 0);
-
-    return nullptr;
+    mequals(Z.Stack().size(), 4);
+    mequals(Z.Pop<double>(), 3);
+    mequals(Z.Pop<double>(), 2);
+    mequals(Z.Pop<double>(), 1);
+    mnothrow(Z.Pop<nullptr_t>());
+    mequals(Z.Stack().size(), 0);
 }
 
-static const char* zoe_string()
+static void zoe_string()
 {
     Zoe Z;
 
     Z.Push("hello world");
-    massert(Z.Stack().size() == 2);
-    massert(Z.Peek<string>() == "hello world");
+    mequals(Z.Stack().size(), 2);
+    mequals(Z.Peek<string>(), string("hello world"));
 
     string pop = Z.Pop<string>();
-    massert(pop == "hello world");
-    massert(Z.Stack().size() == 1);
-
-    return nullptr;
+    mequals(pop, string("hello world"));
+    mequals(Z.Stack().size(), 1);
 }
 
 
@@ -457,34 +387,30 @@ static const char* zoe_string()
 
 // {{{ EXECUTION
 
-static const char* execution()
+static void execution()
 {
     Zoe Z;
 
     // load code
     Z.Eval("42");
-    massert(Z.Stack().size() == 2, "eval pushed into stack");
-    massert(Z.PeekType() == FUNCTION);
+    mequals(Z.Stack().size(), 2, "eval pushed into stack");
+    mequals(Z.PeekType(), FUNCTION);
 
     // execute code
     Z.Call(0);
-    massert(Z.Stack().size(), "result pushed into stack");
-    massert(Z.PeekType() == NUMBER);
-    massert(Z.Pop<double>() == 42);
-
-    return nullptr;
+    mequals(Z.Stack().size(), 1, "result pushed into stack");
+    mequals(Z.PeekType(), NUMBER);
+    mequals(Z.Pop<double>(), 42);
 }
 
-static const char* inspect()
+static void inspect()
 {
     Zoe Z;
 
     Z.Eval("42");
     Z.Call(0);
     Z.Inspect(-1);
-    massert(Z.Pop<string>() == "42");
-
-    return nullptr;
+    mequals(Z.Pop<string>(), string("42"));
 }
 
 // }}}
@@ -493,69 +419,66 @@ static const char* inspect()
 
 static const char* math_expressions()
 {
-    zassert("2 + 3", 5);
-    zassert("2 + 3", 5);
-    zassert("2 * 3", 6);
-    zassert("2 - 3", -1);
-    zassert("3 / 2", 1.5);
-    zassert("1 + 2 * 3", 7);
-    zassert("(1 + 2) * 3", 9);
-    zassert("3 %/ 2", 1);
-    zassert("3 % 2", 1);
-    zassert("-3 + 2", -1);
-    zassert("2 ** 3", 8);
-    zassert("0b11 & 0b10", 2);
-    zassert("0b11 | 0b10", 3);
-    zassert("0b11 ^ 0b10", 1);
-    zassert("0b1000 >> 2", 2);
-    zassert("0b1000 << 2", 32);
-    zassert("(~0b1010) & 0b1111", 5);
-    zassert("2 > 3", false);
-    zassert("2 < 3", true);
-    zassert("2 == 3", false);
-    zassert("2 != 3", true);
-    zassert("?3", false);
-    zassert("?nil", true);
-    zassert("!true", false);
-    zassert("!false", true);
-
-    return nullptr;
+    zequals("2 + 3", 5);
+    zequals("2 + 3", 5);
+    zequals("2 * 3", 6);
+    zequals("2 - 3", -1);
+    zequals("3 / 2", 1.5);
+    zequals("1 + 2 * 3", 7);
+    zequals("(1 + 2) * 3", 9);
+    zequals("3 %/ 2", 1);
+    zequals("3 % 2", 1);
+    zequals("-3 + 2", -1);
+    zequals("2 ** 3", 8);
+    zequals("0b11 & 0b10", 2);
+    zequals("0b11 | 0b10", 3);
+    zequals("0b11 ^ 0b10", 1);
+    zequals("0b1000 >> 2", 2);
+    zequals("0b1000 << 2", 32);
+    zequals("(~0b1010) & 0b1111", 5);
+    zequals("2 > 3", false);
+    zequals("2 < 3", true);
+    zequals("2 == 3", false);
+    zequals("2 != 3", true);
+    zequals("?3", false);
+    zequals("?nil", true);
+    zequals("!true", false);
+    zequals("!false", true);
 }
 
 
-static const char* shortcircuit_expressions()
+static void shortcircuit_expressions()
 {
     // &&
-    zassert("true && true", true);
-    zassert("true && false", false);
-    zassert("false && true", false);
-    zassert("false && false", false);
-    zassert("true && true && true", true);
-    zassert("true && true && false", false);
+    zequals("true && true", true);
+    zequals("true && false", false);
+    zequals("false && true", false);
+    zequals("false && false", false);
+    zequals("true && true && true", true);
+    zequals("true && true && false", false);
 
     // ||
-    zassert("true || true", true);
-    zassert("true || false", true);
-    zassert("false || true", true);
-    zassert("false || false", false);
-    zassert("true || true || true", true);
-    zassert("true || true || false", true);
-    zassert("false || false || false", false);
+    zequals("true || true", true);
+    zequals("true || false", true);
+    zequals("false || true", true);
+    zequals("false || false", false);
+    zequals("true || true || true", true);
+    zequals("true || true || false", true);
+    zequals("false || false || false", false);
 
     // ternary
-    zassert("2 < 3 ? 4 : 5", 4);
-    zassert("2 >= 3 ? 4 : 5", 5);
-
-    return nullptr;
+    zequals("2 < 3 ? 4 : 5", 4);
+    zequals("2 >= 3 ? 4 : 5", 5);
 }
 
 // }}}
 
 // {{{ STRINGS
 
-static const char* strings()
+static void strings()
 {
-    sassert("'abc'", "abc");
+    zequals("'abc'", "abc");
+    /*
     sassert("'a\\nb'", "a\nb");
     sassert("'a\\x41b'", "aAb");
     sassert("'a\\x41b'", "aAb");
@@ -568,15 +491,17 @@ static const char* strings()
     sassert("'ab${'cd'}ef'", "abcdef");
     sassert("'ab${'cd'}ef'\n", "abcdef");
     sassert("'ab${'cd'..'xx'}ef'", "abcdxxef");
-    zassert("#'abcd'", 4);
-    zassert("#''", 0);
-    zassert("#'ab${'cd'..'xx'}ef'", 8);
+    zequals("#'abcd'", 4);
+    zequals("#''", 0);
+    zequals("#'ab${'cd'..'xx'}ef'", 8);
 
     return nullptr;
+    */
 }
 
-static const char* string_subscripts()
+static void string_subscripts()
 {
+    /*
     sassert("'abcd'[1]", "b");
     sassert("'abcd'[-1]", "d");
     sassert("'abcd'[1:2]", "b");
@@ -586,22 +511,24 @@ static const char* string_subscripts()
     sassert("'abcd'[-3:-1]", "bc");
 
     return nullptr;
+    */
 }
 
 // }}}
 
+#if 0
 // {{{ COMMENTS
 
 static const char* comments()
 {
-    zassert("2 + 3 /* test */", 5);
-    zassert("/* test */ 2 + 3", 5);
-    zassert("2 /* test */ + 3", 5);
-    zassert("2 /* t\ne\nst */ + 3", 5);
-    zassert("// test\n2 + 3", 5);
-    zassert("2 + 3//test\n", 5);
-    zassert("2 /* a /* b */ */", 2);  // nested comments
-    zassert("2 /* /* / */ */", 2);  // nested comments
+    zequals("2 + 3 /* test */", 5);
+    zequals("/* test */ 2 + 3", 5);
+    zequals("2 /* test */ + 3", 5);
+    zequals("2 /* t\ne\nst */ + 3", 5);
+    zequals("// test\n2 + 3", 5);
+    zequals("2 + 3//test\n", 5);
+    zequals("2 /* a /* b */ */", 2);  // nested comments
+    zequals("2 /* /* / */ */", 2);  // nested comments
     return nullptr;
 }
 
@@ -623,22 +550,22 @@ static const char* arrays()
 
 static const char* array_equality()
 {
-    zassert("[]==[]", true);
-    zassert("[2,3,]==[2,3]", true);
-    zassert("[2,3,[4,'abc'],nil] == [ 2, 3, [ 4, 'abc' ], nil ]", true);
-    zassert("[2,3,4]==[2,3]", false);
-    zassert("[2,3,4]==[2,3,5]", false);
-    zassert("[2,3,4]!=[2,3,5]", true);
+    zequals("[]==[]", true);
+    zequals("[2,3,]==[2,3]", true);
+    zequals("[2,3,[4,'abc'],nil] == [ 2, 3, [ 4, 'abc' ], nil ]", true);
+    zequals("[2,3,4]==[2,3]", false);
+    zequals("[2,3,4]==[2,3,5]", false);
+    zequals("[2,3,4]!=[2,3,5]", true);
 
     return nullptr;
 }
 
 static const char* array_lookup()
 {
-    zassert("[2,3,4][0]", 2);
-    zassert("[2,3,4][1]", 3);
-    zassert("[2,3,4][-1]", 4);
-    zassert("[2,3,4][-2]", 3);
+    zequals("[2,3,4][0]", 2);
+    zequals("[2,3,4][1]", 3);
+    zequals("[2,3,4][-1]", 4);
+    zequals("[2,3,4][-2]", 3);
     sassert("[2,3,'hello'][2]", "hello");
 
     // TODO - test key error
@@ -663,8 +590,8 @@ static const char* array_slices()
 
 static const char* array_operators()
 {
-    zassert("#[2, 3, 4]", 3);
-    zassert("#[]", 0);
+    zequals("#[2, 3, 4]", 3);
+    zequals("#[]", 0);
     zinspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
     zinspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
 
@@ -689,13 +616,13 @@ static const char* table()
 
 static const char* table_access()
 {
-    zassert("%{[2]: 3}[2]", 3);
+    zequals("%{[2]: 3}[2]", 3);
     sassert("%{hello: 'world', a: 42}['hello']", "world");
     sassert("%{hello: 'world', a: 42}['hello']", "world");
     sassert("%{hello: 'world', a: 42}.hello", "world");
-    zassert("%{hello: 'world', a: 42}.a", 42);
-    zassert("%{hello: %{world: 42}}.hello.world", 42);
-    zassert("%{hello: %{world: 42}}['hello']['world']", 42);
+    zequals("%{hello: 'world', a: 42}.a", 42);
+    zequals("%{hello: %{world: 42}}.hello.world", 42);
+    zequals("%{hello: %{world: 42}}['hello']['world']", 42);
 
     Zoe Z;
     Z.Eval("%{hello: 'world'}.a");
@@ -706,16 +633,16 @@ static const char* table_access()
 
 static const char* table_equality()
 {
-    zassert("%{}==%{}", true);
-    zassert("%{hello: 'world'}==%{hello: 'world'}", true);
-    zassert("%{b: %{a:1}}==%{b: %{a:1}}", true);
-    zassert("%{[2]: 3, abc: %{d: %{e: 42}} }==%{[2]: 3, abc: %{d: %{e: 42} }}", true);
-    zassert("%{a: 1, b: 2} == %{b: 2, a: 1}", true);
-    zassert("%{}==%{hello: 'world'}", false);
-    zassert("%{hello: 'world'}==%{}", false);
-    zassert("%{b: %{a:1}}==%{b: 1}", false);
-    zassert("%{b: %{a:1}}==%{b: %{a:2}}", false);
-    zassert("%{b: %{a:1}}==%{b: %{c:1}}", false);
+    zequals("%{}==%{}", true);
+    zequals("%{hello: 'world'}==%{hello: 'world'}", true);
+    zequals("%{b: %{a:1}}==%{b: %{a:1}}", true);
+    zequals("%{[2]: 3, abc: %{d: %{e: 42}} }==%{[2]: 3, abc: %{d: %{e: 42} }}", true);
+    zequals("%{a: 1, b: 2} == %{b: 2, a: 1}", true);
+    zequals("%{}==%{hello: 'world'}", false);
+    zequals("%{hello: 'world'}==%{}", false);
+    zequals("%{b: %{a:1}}==%{b: 1}", false);
+    zequals("%{b: %{a:1}}==%{b: %{a:2}}", false);
+    zequals("%{b: %{a:1}}==%{b: %{c:1}}", false);
 
     return nullptr;
 }
@@ -726,29 +653,29 @@ static const char* table_equality()
 
 static const char* variables()
 {
-    zassert("let a = 4", 4);
-    zassert("let a = 4; a", 4);
-    zassert("let a = 4; let b = 25; a", 4);
-    zassert("let a = 4; let b = 25; b", 25);
-    zassert("let a = let b = 25; a", 25);
-    zassert("let a = let b = 25; b", 25);
-    zassert("let a = 25; let b = a; b", 25);
-    zassert("let a = 25; let b = a; let c = b; c", 25);
-    zassert("let a = 25, b = 13; a", 25);
-    zassert("let a = 25, b = 13, c = 48; b", 13);
-    zassert("let a = 25, b = a, c = b; b", 25);
+    zequals("let a = 4", 4);
+    zequals("let a = 4; a", 4);
+    zequals("let a = 4; let b = 25; a", 4);
+    zequals("let a = 4; let b = 25; b", 25);
+    zequals("let a = let b = 25; a", 25);
+    zequals("let a = let b = 25; b", 25);
+    zequals("let a = 25; let b = a; b", 25);
+    zequals("let a = 25; let b = a; let c = b; c", 25);
+    zequals("let a = 25, b = 13; a", 25);
+    zequals("let a = 25, b = 13, c = 48; b", 13);
+    zequals("let a = 25, b = a, c = b; b", 25);
     zthrows("let a = 4; let a = 5; a");
-    //zassert("let a; a", nullptr);
+    //zequals("let a; a", nullptr);
 
     return nullptr;
 }
 
 static const char* multiple_assignment()
 {
-    zassert("let [a, b] = [3, 4]; a", 3);
-    zassert("let [a, b, c] = [3, 4, 5]; b", 4);
-    zassert("let x = 8, [a, b, c] = [3, x, 5]; b", 8);
-    zassert("let [a, b, c] = [3, 4, 5], x = b; x", 4);
+    zequals("let [a, b] = [3, 4]; a", 3);
+    zequals("let [a, b, c] = [3, 4, 5]; b", 4);
+    zequals("let x = 8, [a, b, c] = [3, x, 5]; b", 8);
+    zequals("let [a, b, c] = [3, 4, 5], x = b; x", 4);
     zthrows("let [a, b] = [2, 4, 5]");
     zthrows("let [a, a] = [3, 4]");
     
@@ -766,41 +693,42 @@ static const char* variable_set()
 
 static const char* scopes()
 {
-    zassert("{ 4 }", 4);
-    zassert("{ 4; 5 }", 5);
-    zassert("{ 4; 5; }", 5);
-    zassert("{ 4\n 5 }", 5);
-    zassert("{ 4; { 5; } }", 5);
-    zassert("{ 4; { 5; }; }", 5);
-    zassert("{ 4; { 5; { 6; 7 } } }", 7);
-    zassert("{ 4; { 5; { 6; 7 } } }", 7);
-    zassert("{ 4; { 5; { 6; 7 } } }", 7);
-    zassert("{ 4 }; 5", 5);
-    zassert("{ 4\n { 5; { 6; 7; } } }; 8", 8);
-    zassert("{ \n 4 \n }\n 5", 5);
+    zequals("{ 4 }", 4);
+    zequals("{ 4; 5 }", 5);
+    zequals("{ 4; 5; }", 5);
+    zequals("{ 4\n 5 }", 5);
+    zequals("{ 4; { 5; } }", 5);
+    zequals("{ 4; { 5; }; }", 5);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4 }; 5", 5);
+    zequals("{ 4\n { 5; { 6; 7; } } }; 8", 8);
+    zequals("{ \n 4 \n }\n 5", 5);
 
     return nullptr;
 }
 
 static const char* scope_vars()
 {
-    zassert("let a = 4; { 4 }; a", 4);
-    zassert("let a = 4; { let a=5; a }", 5);
-    zassert("let a = 4; { let a=5; }; a", 4);
-    zassert("let a = 4, b=6; { let a=5; }; b", 6);
-    zassert("let a = 4; { let a=5; { let a=6 }; a }", 5);
-    zassert("let a = 4; { let a=5; { let a=6 } }; a", 4);
-    zassert("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
-    zassert("let a = 4; { let a=5 } ; { let a=6; a }", 6);
-    zassert("let a = 4; { let a=5 } ; { let b=6; a }", 4);
+    zequals("let a = 4; { 4 }; a", 4);
+    zequals("let a = 4; { let a=5; a }", 5);
+    zequals("let a = 4; { let a=5; }; a", 4);
+    zequals("let a = 4, b=6; { let a=5; }; b", 6);
+    zequals("let a = 4; { let a=5; { let a=6 }; a }", 5);
+    zequals("let a = 4; { let a=5; { let a=6 } }; a", 4);
+    zequals("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
+    zequals("let a = 4; { let a=5 } ; { let a=6; a }", 6);
+    zequals("let a = 4; { let a=5 } ; { let b=6; a }", 4);
     //zthrows("{ let a=4 }; a");
 
     return nullptr;
 }
 
 // }}}
+#endif
 
-static const char* all_tests()
+static void prepare_tests()
 {
     // test tool
     run_test(test_tool);
@@ -828,6 +756,7 @@ static const char* all_tests()
     run_test(shortcircuit_expressions);
     run_test(strings);
     run_test(string_subscripts);
+    /*
     run_test(comments);
 
     // arrays
@@ -848,8 +777,7 @@ static const char* all_tests()
     run_test(variable_set);
     run_test(scopes);
     run_test(scope_vars);
-
-    return nullptr;
+    */
 }
 
 
