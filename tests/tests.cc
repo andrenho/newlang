@@ -753,8 +753,13 @@ static const char* scopes()
 static const char* scope_vars()
 {
     zassert("let a = 4; { 4 }; a", 4);
-    zassert("let a = 4; { let a=5; }", 5);
+    zassert("let a = 4; { let a=5; a }", 5);
     zassert("let a = 4; { let a=5; }; a", 4);
+    zassert("let a = 4, b=6; { let a=5; }; b", 6);
+    zassert("let a = 4; { let a=5; { let a=6 }; a }", 5);
+    zassert("let a = 4; { let a=5; { let a=6 } }; a", 4);
+    zassert("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
+    zassert("let a = 4; { let a=5 } ; { let a=6; a }", 6);
 
     return nullptr;
 }
