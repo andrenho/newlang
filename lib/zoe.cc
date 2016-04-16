@@ -200,6 +200,18 @@ void Zoe::PushVariableContents(uint64_t idx)
 
 // }}}
 
+// {{{ SCOPES
+
+void Zoe::PushScope()
+{
+}
+
+void Zoe::PopScope()
+{
+}
+
+// }}}
+
 // {{{ CODE EXECUTION
 
 void Zoe::Eval(string const& code)
@@ -327,6 +339,12 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case ADDCNST:  AddVariable(false); ++p; break;
             case ADDMCNST: AddMultipleVariables(bc.Code()[p+1], false); p += 2; break;
             case GETLOCAL: PushVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
+
+            // 
+            // scopes
+            //
+            case PUSH_Sc: PushScope(); ++p; break;
+            case POP_Sc:  PopScope();  ++p; break;
 
             //
             // others

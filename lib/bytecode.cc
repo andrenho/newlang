@@ -123,6 +123,17 @@ void Bytecode::AdjustLabels()
 
 void Bytecode::VariableAssignment(string const& varname, bool _mutable)
 {
+    // check if there's already a variable with the same name IN THIS SCOPE
+    if(!vars.empty()) {
+        ssize_t fp = static_cast<ssize_t>(frame_pointers.empty() ? 0 : frame_pointers.back());
+        for(ssize_t i=static_cast<ssize_t>(vars.size())-1; i >= fp; --i) {
+            assert(i >= 0);
+            if(varname == vars[static_cast<size_t>(i)].name) {
+                throw runtime_error("Variable name " + varname + " repeated in this scope.");
+            }
+        }
+    }
+
     vars.push_back({ varname, _mutable });
 }
 

@@ -68,6 +68,12 @@ private:
     vector<Variable> variables = {};
 public:
 
+    //
+    // SCOPES
+    //
+    void PushScope();
+    void PopScope();
+
     // 
     // VM EXECUTION
     //

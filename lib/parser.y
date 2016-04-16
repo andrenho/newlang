@@ -81,8 +81,8 @@ typedef struct String {
 
 %%
 
-code: optsep exps optsep { b.Add(END); }
-    | SEP                { b.Add(END); }
+code: optsep exps optsep
+    | SEP
     ;
 
 optsep: %empty

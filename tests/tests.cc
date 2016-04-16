@@ -136,6 +136,20 @@ static int tests_run = 0;
     } while(0);                                                              \
 }
 
+#define zthrows(code) {                                         \
+    Zoe Z;                                                      \
+    try {                                                       \
+        Z.Eval(code);                                           \
+        Z.Call(0);                                              \
+        cout << DIMRED "   [err]" NORMAL " " << code            \
+             << ": did not throw" << endl;                      \
+        return code;                                            \
+    } catch(...) {                                              \
+        cout << DIMGREEN "   [ok]" NORMAL " " << code << endl;  \
+    }                                                           \
+}
+
+
 static const char* all_tests();
 
 static int run_all_tests()
@@ -187,13 +201,12 @@ static const char* test_tool()
 static vector<uint8_t> expected = {
     0x90, 0x6F, 0x65, 0x20, 0xEB, 0x00, 0x01, 0x00,     // header
     0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_pos
-    0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
+    0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // code_sz
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_pos
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // data_sz
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_pos
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     // debug_sz
     POP, PUSH_N, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,  // PUSH_N 3.1416
-    END,                                                // EOF
 };
 
 
@@ -204,7 +217,6 @@ static const char* bytecode_gen()
     bc.Add(POP);
     bc.Add(PUSH_N);
     bc.Add64<double>(3.1416);
-    bc.Add(END);
 
     vector<uint8_t> found = bc.GenerateZB();
     massert(found == expected);
@@ -233,7 +245,7 @@ static const char* bytecode_import()
     Bytecode bc(expected);
 
     massert(bc.VersionMinor() == 0x1);
-    massert(bc.Code().size() == 11);
+    massert(bc.Code().size() == 10);
     massert(bc.Code()[1] == PUSH_N);
     massert(bc.Code()[2] == 0xA7);
     massert(bc.Code()[9] == 0x40);
@@ -649,7 +661,7 @@ static const char* table()
     return nullptr;
 }
 
-static const char* table_access(void)
+static const char* table_access()
 {
     zassert("%{[2]: 3}[2]", 3);
     sassert("%{hello: 'world', a: 42}['hello']", "world");
@@ -699,11 +711,12 @@ static const char* variables()
     zassert("let a = 25, b = 13; a", 25);
     zassert("let a = 25, b = 13, c = 48; b", 13);
     zassert("let a = 25, b = a, c = b; b", 25);
+    zthrows("let a = 4; let a = 5; a");
 
     return nullptr;
 }
 
-static const char* multiple_assignment(void)
+static const char* multiple_assignment()
 {
     zassert("let [a, b] = [3, 4]; a", 3);
     zassert("let [a, b, c] = [3, 4, 5]; b", 4);
@@ -719,28 +732,29 @@ static const char* multiple_assignment(void)
 
 // {{{ SCOPES
 
-static const char* scopes(void)
+static const char* scopes()
 {
     zassert("{ 4 }", 4);
     zassert("{ 4; 5 }", 5);
     zassert("{ 4; 5; }", 5);
     zassert("{ 4\n 5 }", 5);
     zassert("{ 4; { 5; } }", 5);
+    zassert("{ 4; { 5; }; }", 5);
     zassert("{ 4; { 5; { 6; 7 } } }", 7);
     zassert("{ 4; { 5; { 6; 7 } } }", 7);
     zassert("{ 4; { 5; { 6; 7 } } }", 7);
-    // zassert("{ 4\n { 5; { 6; 7;; } } } 8", 8);
-    //zassert("{ 4 } 5", 5);
     zassert("{ 4 }; 5", 5);
+    zassert("{ 4\n { 5; { 6; 7; } } }; 8", 8);
     zassert("{ \n 4 \n }\n 5", 5);
 
     return nullptr;
 }
 
-static const char* scope_vars(void)
+static const char* scope_vars()
 {
-    // TODO
-    //zassert("let a = 4; { 4 }; a", 4);
+    zassert("let a = 4; { 4 }; a", 4);
+    zassert("let a = 4; { let a=5; }", 5);
+    zassert("let a = 4; { let a=5; }; a", 4);
 
     return nullptr;
 }
@@ -792,6 +806,8 @@ static const char* all_tests()
     // variables
     run_test(variables);
     run_test(multiple_assignment);
+    run_test(scopes);
+    run_test(scope_vars);
 
     return nullptr;
 }
