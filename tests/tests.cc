@@ -110,6 +110,31 @@ static int tests_run = 0;
     } while(0);                                                              \
 }
 
+
+#define zassertnil(code) {                                                  \
+    do {                                                                    \
+        Zoe Z;                                                              \
+        try {                                                               \
+            Z.Eval(code);                                                   \
+            Z.Call(0);                                                      \
+            if(Z.GetType(-1) == NIL) {                                      \
+                cout << DIMGREEN "   [ok]" NORMAL " " << code << " == "     \
+                     << "nil"    << endl;                                   \
+            } else {                                                        \
+                decltype(expected) r = Z.Pop<decltype(expected)>();         \
+                cout << DIMRED "   [err]" NORMAL " " << code << ": found "  \
+                     << r << ", expected nil" << endl;                      \
+                return code;                                                \
+            }                                                               \
+        } catch(exception const& e) {                                       \
+            cout << DIMRED "   [err]" NORMAL " " << code << ": "            \
+                 << e.what() << endl;                                       \
+            throw;                                                          \
+        }                                                                   \
+    } while(0);                                                             \
+}
+
+
 #define sassert(code, expected) zassert(code, string(expected))
         
 #define zinspect(code, expected) {                                           \
@@ -145,7 +170,8 @@ static int tests_run = 0;
              << ": did not throw" << endl;                      \
         return code;                                            \
     } catch(...) {                                              \
-        cout << DIMGREEN "   [ok]" NORMAL " " << code << endl;  \
+        cout << DIMGREEN "   [ok]" NORMAL " " << code           \
+        << ": exception thrown" << endl;                        \
     }                                                           \
 }
 
@@ -712,6 +738,7 @@ static const char* variables()
     zassert("let a = 25, b = 13, c = 48; b", 13);
     zassert("let a = 25, b = a, c = b; b", 25);
     zthrows("let a = 4; let a = 5; a");
+    //zassert("let a; a", nullptr);
 
     return nullptr;
 }
@@ -722,9 +749,14 @@ static const char* multiple_assignment()
     zassert("let [a, b, c] = [3, 4, 5]; b", 4);
     zassert("let x = 8, [a, b, c] = [3, x, 5]; b", 8);
     zassert("let [a, b, c] = [3, 4, 5], x = b; x", 4);
+    zthrows("let [a, b] = [2, 4, 5]");
+    zthrows("let [a, a] = [3, 4]");
     
-    // TODO - test errors
+    return nullptr;
+}
 
+static const char* variable_set()
+{
     return nullptr;
 }
 
@@ -760,6 +792,8 @@ static const char* scope_vars()
     zassert("let a = 4; { let a=5; { let a=6 } }; a", 4);
     zassert("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
     zassert("let a = 4; { let a=5 } ; { let a=6; a }", 6);
+    zassert("let a = 4; { let a=5 } ; { let b=6; a }", 4);
+    //zthrows("{ let a=4 }; a");
 
     return nullptr;
 }
@@ -811,6 +845,7 @@ static const char* all_tests()
     // variables
     run_test(variables);
     run_test(multiple_assignment);
+    run_test(variable_set);
     run_test(scopes);
     run_test(scope_vars);
 

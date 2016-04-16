@@ -65,6 +65,7 @@ private:
         bool               _mutable;
     };
 
+    vector<uint64_t> frame_pointers = {};
     vector<Variable> variables = {};
 public:
 

@@ -36,14 +36,15 @@ Other:
 Migration to C++
  - advanced REPL (ok - sort of)
  - inspection/debugging (ok)
- - asserts/review - what are the tests? - const
+ - asserts/review - what are the tests? - const (ok)
  - HACKING documentation
 
 Other steps:
 
- - local variables
-   - expression management
+ - local variables (ok)
+   - expression management (ok)
    - multiple scopes
+   - assignment
  - array/table assingment
    - delete record from table
  - complex garbage collection

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <iomanip>
-#include <iostream>   // TODO
+#include <iostream>
 #include <sstream>
 
 #include "lib/bytecode.h"
@@ -204,10 +204,21 @@ void Zoe::PushVariableContents(uint64_t idx)
 
 void Zoe::PushScope()
 {
+    frame_pointers.push_back(variables.size());
 }
 
 void Zoe::PopScope()
 {
+    if(frame_pointers.empty()) {
+        throw underflow_error("Stack underflow.");
+    }
+
+    // TODO - this can be faster
+    uint64_t goal = frame_pointers.back();
+    while(variables.size() > goal) {
+        variables.pop_back();
+    }
+    frame_pointers.pop_back();
 }
 
 // }}}
