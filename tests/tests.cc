@@ -1,4 +1,6 @@
 #include <cstdlib>
+
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -134,15 +136,54 @@ template<typename S> static void zequals(S const& code, const char* expected)
 }
 
 
+static void zinspect(const char* code, const char* expected)
+{
+    Zoe Z;
+    Z.Eval(string(code));
+    Z.Call(0);
+    Z.Inspect(-1);
+    string r = Z.Pop<string>();
+    _mequals<string>(code, [&]() { return r; }, string(expected));
+}
+
+
+static void zthrows(const char* code)
+{
+    Zoe Z;
+    try {
+        Z.Eval(string(code));
+        Z.Call(0);
+        cout << DIMRED "   [err] " NORMAL << code << endl;
+        throw bad_assertion(string(code) + ": expected exception");
+    } catch(...) {
+        cout << DIMGREEN "   [ok] " NORMAL << code << endl;
+    }
+}
+
+
 //
 // MAIN PROCEDURE
 //
 static void prepare_tests();
 
-int main()
+int main(int argc, char* argv[])
 {
+    // load tests
     prepare_tests();
 
+    // select tests
+    if(argc != 1) {
+        test_list.erase(remove_if(begin(test_list), end(test_list), [&argc, &argv](auto const& lst) {
+            for(int i=1; i<argc; ++i) {
+                if(lst.desc == string(argv[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }), end(test_list));
+    }
+
+    // run tests
     string current_test;
     try {
         for(auto const& test: test_list) {
@@ -478,48 +519,39 @@ static void shortcircuit_expressions()
 static void strings()
 {
     zequals("'abc'", "abc");
-    /*
-    sassert("'a\\nb'", "a\nb");
-    sassert("'a\\x41b'", "aAb");
-    sassert("'a\\x41b'", "aAb");
-    sassert("'ab'..'cd'", "abcd");
-    sassert("'ab'..'cd'..'ef'", "abcdef");
-    sassert("'a\nf'", "a\nf");   // multiline string
-    sassert("'a' 'b' 'cd'", "abcd");
-    sassert("'ab$e'", "ab$e");
-    sassert("'ab$'", "ab$");
-    sassert("'ab${'cd'}ef'", "abcdef");
-    sassert("'ab${'cd'}ef'\n", "abcdef");
-    sassert("'ab${'cd'..'xx'}ef'", "abcdxxef");
+    zequals("'a\\nb'", "a\nb");
+    zequals("'a\\x41b'", "aAb");
+    zequals("'a\\x41b'", "aAb");
+    zequals("'ab'..'cd'", "abcd");
+    zequals("'ab'..'cd'..'ef'", "abcdef");
+    zequals("'a\nf'", "a\nf");   // multiline string
+    zequals("'a' 'b' 'cd'", "abcd");
+    zequals("'ab$e'", "ab$e");
+    zequals("'ab$'", "ab$");
+    zequals("'ab${'cd'}ef'", "abcdef");
+    zequals("'ab${'cd'}ef'\n", "abcdef");
+    zequals("'ab${'cd'..'xx'}ef'", "abcdxxef");
     zequals("#'abcd'", 4);
     zequals("#''", 0);
     zequals("#'ab${'cd'..'xx'}ef'", 8);
-
-    return nullptr;
-    */
 }
 
 static void string_subscripts()
 {
-    /*
-    sassert("'abcd'[1]", "b");
-    sassert("'abcd'[-1]", "d");
-    sassert("'abcd'[1:2]", "b");
-    sassert("'abcd'[1:3]", "bc");
-    sassert("'abcd'[1:]", "bcd");
-    sassert("'abcd'[:3]", "abc");
-    sassert("'abcd'[-3:-1]", "bc");
-
-    return nullptr;
-    */
+    zequals("'abcd'[1]", "b");
+    zequals("'abcd'[-1]", "d");
+    zequals("'abcd'[1:2]", "b");
+    zequals("'abcd'[1:3]", "bc");
+    zequals("'abcd'[1:]", "bcd");
+    zequals("'abcd'[:3]", "abc");
+    zequals("'abcd'[-3:-1]", "bc");
 }
 
 // }}}
 
-#if 0
 // {{{ COMMENTS
 
-static const char* comments()
+static void comments()
 {
     zequals("2 + 3 /* test */", 5);
     zequals("/* test */ 2 + 3", 5);
@@ -529,14 +561,13 @@ static const char* comments()
     zequals("2 + 3//test\n", 5);
     zequals("2 /* a /* b */ */", 2);  // nested comments
     zequals("2 /* /* / */ */", 2);  // nested comments
-    return nullptr;
 }
 
 // }}}
 
 // {{{ ARRAYS
 
-static const char* arrays()
+static void arrays()
 {
     zinspect("[]", "[]");
     zinspect("[2,3]", "[2, 3]");
@@ -544,11 +575,9 @@ static const char* arrays()
     zinspect("[[1]]", "[[1]]");
     zinspect("[2, 3, []]", "[2, 3, []]");
     zinspect("[2, 3, ['abc', true, [nil]]]", "[2, 3, ['abc', true, [nil]]]");
-
-    return nullptr;
 }
 
-static const char* array_equality()
+static void array_equality()
 {
     zequals("[]==[]", true);
     zequals("[2,3,]==[2,3]", true);
@@ -556,24 +585,19 @@ static const char* array_equality()
     zequals("[2,3,4]==[2,3]", false);
     zequals("[2,3,4]==[2,3,5]", false);
     zequals("[2,3,4]!=[2,3,5]", true);
-
-    return nullptr;
 }
 
-static const char* array_lookup()
+static void array_lookup()
 {
     zequals("[2,3,4][0]", 2);
     zequals("[2,3,4][1]", 3);
     zequals("[2,3,4][-1]", 4);
     zequals("[2,3,4][-2]", 3);
-    sassert("[2,3,'hello'][2]", "hello");
-
+    zequals("[2,3,'hello'][2]", "hello");
     // TODO - test key error
-
-    return nullptr;
 }
 
-static const char* array_slices()
+static void array_slices()
 {
     zinspect("[2,3,4][0:1]", "[2]");
     zinspect("[2,3,4][0:2]", "[2, 3]");
@@ -584,25 +608,21 @@ static const char* array_slices()
     zinspect("[2,3,4][-1:]", "[4]");
     zinspect("[2,3,4][-2:-1]", "[3]");
     zinspect("[2,3,4][:-2]", "[2]");
-
-    return nullptr;
 }
 
-static const char* array_operators()
+static void array_operators()
 {
     zequals("#[2, 3, 4]", 3);
     zequals("#[]", 0);
     zinspect("[2,3]..[4,5,6]", "[2, 3, 4, 5, 6]");
     zinspect("[2,3] * 3", "[2, 3, 2, 3, 2, 3]");
-
-    return nullptr;
 }
 
 // }}}
 
 // {{{ TABLES
 
-static const char* table()
+static void table()
 {
     zinspect("%{}", "%{}");
     zinspect("%{hello: 'world'}", "%{hello: 'world'}");
@@ -610,28 +630,24 @@ static const char* table()
     zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
     zinspect("%{hello: []}", "%{hello: []}");
     zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
-
-    return nullptr;
 }
 
-static const char* table_access()
+static void table_access()
 {
     zequals("%{[2]: 3}[2]", 3);
-    sassert("%{hello: 'world', a: 42}['hello']", "world");
-    sassert("%{hello: 'world', a: 42}['hello']", "world");
-    sassert("%{hello: 'world', a: 42}.hello", "world");
+    zequals("%{hello: 'world', a: 42}['hello']", "world");
+    zequals("%{hello: 'world', a: 42}['hello']", "world");
+    zequals("%{hello: 'world', a: 42}.hello", "world");
     zequals("%{hello: 'world', a: 42}.a", 42);
     zequals("%{hello: %{world: 42}}.hello.world", 42);
     zequals("%{hello: %{world: 42}}['hello']['world']", 42);
 
     Zoe Z;
     Z.Eval("%{hello: 'world'}.a");
-    mthrows([&]() { Z.Call(0); }, "Key error");
-
-    return nullptr;
+    mthrows(Z.Call(0), "Key error");
 }
 
-static const char* table_equality()
+static void table_equality()
 {
     zequals("%{}==%{}", true);
     zequals("%{hello: 'world'}==%{hello: 'world'}", true);
@@ -643,15 +659,13 @@ static const char* table_equality()
     zequals("%{b: %{a:1}}==%{b: 1}", false);
     zequals("%{b: %{a:1}}==%{b: %{a:2}}", false);
     zequals("%{b: %{a:1}}==%{b: %{c:1}}", false);
-
-    return nullptr;
 }
 
 // }}}
 
 // {{{ VARIABLES
 
-static const char* variables()
+static void variables()
 {
     zequals("let a = 4", 4);
     zequals("let a = 4; a", 4);
@@ -665,12 +679,10 @@ static const char* variables()
     zequals("let a = 25, b = 13, c = 48; b", 13);
     zequals("let a = 25, b = a, c = b; b", 25);
     zthrows("let a = 4; let a = 5; a");
-    //zequals("let a; a", nullptr);
-
-    return nullptr;
+    // TODO - zequals("let a; a", nullptr);
 }
 
-static const char* multiple_assignment()
+static void multiple_assignment()
 {
     zequals("let [a, b] = [3, 4]; a", 3);
     zequals("let [a, b, c] = [3, 4, 5]; b", 4);
@@ -678,20 +690,18 @@ static const char* multiple_assignment()
     zequals("let [a, b, c] = [3, 4, 5], x = b; x", 4);
     zthrows("let [a, b] = [2, 4, 5]");
     zthrows("let [a, a] = [3, 4]");
-    
-    return nullptr;
 }
 
-static const char* variable_set()
+static void variable_set()
 {
-    return nullptr;
+    // TODO
 }
 
 // }}}
 
 // {{{ SCOPES
 
-static const char* scopes()
+static void scopes()
 {
     zequals("{ 4 }", 4);
     zequals("{ 4; 5 }", 5);
@@ -705,11 +715,9 @@ static const char* scopes()
     zequals("{ 4 }; 5", 5);
     zequals("{ 4\n { 5; { 6; 7; } } }; 8", 8);
     zequals("{ \n 4 \n }\n 5", 5);
-
-    return nullptr;
 }
 
-static const char* scope_vars()
+static void scope_vars()
 {
     zequals("let a = 4; { 4 }; a", 4);
     zequals("let a = 4; { let a=5; a }", 5);
@@ -720,13 +728,10 @@ static const char* scope_vars()
     zequals("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
     zequals("let a = 4; { let a=5 } ; { let a=6; a }", 6);
     zequals("let a = 4; { let a=5 } ; { let b=6; a }", 4);
-    //zthrows("{ let a=4 }; a");
-
-    return nullptr;
+    zthrows("{ let a=4 }; a");
 }
 
 // }}}
-#endif
 
 static void prepare_tests()
 {
@@ -756,7 +761,6 @@ static void prepare_tests()
     run_test(shortcircuit_expressions);
     run_test(strings);
     run_test(string_subscripts);
-    /*
     run_test(comments);
 
     // arrays
@@ -777,7 +781,6 @@ static void prepare_tests()
     run_test(variable_set);
     run_test(scopes);
     run_test(scope_vars);
-    */
 }
 
 
