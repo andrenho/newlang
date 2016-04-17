@@ -82,6 +82,9 @@ struct ZValue {
     explicit ZValue(string const& s)  : type(STRING), str(s) {}
     explicit ZValue(vector<uint8_t> const& data) : type(FUNCTION), func(data) {}
 
+    // copy constructor
+    ZValue(ZValue const& other);
+
     // helper constructors
     template<class T, class = typename enable_if<is_scalar<T>::value, T>::type> explicit ZValue(T const& i) : ZValue(static_cast<double>(i)) {}
     explicit ZValue(const char s[]) : ZValue(string(s)) { assert(s); }

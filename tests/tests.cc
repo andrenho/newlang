@@ -48,7 +48,7 @@ template<typename T> string to_string(vector<T> const& v) {
     return s + "]";
 }
 
-string to_string(string const& s) {
+static string to_string(string const& s) {
     return s;
 }
 
@@ -129,10 +129,17 @@ template<typename S, typename T> static void zequals(S const& code, T const& exp
     _mequals<T>(code, [&]() { return r; }, expected);
 }
 
-
 template<typename S> static void zequals(S const& code, const char* expected)
 {
     zequals(code, string(expected));
+}
+
+template<typename S> static void zequals(S const& code, nullptr_t)
+{
+    Zoe Z;
+    Z.Eval(string(code));
+    Z.Call(0);
+    _mequals<ZType>(code, [&]() { return Z.GetType(-1); }, NIL);
 }
 
 
@@ -154,10 +161,11 @@ static void zthrows(const char* code)
         Z.Eval(string(code));
         Z.Call(0);
         cout << DIMRED "   [err] " NORMAL << code << endl;
-        throw bad_assertion(string(code) + ": expected exception");
     } catch(...) {
         cout << DIMGREEN "   [ok] " NORMAL << code << endl;
+        return;
     }
+    throw bad_assertion(string(code) + ": did not throw");
 }
 
 
@@ -301,13 +309,13 @@ static void bytecode_variables()
 
     bc.VariableAssignment("a", false);
     bc.VariableAssignment("b", false);
-    bc.AddVariable("a");
-    bc.AddVariable("b");
+    bc.AddVariableRef("a");
+    bc.AddVariableRef("b");
 
-    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
-    mequals(bc.Get64<uint64_t>(0x0A), 1, "Variable 'b'");
+    mequals(bc.Get64<uint64_t>(0x00), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x08), 1, "Variable 'b'");
 
-    mthrows(bc.AddVariable("c"));
+    mthrows(bc.AddVariableRef("c"));
 }
 
 
@@ -320,17 +328,17 @@ static void bytecode_multivar()
     bc.MultivarCreate("c");
 
     bc.AddMultivarAssignment(false);
-    bc.AddVariable("a");
-    bc.AddVariable("b");
-    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
-    mequals(bc.Get64<uint64_t>(0x0A), 1, "Variable 'b'");
+    bc.AddVariableRef("a");
+    bc.AddVariableRef("b");
+    mequals(bc.Get64<uint64_t>(0x00), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x08), 1, "Variable 'b'");
 
     bc.AddMultivarCounter();
-    mequals(bc.Code()[0x12], 3, "Multivar counter before reset");
+    mequals(bc.Code()[0x10], 3, "Multivar counter before reset");
 
     bc.MultivarReset();
     bc.AddMultivarCounter();
-    mequals(bc.Code()[0x13], 0, "Multivar counter after reset");
+    mequals(bc.Code()[0x11], 0, "Multivar counter after reset");
 }
 
 
@@ -339,18 +347,18 @@ static void bytecode_scopes()
     Bytecode bc;
 
     bc.VariableAssignment("a", false);
-    bc.AddVariable("a");
+    bc.AddVariableRef("a");
 
     bc.PushScope();
     bc.VariableAssignment("a", false);
-    bc.AddVariable("a");
+    bc.AddVariableRef("a");
     bc.PopScope();
 
-    bc.AddVariable("a");
+    bc.AddVariableRef("a");
 
-    mequals(bc.Get64<uint64_t>(0x01), 0, "Variable 'a'");
-    mequals(bc.Get64<uint64_t>(0x0B), 1, "Variable 'a' (inside scope)");
-    mequals(bc.Get64<uint64_t>(0x15), 0, "Variable 'a' (outside scope)");
+    mequals(bc.Get64<uint64_t>(0x00), 0, "Variable 'a'");
+    mequals(bc.Get64<uint64_t>(0x09), 1, "Variable 'a' (inside scope)");
+    mequals(bc.Get64<uint64_t>(0x12), 0, "Variable 'a' (outside scope)");
 
     mthrows(bc.PopScope(), "Stack underflow");
 }
@@ -458,7 +466,7 @@ static void inspect()
 
 // {{{ EXPRESSIONS
 
-static const char* math_expressions()
+static void math_expressions()
 {
     zequals("2 + 3", 5);
     zequals("2 + 3", 5);
@@ -679,7 +687,7 @@ static void variables()
     zequals("let a = 25, b = 13, c = 48; b", 13);
     zequals("let a = 25, b = a, c = b; b", 25);
     zthrows("let a = 4; let a = 5; a");
-    // TODO - zequals("let a; a", nullptr);
+    zequals("let a; a", nullptr);
 }
 
 static void multiple_assignment()
@@ -694,7 +702,15 @@ static void multiple_assignment()
 
 static void variable_set()
 {
-    // TODO
+    zequals("let a; a = 4; a", 4);
+    zthrows("let a = 4; a = 5");  // changing a constant
+    zthrows("let a; b = 4");      // invalid variable
+    zthrows("a = 4");             // invalid variable
+    
+    zequals("let mut a = 4; a = 5; a", 5);
+    zequals("let mut a = 4; let mut b = a; a = 5; b", 4);
+
+    // TODO - tests with other types
 }
 
 // }}}
@@ -729,6 +745,9 @@ static void scope_vars()
     zequals("let a = 4; { let a=5 } ; { let a=6; a }", 6);
     zequals("let a = 4; { let a=5 } ; { let b=6; a }", 4);
     zthrows("{ let a=4 }; a");
+
+    zequals("let mut a = 4; { let a=5 } ; { let b=6; a }", 4);
+    zequals("let mut a = 4; { a=5 } ; { let b=6; a }", 5);
 }
 
 // }}}

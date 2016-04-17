@@ -198,6 +198,28 @@ void Zoe::PushVariableContents(uint64_t idx)
 }
 
 
+void Zoe::SetVariableContents(uint64_t idx)
+{
+    if(!variables[idx]._mutable && variables[idx].value->type != NIL) {
+        throw runtime_error("Trying to set a const variable");
+    }
+
+    switch(GetType(-1)) {
+        case NIL:
+        case BOOLEAN: 
+        case NUMBER:
+        case STRING:
+            variables[idx].value = make_shared<ZValue>(Get(-1));
+            break;
+        case FUNCTION:
+        case ARRAY:
+        case TABLE:
+            variables[idx].value = GetPtr(-1);
+            break;
+    }
+}
+
+
 // }}}
 
 // {{{ SCOPES
@@ -350,6 +372,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case ADDCNST:  AddVariable(false); ++p; break;
             case ADDMCNST: AddMultipleVariables(bc.Code()[p+1], false); p += 2; break;
             case GETLOCAL: PushVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
+            case SETLOCAL: SetVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
 
             // 
             // scopes
@@ -593,6 +616,7 @@ Zoe::Disassembly Zoe::DisassembleOpcode(Bytecode const& bc, size_t p) const
         case Bfalse:    return { s + " " + to_hex(bc.Get64<uint64_t>(p+1)), 9 };
         case ADDMCNST:  return { s + " " + to_string(static_cast<int>(bc.Code()[p+1])), 2 };
         case GETLOCAL:  return { s + " " + to_string(bc.Get64<uint64_t>(p+1)), 9 };
+        case SETLOCAL:  return { s + " " + to_string(bc.Get64<uint64_t>(p+1)), 9 };
         default:
             if(op <= END) {
                 return { s, 1 };

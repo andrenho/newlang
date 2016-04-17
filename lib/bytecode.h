@@ -76,7 +76,7 @@ public:
     // LOCAL VARIABLES
     //
     void  VariableAssignment(string const& var, bool _mutable);
-    void  AddVariable(string const& var);
+    void  AddVariableRef(string const& var);
 
     // 
     // MULTIPLE VARIABLES

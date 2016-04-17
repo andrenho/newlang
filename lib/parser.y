@@ -96,7 +96,7 @@ exps: exps SEP { b.Add(POP); } exp
 exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
    | BOOLEAN            { b.Add($1 ? PUSH_Bt : PUSH_Bf);      }
    | NIL                { b.Add(PUSH_Nil);                    }
-   | IDENTIFIER         { b.AddVariable(*$1); delete $1;      }
+   | IDENTIFIER         { b.Add(GETLOCAL); b.AddVariableRef(*$1); delete $1;      }
    | strings
    | array
    | table
@@ -134,6 +134,7 @@ exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
    | exp '.' IDENTIFIER  { b.Add(PUSH_S);
                            b.AddString(*$3); delete $3;
                            b.Add(LOOKUP); }
+   | IDENTIFIER '=' exp  { b.Add(SETLOCAL); b.AddVariableRef(*$1); delete $1; }
    | '(' exp ')'
    | '{' { b.PushScope(); b.Add(PUSH_Nil); } code '}' { b.PopScope(); }
    | '{' { b.PushScope(); b.Add(PUSH_Nil); }      '}' { b.PopScope(); }
@@ -148,6 +149,11 @@ assignments: one_assignment
            ;
 
 one_assignment: IDENTIFIER '=' exp { 
+                    b.VariableAssignment(*$1, false); delete $1;
+                    b.Add(ADDCNST); 
+                }
+              | IDENTIFIER {
+                    b.Add(PUSH_Nil);
                     b.VariableAssignment(*$1, false); delete $1;
                     b.Add(ADDCNST); 
                 }

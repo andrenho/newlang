@@ -45,6 +45,25 @@ ZValue::~ZValue() {
     }
 }
 
+
+// copy constructor
+ZValue::ZValue(ZValue const& other)
+    : type(other.type)
+{
+    switch(type) {
+        case NIL:     break;
+        case BOOLEAN: boolean = other.boolean; break;
+        case NUMBER:  number = other.number; break;
+        case STRING:  str = other.str; break;
+
+        case FUNCTION:
+        case ARRAY:
+        case TABLE:
+            throw "Type " + Typename(type) + " can't be copied.";
+    }
+}
+
+
 // }}}
 
 // {{{ ZVALUE METHODS
