@@ -43,8 +43,8 @@ Other steps:
 
  - local variables (ok)
    - expression management (ok)
-   - multiple scopes
-   - assignment
+   - multiple scopes (ok)
+   - assignment (ok)
  - array/table assingment
    - delete record from table
  - complex garbage collection
