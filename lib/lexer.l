@@ -61,6 +61,7 @@ true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 let             { return LET; }
+mut             { return MUT; }
 
 '                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }
 <STR>\\n              { yylval->str->append(1, '\n'); }

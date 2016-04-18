@@ -39,7 +39,7 @@ using namespace std;
     X(PUSHTBL), X(TBLSET),                                                        \
                                                                                   \
     /* local variables */                                                         \
-    X(ADDCNST), X(ADDMCNST), X(GETLOCAL), X(SETLOCAL),                            \
+    X(ADDCNST), X(ADDMCNST), X(GETLOCAL), X(SETLOCAL), X(ADDVAR), X(ADDMVAR),     \
                                                                                   \
     /* scopes */                                                                  \
     X(PUSH_Sc), X(POP_Sc),                                                        \

@@ -12,6 +12,8 @@ using namespace std;
 #include "parser.h"
 #include "lexer.h"
 
+bool next_is_mutable = false;
+
 void yyerror(void* scanner, Bytecode& bc, const char *s);
 
 %}
@@ -51,7 +53,7 @@ typedef struct String {
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL LET
+%token NIL LET MUT
 
 %token SEP
 %precedence '='
@@ -72,7 +74,6 @@ typedef struct String {
 %precedence ISNIL
 %precedence '['
 %precedence '.'
-
 
 %error-verbose
 %start code
@@ -141,8 +142,12 @@ exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
    ;
 
 // local variable assingment (TODO)
-local_assignment: LET assignments
+local_assignment: let assignments
                 ;
+
+let: LET      { next_is_mutable = false; }
+   | LET MUT  { next_is_mutable = true;  }
+   ;
 
 assignments: one_assignment
            | assignments ',' { b.Add(POP); } one_assignment
@@ -150,16 +155,16 @@ assignments: one_assignment
 
 one_assignment: IDENTIFIER '=' exp { 
                     b.VariableAssignment(*$1, false); delete $1;
-                    b.Add(ADDCNST); 
+                    b.Add(next_is_mutable ? ADDVAR : ADDCNST); 
                 }
               | IDENTIFIER {
                     b.Add(PUSH_Nil);
                     b.VariableAssignment(*$1, false); delete $1;
-                    b.Add(ADDCNST); 
+                    b.Add(next_is_mutable ? ADDVAR : ADDCNST); 
                 }
               | '[' { b.MultivarReset(); } mult_identifiers ']' '=' exp {
                     b.AddMultivarAssignment(false);
-                    b.Add(ADDMCNST); 
+                    b.Add(next_is_mutable ? ADDMVAR : ADDMCNST); 
                     b.AddMultivarCounter();
                 }
               ;

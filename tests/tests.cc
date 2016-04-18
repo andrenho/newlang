@@ -710,7 +710,13 @@ static void variable_set()
     zequals("let mut a = 4; a = 5; a", 5);
     zequals("let mut a = 4; let mut b = a; a = 5; b", 4);
 
-    // TODO - tests with other types
+    zequals("let a = true; a", true);
+    zequals("let a = 'abc'; a", "abc");
+    zequals("let a = [ 1, 2, 3 ]; a[1]", 2);
+    zequals("let a = %{ hello: 'world', abc: 42 }; a['hello']", "world");
+    zequals("let a = %{ hello: 'world', abc: 42 }; a.hello", "world");
+    zequals("let a = %{ hello: %{ test: 'xxx' }, abc: 42 }; a.hello.test", "xxx");
+    zequals("let a = %{ hello: 'world', abc: 42 }; a.abc", 42);
 }
 
 // }}}
@@ -748,6 +754,9 @@ static void scope_vars()
 
     zequals("let mut a = 4; { let a=5 } ; { let b=6; a }", 4);
     zequals("let mut a = 4; { a=5 } ; { let b=6; a }", 5);
+
+    zequals("let mut a = 4; { let a = 5 }; a", 4);
+    zequals("let mut a = 4; { let a = 5; a }", 5);
 }
 
 // }}}

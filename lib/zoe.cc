@@ -370,7 +370,9 @@ void Zoe::Execute(vector<uint8_t> const& data)
             // local variables
             //
             case ADDCNST:  AddVariable(false); ++p; break;
+            case ADDVAR:   AddVariable(true);  ++p; break;
             case ADDMCNST: AddMultipleVariables(bc.Code()[p+1], false); p += 2; break;
+            case ADDMVAR:  AddMultipleVariables(bc.Code()[p+1], true);  p += 2; break;
             case GETLOCAL: PushVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
             case SETLOCAL: SetVariableContents(bc.Get64<uint64_t>(p+1)); p += 9; break;
 
