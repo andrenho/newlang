@@ -771,6 +771,7 @@ static void set_mut_array()
     zinspect("let mut a, b = [[1, 2, 3], 1]; a[b] = 3; a", "[1, 3, 3]");
     zthrows("let mut a = []; a[1] = 4");
     zthrows("let mut a = [1, 2, 3]; a['a'] = 4");
+    zinspect("let mut a = [1,2,3,4]; a[1:2] = ['a', 'b']; a", "[1, 'a', 'b', 4]");
     // TODO - zinspect("let mut a = [1, 2, 3]; a[2] = a; a", "[1, [...], 'x']");
 }
 
