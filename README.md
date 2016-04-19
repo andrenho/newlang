@@ -14,16 +14,16 @@ Execution flow
 ==============
 
 ~~~~~~~~~~~
-  +------------+  parsing  +----------------+  execution   +--------+
-  |  ZOE CODE  |---------->|  ZOE BYTECODE  |------------> | ZOE VM |
-  +------------+           +----------------+              +--------+
+  +------------+  parsing  +----------------+  execution  +--------+
+  |  ZOE CODE  |---------->|  ZOE BYTECODE  |------------>| ZOE VM |
+  +------------+           +----------------+             +--------+
 ~~~~~~~~~~~
 
-The ZoeVM never interprets Zoe code directly - the code is read 
+The ZoeVM never interprets Zoe code directly - the code is read by a parser, that then generates a byte code that will be then executed by a Virtual Machine.
 
 
-Basic operation
-===============
+Core language
+=============
 
 Types
 -----
