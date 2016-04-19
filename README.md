@@ -1,6 +1,19 @@
+Philosophy
+==========
+
+* Programming should be fun and productive. The whole language must fit inside the programmer's head, even if the standard library doesn't. Every aspect of the language should be clear and have as few exceptions as possible.
+* The core language must be as small as possible, and any program must be possible to write (even if unpratical) using only the core language.
+* Syntatic sugar will be used to make the programmer more productive and happier. Syntatic sugar can be hardcoded in the parser/interpreter to improve speed.
+* Const correctness and type safety are very important.
+* The language can be used both embedded and standalone.
+* Everything is an expression and every expression must return one single value.
+* Every value is a table, though corners can be cut inside the parser/interpreter.
+
+
 Execution flow
 ==============
 
+_GOTO_
 
 Basic operation
 ===============
