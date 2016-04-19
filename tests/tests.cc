@@ -762,7 +762,14 @@ static void scope_vars()
 
 // }}}
 
-// {{{ SETTING ARRAYS AND TABLES
+// {{{ SETTING STRINGS, ARRAYS AND TABLES
+
+static void set_mut_string()
+{
+    zequals("let mut a = 'hello'; a[1] = 'x'; a", "hxllo");
+    zthrows("let mut a = 'hello'; a[6] = 'x'");
+    zequals("let mut a = 'hello'; a[1:2] = 'xy'; a", "hxylo");
+}
 
 static void set_mut_array()
 {
@@ -792,6 +799,12 @@ static void set_const_array_table()
     zthrows("let a = %{ hello: 'world' }; a.hello = 'x'");
     zthrows("let a = %{ hello: %{ hello: 'world' } }; a.hello.hello = 'x'");
 }
+
+// }}}
+
+// {{{ OPERATOR EQUALS (+=, -=, ...)
+
+// TODO
 
 // }}}
 
@@ -837,12 +850,15 @@ static void prepare_tests()
     run_test(table_access);
     run_test(table_equality);
 
-    // variables
+    // constants
     run_test(variables);
     run_test(multiple_assignment);
     run_test(variable_set);
     run_test(scopes);
     run_test(scope_vars);
+
+    // variables
+    run_test(set_mut_string);
     run_test(set_mut_array);
     run_test(set_mut_table);
     run_test(set_const_array_table);

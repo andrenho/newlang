@@ -129,8 +129,8 @@ exp: NUMBER             { b.Add(PUSH_N); b.Add64<double>($1); }
    | '!' exp %prec _BNOT { b.Add(BNOT);   }
    | '~' exp %prec _NOT  { b.Add(NOT);    }
    | '-' exp %prec _NEG  { b.Add(NEG);    }
-   | exp '[' exp ']'     { b.Add(LOOKUP); }
-   | exp '[' lookup_pos ']'
+   | lookups
+   | setup
    | '?' exp %prec ISNIL { b.Add(PUSH_Nil); b.Add(EQ); }
    | exp '.' IDENTIFIER  { b.Add(PUSH_S);
                            b.AddString(*$3); delete $3;
@@ -213,6 +213,10 @@ tbl_item: IDENTIFIER {
         ;
 
 // lookup position
+lookups: exp '[' exp ']'     { b.Add(LOOKUP); }
+       | exp '[' lookup_pos ']'
+       ;
+
 lookup_pos: exp ':' exp  { b.Add(SLICE);                      }
           | ':'          { b.Add(PUSH_N); b.Add64<double>(0); } 
             exp          { b.Add(SLICE);                      }
@@ -221,6 +225,20 @@ lookup_pos: exp ':' exp  { b.Add(SLICE);                      }
                            b.Add(PUSH_Nil);
                            b.Add(SLICE); }
           ;
+
+// setup
+setup: exp '[' exp ']' '=' exp       { b.Add(SETUP); }
+     | exp '[' exp ':' exp ']' '=' exp { b.Add(SLICESET); }
+     ;
+
+/*
+setup_pos: exp ':' exp
+         ;
+         | ':' exp      { b.Add(PUSH_N); b.Add64<double>(0); }
+         | exp ':'      { b.Add(PUSH_Nil); }
+         | ':'          { b.Add(PUSH_N); b.Add64<double>(0); b.Add(PUSH_Nil); }
+         ;
+*/
 
 // short-circuit AND
 ccand: exp CCAND { 

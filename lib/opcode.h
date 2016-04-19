@@ -23,14 +23,14 @@ using namespace std;
     /* relational */                                                              \
     X(LT), X(LTE), X(GT), X(GTE), X(EQ),                                          \
                                                                                   \
-    /* string / array */                                                          \
-    X(CAT), X(LEN), X(LOOKUP), X(SLICE),                                          \
-                                                                                  \
     /* binary */                                                                  \
     X(BNOT),                                                                      \
                                                                                   \
     /* branches */                                                                \
     X(JMP), X(Bfalse), X(Btrue),                                                  \
+                                                                                  \
+    /* string / array */                                                          \
+    X(CAT), X(LEN), X(LOOKUP), X(SETUP), X(SLICE), X(SLICESET),                   \
                                                                                   \
     /* arrays */                                                                  \
     X(PUSHARY), X(APPEND),                                                        \

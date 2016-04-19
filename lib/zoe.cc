@@ -345,6 +345,7 @@ void Zoe::Execute(vector<uint8_t> const& data)
             case CAT:    Concat(); ++p; break;
             case LEN:    Len();    ++p; break;
             case LOOKUP: Lookup(); ++p; break;
+            case SETUP:  Setup();  ++p; break;
             case SLICE:  Slice();  ++p; break;
 
             //
@@ -455,6 +456,7 @@ void Zoe::Op(Operator op)
     }
 }
 
+
 void Zoe::Concat()
 {
     ZType t = GetType(-2);
@@ -475,11 +477,13 @@ void Zoe::Concat()
     }
 }
 
+
 void Zoe::Len()
 {
     Push(Get(-1).Len());
     Remove(-2);
 }
+
 
 void Zoe::Lookup()
 {
@@ -508,6 +512,31 @@ void Zoe::Lookup()
         throw type_error("Expected string, array or table, found " + Typename(t) + ".");
     }
 }
+
+
+void Zoe::Setup()
+{
+    /* Stack:
+     *   -3: string/table/array
+     *   -2: index
+     *   -1: new value */
+    ZType t = GetType(-3);
+    if(t == STRING) {
+        string newval = Pop<string>();
+        int64_t i = static_cast<int64_t>(Pop<double>());
+        string oldval = Peek<string>();
+        if(i >= oldval.size()) {
+            throw out_of_range("Subscript out of range.");
+        }
+        if(newval.size() != 1) {
+            throw runtime_error("Replacement size does not match with origin.");
+        }
+        GetPtr(-1)->str[i] = newval[0];
+    } else {
+        throw type_error("Expected string, array or table, found " + Typename(t) + ".");
+    }
+}
+
 
 void Zoe::Slice()
 {

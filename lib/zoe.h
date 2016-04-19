@@ -92,6 +92,7 @@ public:
     void Concat();
     void Len();
     void Lookup();
+    void Setup();
     void Slice();
 private:
     void Execute(vector<uint8_t> const& data);
