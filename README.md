@@ -13,7 +13,14 @@ Philosophy
 Execution flow
 ==============
 
-_GOTO_
+~~~~~~~~~~~
+  +------------+  parsing  +----------------+  execution   +--------+
+  |  ZOE CODE  |---------->|  ZOE BYTECODE  |------------> | ZOE VM |
+  +------------+           +----------------+              +--------+
+~~~~~~~~~~~
+
+The ZoeVM never interprets Zoe code directly - the code is read 
+
 
 Basic operation
 ===============
@@ -42,6 +49,8 @@ Functions
 
 ### Const functions
 
+### this (@)
+
 ### Closures
 
 ### Yields
@@ -51,6 +60,7 @@ Expressions
 -----------
 
 ### Control flow
+_GOTO_
 
 
 Syntatic sugar
@@ -142,3 +152,8 @@ Virtual machine reference
 
 Development order
 =================
+
+
+<!--
+vim: wrap lbr nolist
+-->
