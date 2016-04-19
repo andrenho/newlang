@@ -602,6 +602,7 @@ static void array_lookup()
     zequals("[2,3,4][-1]", 4);
     zequals("[2,3,4][-2]", 3);
     zequals("[2,3,'hello'][2]", "hello");
+    zequals("[1,[1,2,3],3][1][1]", 2);
     // TODO - test key error
 }
 
@@ -761,6 +762,38 @@ static void scope_vars()
 
 // }}}
 
+// {{{ SETTING ARRAYS AND TABLES
+
+static void set_mut_array()
+{
+    zinspect("let mut a = [1, 2, 3]; a[1] = 'x'; a", "[1, 'x', 3]");
+    zinspect("let mut a = [1, 2, 3]; a[2] = 'x'; a", "[1, 2, 'x']");
+    zinspect("let mut a, b = [[1, 2, 3], 1]; a[b] = 3; a", "[1, 3, 3]");
+    zthrows("let mut a = []; a[1] = 4");
+    zthrows("let mut a = [1, 2, 3]; a['a'] = 4");
+    // TODO - zinspect("let mut a = [1, 2, 3]; a[2] = a; a", "[1, [...], 'x']");
+}
+
+static void set_mut_table()
+{
+    zequals("let mut a = %{ hello: 'world' }; a['hello'] = 42; a['hello']", 42);
+    zequals("let mut a = %{ hello: 'world' }; a.hello = 42; a.hello", 42);
+    zequals("let mut a = %{ hello: 'world' }; a.test = 42; a.hello", "world");
+    zequals("let mut a = %{ hello: 'world' }; a.test = 42; a.test", 42);
+    zinspect("let mut a = %{ hello: 'world' }; del a.hello; a", "%{}");
+    // TODO zinspect("let mut a = %{ hello: 'world' }; a.hello = a; a", "%{ hello: %{...} }");
+}
+
+static void set_const_array_table()
+{
+    zthrows("let a = [1, 2, 3]; a[1] = 'x'");
+    zthrows("let a = [1, [1, 2, 3], 3]; a[1][1] = 'x'");
+    zthrows("let a = %{ hello: 'world' }; a.hello = 'x'");
+    zthrows("let a = %{ hello: %{ hello: 'world' } }; a.hello.hello = 'x'");
+}
+
+// }}}
+
 static void prepare_tests()
 {
     // test tool
@@ -809,6 +842,9 @@ static void prepare_tests()
     run_test(variable_set);
     run_test(scopes);
     run_test(scope_vars);
+    run_test(set_mut_array);
+    run_test(set_mut_table);
+    run_test(set_const_array_table);
 }
 
 
