@@ -113,7 +113,7 @@ Functions are, by default, pure. Impure function can be defined as `fn(v) impure
 
 ### Closures
 
-Any local variable created at the top scope of a function is stored in the function table. These variables can be accessed at the function value `f.\_\_upvalues`. This makes these variables exist for as long as the variable object exists.
+Any local variable created at the top scope of a function is stored in the function table. These variables can be accessed at the function value `f.__upvalues`. This makes these variables exist for as long as the variable object exists.
 
 Example:
 
@@ -208,7 +208,7 @@ x.hello = 42              $ENV.x.hello = 42
 let a = 8                 $ENV.a = 8
 dbg(a)                    dbg($ENV.a)   ->  8
 dbg(b)                    dbg($ENV.b)   ->  5
-}                         $ENV = $ENV.\_\_proto
+}                         $ENV = $ENV.__proto
 dbg(a)                    dbg($ENV.a)
 ```
 
@@ -220,53 +220,53 @@ The syntax `[]=` (which is, in fact, an operator) is used for assignment. When a
 
 ### Metadata
 
-There are special methods and attributes that operate differenty when they are called: the **metamethods**. Metamethods are identified by a double underscore before the name. Most metamethods are called in case of a special syntax. For example, `2 + 3` is translated internally to `2.\_\_add(3)`.
+There are special methods and attributes that operate differenty when they are called: the **metamethods**. Metamethods are identified by a double underscore before the name. Most metamethods are called in case of a special syntax. For example, `2 + 3` is translated internally to `2.__add(3)`.
 
-| Method          | Example syntax | Observation |
-| --------------- | -------------- | ----------- |
-| `\_\_uminus`    | `-3`           | |
-| `\_\_add(x)`    | `3 + 4`        | |
-| `\_\_sub(x)`    | `3 - 4`        | |
-| `\_\_mul(x)`    | `3 * 4`        | |
-| `\_\_div(x)`    | `3 / 4`        | |
-| `\_\_idiv(x)`   | `3 ~/ 4`       | |
-| `\_\_mod(x)`    | `3 % 4`        | |
-| `\_\_pow(x)`    | `3 ** 4`       | |
-| `\_\_shl(x)`    | `3 << 4`       | |
-| `\_\_shr(x)`    | `3 >> 4`       | |
-| `\_\_bnot`      | `~3`           | |
-| `\_\_and(x)`    | `3 % 4`        | |
-| `\_\_or(x)`     | `3 | 4`        | |
-| `\_\_xor(x)`    | `3 ^ 4`        | |
-| `\_\_not`       | `!true`        | |
-| `\_\_eq(x)`     | `3 == 4`       | Inverts the result for `!=` |
-| `\_\_lt(x)`     | `3 < 4`        | Inverts the result for `>=`|
-| `\_\_lte(x)`    | `3 <= 4`       | Inverts the result for `>`. If not present, then `\_\_lt` and `\_\_eq` are used. |
-| `\_\_len`       | `#value`       | |
-| `\_\_concat(x)` | `'a' .. 'b'`   | |
-| `\_\_get(x)`    | `tbl[x]` or `tbl.x`          | When `x` is not a key in table |
-| `\_\_set(x, y)` | `tbl[x] = y` or `tbl.x = y`  | When `x` is not a key in table |
-| `\_\_del(x)`    | `del tbl[x]`   | When the used deletes a value in the table |
-| `\_\_call(...)` | `tbl(...)` or `tbl` | |
-| `\_\_hash`      |                | Returns a number to be used as a hash |
-| `\_\_dbg`       | `dbg(tbl)`     | Return the table description for debugging pourposes. |
+| Method        | Example syntax | Observation |
+| ------------- | -------------- | ----------- |
+| `__uminus`    | `-3`           | |
+| `__add(x)`    | `3 + 4`        | |
+| `__sub(x)`    | `3 - 4`        | |
+| `__mul(x)`    | `3 * 4`        | |
+| `__div(x)`    | `3 / 4`        | |
+| `__idiv(x)`   | `3 ~/ 4`       | |
+| `__mod(x)`    | `3 % 4`        | |
+| `__pow(x)`    | `3 ** 4`       | |
+| `__shl(x)`    | `3 << 4`       | |
+| `__shr(x)`    | `3 >> 4`       | |
+| `__bnot`      | `~3`           | |
+| `__and(x)`    | `3 % 4`        | |
+| `__or(x)`     | `3 | 4`        | |
+| `__xor(x)`    | `3 ^ 4`        | |
+| `__not`       | `!true`        | |
+| `__eq(x)`     | `3 == 4`       | Inverts the result for `!=` |
+| `__lt(x)`     | `3 < 4`        | Inverts the result for `>=`|
+| `__lte(x)`    | `3 <= 4`       | Inverts the result for `>`. If not present, then `__lt` and `__eq` are used. |
+| `__len`       | `#value`       | |
+| `__concat(x)` | `'a' .. 'b'`   | |
+| `__get(x)`    | `tbl[x]` or `tbl.x`          | When `x` is not a key in table |
+| `__set(x, y)` | `tbl[x] = y` or `tbl.x = y`  | When `x` is not a key in table |
+| `__del(x)`    | `del tbl[x]`   | When the used deletes a value in the table |
+| `__call(...)` | `tbl(...)` or `tbl` | |
+| `__hash`      |                | Returns a number to be used as a hash |
+| `__dbg`       | `dbg(tbl)`     | Return the table description for debugging pourposes. |
 
 These meta-attributes define special configurations of the table:
 
-| Method          | Descrption |
-| --------------- | ---------- |
-| `\_\_proto`     | Prototype table (a table or array of tables) |
+| Method        | Descrption |
+| ------------- | ---------- |
+| `__proto`     | Prototype table (a table or array of tables) |
 
 These meta-attributes are read-only and can't be changed by the programmer:
 
-| Method          | Descrption |
-| --------------- | ---------- |
-| `\_\_ptr`       | Return the internal C pointer of this value |
+| Method        | Descrption |
+| ------------- | ---------- |
+| `__ptr`       | Return the internal C pointer of this value |
 
 These metamethods are called is special occasions:
 
-| `\_\_init(...)` | Called when a table is created. |
-| `\_\_gc`        | Called when the table is destroyed. |
+| `__init(...)` | Called when a table is created. |
+| `__gc`        | Called when the table is destroyed. |
 
 
 ### Privacy
@@ -351,7 +351,7 @@ Syntatic sugar
 Local variables
 ---------------
 
-
+See the section _
 
 Operators
 ---------
