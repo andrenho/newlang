@@ -487,14 +487,48 @@ Both the operational stack and the heap increment and decrement references.
 The opcodes are:
 
 | Mnemonic | Parameters | Stack change | Description |
-| -------- | ---------- | ------------ | ----------- |
+| -------- | ---------- | ------------ | ------------------------------------------------------ |
 | `pnil`   |            | +1           | Push a nil value into the stack                        |
+| `pbf`    |            | +1           | Push a boolean false into the stack                    |
 | `pbt`    |            | +1           | Push a boolean true into the stack                     |
 | `pn8`    | `u8`       | +1           | Push a 8-bit unsigned integer number into the stack    |
 | `pn64`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
 | `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
 | `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
 | `ptbl`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values       |
+| `pop`    |            | -1           | Pop one item from the stack                            |
+| `b`      | `u32`      |              | Unconditionally branch (jump) to address               |
+| `bt`     | `u32`      | -1           | Branch to address if value in stack is true            |
+| `pshs`   |            |              | Push a new scope                                       |
+| `pops`   |            |              | Pop scope                                              |
+| `call`   | `u8`       | -n           | Call function at the top of the stack with _n_ parameters |
+| `umn`    |            | -1 +1        | Operator unary minus                                   |
+| `add`    |            | -2 +1        | Operator addition                                      |
+| `sub`    |            | -2 +1        | Operator subtraction                                   |
+| `mul`    |            | -2 +1        | Operator multiplication                                |
+| `div`    |            | -2 +1        | Operator division                                      |
+| `idiv`   |            | -2 +1        | Operator integer division                              |
+| `mod`    |            | -2 +1        | Operator modulo                                        |
+| `pow`    |            | -2 +1        | Operator power                                         |
+| `shl`    |            | -2 +1        | Operator shift left                                    |
+| `shr`    |            | -2 +1        | Operator shift right                                   |
+| `bnot`   |            | -1 +1        | Operator binary not                                    |
+| `and`    |            | -2 +1        | Operator binary and                                    |
+| `or`     |            | -2 +1        | Operator binary or                                     |
+| `xor     |            | -2 +1        | Operator binary xor                                    |
+| `not`    |            | -1 +1        | Operator boolean not                                   |
+| `eq`     |            | -2 +1        | Operator equals                                        |
+| `part`   |            | -2 +1        | Operator partial equals                                |
+| `lt`     |            | -2 +1        | Operator less than                                     |
+| `lte`    |            | -2 +1        | Operator less than or equal                            |
+| `len`    |            | -1 +1        | Operator length                                        |
+| `cat`    |            | -2 +1        | Operator concatenation                                 |
+| `get`    |            | -2 +1        | Operator get                                           |
+| `set`    |            | -3 +1        | Operator set                                           |
+| `del`    |            | -2 +1        | Operator delete                                        |
+| `call`   |            | -(1+n) +1    | Operator call                                          |
+| `ptr`    |            | -1 +1        | Get internal pointer                                   |
+| `isnil`  |            | -1 +1        | Return if value in stack is nil                        |
 
 
 ## Bytecode format
