@@ -65,7 +65,7 @@ let mut tbl = %{ hello: 'world', test: 42 }      // initialization
 let mut tbl = %{ [42]: 'hello'}                  // using something other than a string as key
 tbl['hello']                                     // fetching data
 tbl['hello'] = 'world'                           // setting data
-tbl.hello                 			 // alternative way to fetch data (string keys only)
+tbl.hello                                        // alternative way to fetch data (string keys only)
 tbl.hello = 'world'                              // alternative way to set data (string keys only)
 ```
 
