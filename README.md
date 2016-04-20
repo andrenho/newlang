@@ -73,6 +73,7 @@ Functions in Zoe are first-class functions. They are defined using the `fn` keyw
 * Zoe will verify the number of arguments, and reject calls that don't match the number of arguments of the function definition.
 * There can be optional arguments: `fn(a, b=42)`. Optional arguments must always be at the end of the arguments. A function with several optional arguments can be called by passing the arguments names: `myfunction(42, b=12, c=14)`.
 * The arguments can force specific types, for example: `fn(a: number, b: boolean)`. The types are, actually table prototypes (see section _Tables_), so they can be used to verify a class name.
+* When a function is called, the `()` is optional if there are no arguments.
 * Functions can be passed as arguments.
 * Parameters are always passed as constants, except when they are indicated as `mut`.
 * Nested functions are allowed.
@@ -203,7 +204,59 @@ dbg(a)                    dbg($ENV.a)
 
 ### Assignment
 
-### Metamethods
+The syntax `[]=` (which is, in fact, an operator) is used for assignment. When a value is assigned, if the value is a nil, boolean, number or string, it is copied. If it's an array or table, only the reference is copied.
+
+
+### Metadata
+
+There are special methods and attributes that operate differenty when they are called: the **metamethods**. Metamethods are identified by a double underscore before the name. Most metamethods are called in case of a special syntax. For example, `2 + 3` is translated internally to `2.\_\_add(3)`.
+
+| Method          | Example syntax | Observation |
+| --------------- | -------------- | ----------- |
+| `\_\_uminus`    | `-3`           | |
+| `\_\_add(x)`    | `3 + 4`        | |
+| `\_\_sub(x)`    | `3 - 4`        | |
+| `\_\_mul(x)`    | `3 * 4`        | |
+| `\_\_div(x)`    | `3 / 4`        | |
+| `\_\_idiv(x)`   | `3 ~/ 4`       | |
+| `\_\_mod(x)`    | `3 % 4`        | |
+| `\_\_pow(x)`    | `3 ** 4`       | |
+| `\_\_shl(x)`    | `3 << 4`       | |
+| `\_\_shr(x)`    | `3 >> 4`       | |
+| `\_\_bnot`      | `~3`           | |
+| `\_\_and(x)`    | `3 % 4`        | |
+| `\_\_or(x)`     | `3 | 4`        | |
+| `\_\_xor(x)`    | `3 ^ 4`        | |
+| `\_\_not`       | `!true`        | |
+| `\_\_eq(x)`     | `3 == 4`       | Inverts the result for `!=` |
+| `\_\_lt(x)`     | `3 < 4`        | Inverts the result for `>=`|
+| `\_\_lte(x)`    | `3 <= 4`       | Inverts the result for `>`. If not present, then `\_\_lt` and `\_\_eq` are used. |
+| `\_\_len`       | `#value`       | |
+| `\_\_concat(x)` | `'a' .. 'b'`   | |
+| `\_\_get(x)`    | `tbl[x]`       | When `x` is not a key in table |
+| `\_\_set(x, y)` | `tbl[x] = y`   | When `x` is not a key in table |
+| `\_\_del(x)`    | `del tbl[x]`   | When the used deletes a value in the table |
+| `\_\_call(...)` | `tbl(...)` or `tbl` | |
+| `\_\_hash`      |                | Returns a number to be used as a hash |
+| `\_\_dbg`       | `dbg(tbl)`     | Return the table description for debugging pourposes. |
+
+These meta-attributes define special configurations of the table:
+
+| Method          | Descrption |
+| --------------- | ---------- |
+| `\_\_proto`     | Prototype table |
+
+These meta-attributes are read-only and can't be changed by the programmer:
+
+| Method          | Descrption |
+| --------------- | ---------- |
+| `\_\_ptr`       | Return the internal C pointer of this value |
+
+These metamethods are called is special occasions:
+
+| `\_\_init(...)` | Called when a table is created. |
+| `\_\_gc`        | Called when the table is destroyed. |
+
 
 ### Visibility
 
@@ -275,6 +328,8 @@ Standard library
 ## regex
 
 ## posix
+
+## serial
 
 
 Advanced topics
