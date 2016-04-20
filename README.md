@@ -177,9 +177,11 @@ tbl.hello = 'world'                              // alternative way to set data 
 
 Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
 
-### $ENV and local variables
+### $G, $ENV and local variables
 
+There is one single variable in a enviroment: `$G`. `$G` is a table that contains all local variables. For example, if a variable called `var` is created, its real name is `$G.var`.
 
+Initially, `$ENV` is points to the same table as `$G`. When a scope is pushed, however, `$ENV` points to a new table, and has `$ENV` (`$G`) as prototype. So, every time a new scope is pushed, a new `$ENV` is created, with the old `$ENV` as a prototype of the new `$ENV`. When a scope is popped, the topmost `$ENV` is destroyed, and `$ENV` now points to the old `$ENV`.
 
 Any variables that are created are child of this variable. Example:
 
@@ -190,8 +192,13 @@ let a = 4                 $ENV.a = 4
 let mut b = 5             mut $ENV.b = 5
 let x = %{}               $ENV.x = %{}
 x.hello = 42              $ENV.x.hello = 42
-{                         let mut new_scope = %$ENV {}
-let a = 8                 
+{                         $ENV = %$ENV {}
+let a = 8                 $ENV.a = 8
+dbg(a)                    dbg($ENV.a)   ->  8
+dbg(b)                    dbg($ENV.b)   ->  5
+}                         $ENV = $ENV.__proto
+dbg(a)                    dbg($ENV.a)
+```
 
 
 ### Assignment
