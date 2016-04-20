@@ -112,9 +112,35 @@ Functions are, by default, constant. Mutable function can be defined as `fn(v) m
 
 ### Closures
 
+Any local variable created at the top scope of a function is stored in the function table. These variables can be accessed at the function value `f.\_\_upvalues`. This makes these variables exist for as long as the variable object exists.
 
+Example:
+
+```
+let init = fn() {
+    let mut x = 0
+    fn() { x += 1 }
+}
+
+let increment = init()
+increment()             -> 1
+increment()             -> 2
+increment()             -> 3
+```
+
+Another example:
+
+```
+let mut var a = []
+let x = 20
+for i=0; i<10; ++i {
+    let mut y = 0
+    a.push(fn() { y += 1; x+y })
+}
+```
 
 ### Yields
+
 
 
 Tables
@@ -136,6 +162,8 @@ tbl.hello = 'world'                              // alternative way to set data 
 ```
 
 Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
+
+### Assignment
 
 ### Metamethods
 
