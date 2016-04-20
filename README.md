@@ -45,9 +45,31 @@ The following basic types are available from Zoe:
 
 _Internally, every value is stored in a union called ZValue._
 
+
+Strings
+-------
+
+
+
 Tables
 ------
 
+Tables are associative arrays.
+
+Tables are the main type in Zoe. Tables are used as classes, objects, modules, etc. 
+
+The basic syntax for tables is the following:
+
+```
+let mut tbl = %{ hello: 'world', test: 42 }      // initialization
+let mut tbl = %{ [42]: 'hello'}                  // using something other than a string as key
+tbl['hello']                                     // fetching data
+tbl['hello'] = 'world'                           // setting data
+tbl.hello                 			 // alternative way to fetch data (string keys only)
+tbl.hello = 'world'                              // alternative way to set data (string keys only)
+```
+
+Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
 
 
 ### Metamethods
