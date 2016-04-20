@@ -439,6 +439,8 @@ _TO BE DEFINED_
 Advanced topics
 ===============
 
+_TO BE DEFINED_
+
 Tail calls
 ----------
 
@@ -457,9 +459,14 @@ Unicode support
 Ecosystem
 =========
 
-## REPL / executable
+The ecosystem is composed by two programs:
 
-## Debugger
+* An executable, that runs the Zoe programs and also serves as a REPL,
+* and a library, used to embed Zoe into other languages.
+
+## Debugging
+
+_Decision pending: a debugger will be writted, or are we going to communicate with GDB?_
 
 
 Virtual machine reference
