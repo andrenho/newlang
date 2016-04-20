@@ -3,6 +3,11 @@ Philosophy
 
 * Programming should be fun and productive. The whole language must fit inside the programmer's head, even if the standard library doesn't. Every aspect of the language should be clear and have as few exceptions as possible.
 * The core language must be as small as possible, and any program must be possible to write (even if unpratical) using only the core language.
+* The environment should small, simple and self-contained.
+* Zoe should be familiar enough that an experienced programmer can pick it up in a couple hours.
+
+### The language
+
 * Syntatic sugar will be used to make the programmer more productive and happier. Syntatic sugar can be hardcoded in the parser/interpreter to improve speed.
 * Const correctness and type safety are very important.
 * The language can be used both embedded and standalone.
@@ -27,10 +32,11 @@ Core language
 
 The **core language** is the subset of the language on top of which the rest of the language sits. Everything that can be done with the rest of the language, can be done with only the core.
 
-Ideally, the Zoe code is translated to the core language before generating the Bytecode. _In practice, the whole parsing happens at once. This way, better and faster bytecode can be produced._
+_(A possible implementation would be to translate the full syntax to the core language before generating the bytecode.)_
 
-Types
------
+
+Values and Types
+----------------
 
 The following basic types are available from Zoe:
 
@@ -43,18 +49,62 @@ The following basic types are available from Zoe:
 | array   | [1, 2, 3]  | _vector\<shared\_ptr\<ZValue>>_ |
 | table   | %{ hello: 'world' } | _unordered\_map\<shared\_ptr\<ZValue>, shared\_ptr\<ZValue>>_ | _.
 
-_Internally, every value is stored in a union called ZValue._
+_Internally, each value is represented by the type `shared\_ptr\<ZValue>`. `ZValue` is a struct containing a union of all types. This structure is wrappen in a `shared\_ptr` so that we can get the reference counting memory management from C++ for free._
 
 
 Strings
 -------
 
+Strings are mutable in Zoe. They are always represented using single quotes. If a quote is open, the string can span multiple lines.
+
+It is possible to add expressions inside a string using the following syntax: `'2 + 2 = ${ '%d' % (2+2) }'`.
+
+_Internally, a string is a structure containing a `std::string` and the precalculated hash of that string. This makes looking up methods much faster._
+
+
+Functions
+---------
+
+Functions in Zoe are first-class functions. They are defined using the `fn` keyword. They have the following characteristics:
+
+* Zoe will verify the number of arguments, and reject calls that don't match the number of arguments of the function definition.
+* There can be optional arguments: `fn(a, b=42)`. Optional arguments must always be at the end of the arguments. A function with several optional arguments can be called by passing the arguments names: `myfunction(42, b=12, c=14)`.
+* The arguments can force specific types, for example: `fn(a: number, b: boolean)`. The types are, actually table prototypes (see section _Tables_), so they can be used to verify a class name.
+* Functions can be passed as arguments.
+* Nested functions are allowed.
+
+A function can be of the type `dl`. This means that the function will call an external library. Example: `fn umount(target) dl-> "umount", c\_const\_char. _This syntax is pending._
+
+Since functions are, by definition, anonymous, they can be called recursivelly using the keyword `self`. Like this: `fn fibonacci(a) { (n < 2) ? n : self(n-1) + self(n-2) }`.
+
+There's no syntax to define a function directly. As such, it must be always liked to a constant or a table key:
+
+```
+let sum = fn(a, b) {
+    a + b
+}
+
+math = %{}
+math.sum = fn(a, b) { a + b }
+
+math = %{
+    sum = fn(a, b) { a + b }
+}
+```
+
+### Const functions
+
+### this (@)
+
+### Closures
+
+### Yields
 
 
 Tables
 ------
 
-Tables are associative arrays.
+Tables are associative arrays, with a few additions.
 
 Tables are the main type in Zoe. Tables are used as classes, objects, modules, etc. 
 
@@ -71,7 +121,6 @@ tbl.hello = 'world'                              // alternative way to set data 
 
 Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
 
-
 ### Metamethods
 
 ### Visibility
@@ -84,17 +133,7 @@ Tables can't be used as keys, unless they have the metamethods `__hash` and `__=
 
 ### "Everything is a table"
 
-
-Functions
----------
-
-### Const functions
-
-### this (@)
-
-### Closures
-
-### Yields
+Every value in Zoe is a table. 
 
 
 Expressions
