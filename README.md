@@ -25,6 +25,10 @@ The ZoeVM never interprets Zoe code directly - the code is read by a parser, tha
 Core language
 =============
 
+The **core language** is the subset of the language on top of which the rest of the language sits. Everything that can be done with the rest of the language, can be done with only the core.
+
+Ideally, the Zoe code is translated to the core language before generating the Bytecode. _In practice, the whole parsing happens at once. This way, better and faster bytecode can be produced._
+
 Types
 -----
 
