@@ -103,13 +103,13 @@ Internally, when a function is created, an additional parameter called `this` is
 
 The `@` symbol can be used as a shortcut. So `this.value` can also be called as `@value`.
 
-### Constant and mutable functions
+### Pure and impure functions
 
-A constant (or pure) function is a function that can't touch any external data except for mutable parameters that are passed to it. A mutable function can change external data (such as `this` and "globals").
+A pure function is a function that can't touch any external data except for mutable parameters that are passed to it. An impure function can change external data (such as `this` and "globals").
 
-Constant functions can only call other constant functions.
+Pure functions can only call other pure functions.
 
-Functions are, by default, constant. Mutable function can be defined as `fn(v) mut { @value = v }`.
+Functions are, by default, pure. Impure function can be defined as `fn(v) impure { @value = v }`.
 
 ### Closures
 
@@ -145,7 +145,7 @@ for mut i=0; i<10; ++i {
 It is possible to create iterators by yielding the control from a function. Example:
 
 ```
-let one_to_ten = fn() {
+let one\_to\_ten = fn() {
     for mut i=0; i<10; ++i {
     	yield i
     }
@@ -168,15 +168,26 @@ Tables are the main type in Zoe. Tables are used as classes, objects, modules, e
 The basic syntax for tables is the following:
 
 ```
-let mut tbl = %{ hello: 'world', test: 42 }      // initialization
-let mut tbl = %{ [42]: 'hello'}                  // using something other than a string as key
-tbl['hello']                                     // fetching data
-tbl['hello'] = 'world'                           // setting data
-tbl.hello                                        // alternative way to fetch data (string keys only)
-tbl.hello = 'world'                              // alternative way to set data (string keys only)
+let mut tbl = %pub { hello: 'world', test: 42 }   // initialization
+let mut tbl = %pub { [42]: 'hello'}               // using something other than a string as key
+tbl['hello']                                      // fetching data
+tbl['hello'] = 'world'                            // setting data
+tbl.hello                                         // alternative way to fetch data (string keys only)
+tbl.hello = 'world'                               // alternative way to set data (string keys only)
 ```
 
 Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
+
+Tables are initialized with the following syntax:
+
+```
+%[prototype] [properties] {
+    key [properties] : value,
+    ...
+}
+```
+
+Properties are `pub` and `mut`. When defined in the table header, this property becomes the default for the table.
 
 ### $G, $ENV and local variables
 
@@ -197,7 +208,7 @@ x.hello = 42              $ENV.x.hello = 42
 let a = 8                 $ENV.a = 8
 dbg(a)                    dbg($ENV.a)   ->  8
 dbg(b)                    dbg($ENV.b)   ->  5
-}                         $ENV = $ENV.__proto
+}                         $ENV = $ENV.\_\_proto
 dbg(a)                    dbg($ENV.a)
 ```
 
@@ -233,8 +244,8 @@ There are special methods and attributes that operate differenty when they are c
 | `\_\_lte(x)`    | `3 <= 4`       | Inverts the result for `>`. If not present, then `\_\_lt` and `\_\_eq` are used. |
 | `\_\_len`       | `#value`       | |
 | `\_\_concat(x)` | `'a' .. 'b'`   | |
-| `\_\_get(x)`    | `tbl[x]`       | When `x` is not a key in table |
-| `\_\_set(x, y)` | `tbl[x] = y`   | When `x` is not a key in table |
+| `\_\_get(x)`    | `tbl[x]` or `tbl.x`          | When `x` is not a key in table |
+| `\_\_set(x, y)` | `tbl[x] = y` or `tbl.x = y`  | When `x` is not a key in table |
 | `\_\_del(x)`    | `del tbl[x]`   | When the used deletes a value in the table |
 | `\_\_call(...)` | `tbl(...)` or `tbl` | |
 | `\_\_hash`      |                | Returns a number to be used as a hash |
@@ -244,7 +255,7 @@ These meta-attributes define special configurations of the table:
 
 | Method          | Descrption |
 | --------------- | ---------- |
-| `\_\_proto`     | Prototype table |
+| `\_\_proto`     | Prototype table (a table or array of tables) |
 
 These meta-attributes are read-only and can't be changed by the programmer:
 
@@ -258,22 +269,79 @@ These metamethods are called is special occasions:
 | `\_\_gc`        | Called when the table is destroyed. |
 
 
-### Visibility
+### Privacy
+
+Attributes and methods defined as private can only be seen, read or written when they are part of `this` or one of its prototypes. 
+
+All keys are, by default, private. Example:
+
+```
+let A = %{
+    b pub: function() {}
+    c: function() {}
+}
+
+let a = %A {}
+a.b()          -> ok
+a.c()          -> error: c is private
+```
+
+If a table is defined as `pub`, all its methods and attributes are public by default.
+
+```
+let A = %pub {
+    x: 4
+}
+
+let a = %A {}
+a.x             -> 4
+```
 
 ### Const 
 
+Fields in tables are constant by default. This means that they can't be changed. A single field can be defined as mutable (by using the keyword `mut`). The whole table can also be defined as `mut`.
+
+```
+let mut a = %pub {
+    x: 4,
+    y mut: 5,
+}
+
+let a = %A {}
+a.y = 5         -> ok
+a.x = 5         -> error, x is const
+```
+
+Notice that the table being mutable is not enough - its reference must also be set as mutable. So, let's say that we have `a.b.c.d.e = 4`, all of them must be set as mutable. If `c` is constant, everything below `c` is also a constant.
+
+### Abstract functions
+
+Abstract functions are defined by the property `abstract_fn`. If an function is abstract, it must be implemeneted by any table that inherits from it. Example:
+
+```
+let A = {
+    x: abstract_fn(a),
+}
+
+let B = %A {}      -> error, 'x' is not implemented
+```
+
 ### Weak tables
+
+_Define this._
+
 
 ### "Everything is a table"
 
-Every value in Zoe is a table. 
+Every value in Zoe is a table. As such, if a method is called in a primary type, it will actually be called from a internal table. For example, `2.my_method` will be the same as `number.my_method(2)`.
 
 
 Expressions
 -----------
 
 ### Control flow
-_GOTO_
+
+The following control flow commands are available: `goto` and `if`.
 
 
 Syntatic sugar
@@ -283,7 +351,6 @@ Syntatic sugar
 Local variables
 ---------------
 
-### Implementation
 
 
 Operators
