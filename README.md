@@ -176,7 +176,7 @@ tbl.hello                                         // alternative way to fetch da
 tbl.hello = 'world'                               // alternative way to set data (string keys only)
 ```
 
-Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
+Tables can't be used as keys, unless they have the metamethods `__hash` and `__eq` implemented.
 
 Tables are initialized with the following syntax:
 
@@ -259,6 +259,7 @@ These meta-attributes define special configurations of the table:
 | Method        | Description |
 | ------------- | ----------- |
 | `__proto`     | Prototype table (a table or array of tables) |
+| `__upvalues`  | Upvalues (variables for use in closures) |
 
 These meta-attributes are read-only and can't be changed by the programmer:
 
@@ -536,6 +537,56 @@ The opcodes are:
 
 Development order
 =================
+
+1. Create build and test environment
+1. Create ZValue
+1. Create VM
+1. Create basic lexer/parser, capable of reading basic values (binary, hexa...), and parsing comments
+1. Create bytecode generator
+1. Create REPL
+1. Create basic arrays/tables
+1. Getting/setting array
+1. Getting/setting table key/values
+1. Expression inside strings
+1. Table prototypes
+1. Scopes
+1. Basic function calls
+1. Function calls with arguments
+1. Function calls with optional and named arguments
+1. Syntax for running function calls without ()
+1. Function calls with type checking
+1. Functions as arguments
+1. Function parameters passed as contants/mutable
+1. Nested functions
+1. Recursion + self
+1. Function as a table key
+1. this (@)
+1. Pure/impure functions
+1. Closures, upvalues
+1. Iterators
+1. Table initialization + short syntax
+1. $G, $ENV and local variables
+1. Value assignment, local variable assignment
+1. Metadata & operator syntax
+1. Table and array equality
+1. Constructor/destructor
+1. Operator assignment
+1. Privacy
+1. Constness
+1. Abstract functions
+1. Control flow
+1. Matches
+1. Error management
+1. Modules
+1. Define standard library
+1. Write standard library
+1. Weak tables
+1. Tail calls
+1. Using external libraries
+1. Threads
+1. Unicode support
+1. Debugging
+1. Slices and negative subscripts
 
 
 <!--
