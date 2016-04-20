@@ -134,7 +134,7 @@ Another example:
 ```
 let mut var a = []
 let x = 20
-for mut i=0; i<10; ++i {
+for mut i=0, i<10, ++i {
     let mut y = 0
     a.push(fn() { y += 1; x+y })
 }
@@ -146,7 +146,7 @@ It is possible to create iterators by yielding the control from a function. Exam
 
 ```
 let one\_to\_ten = fn() {
-    for mut i=0; i<10; ++i {
+    for mut i=0, i<10, ++i {
     	yield i
     }
 }
@@ -189,6 +189,8 @@ Tables are initialized with the following syntax:
 
 Properties are `pub` and `mut`. When defined in the table header, this property becomes the default for the table.
 
+The syntax `&{}` is a shortcut for `%pub mut {}`.
+
 ### $G, $ENV and local variables
 
 There is one single variable in a enviroment: `$G`. `$G` is a table that contains all local variables. For example, if a variable called `var` is created, its real name is `$G.var`.
@@ -202,9 +204,9 @@ Zoe syntax                What actually happens internally
 ----------                --------------------------------
 let a = 4                 $ENV.a = 4
 let mut b = 5             mut $ENV.b = 5
-let x = %{}               $ENV.x = %{}
+let x = &{}               $ENV.x = &{}
 x.hello = 42              $ENV.x.hello = 42
-{                         $ENV = %$ENV {}
+{                         $ENV = &$ENV {}
 let a = 8                 $ENV.a = 8
 dbg(a)                    dbg($ENV.a)   ->  8
 dbg(b)                    dbg($ENV.b)   ->  5
@@ -240,6 +242,7 @@ There are special methods and attributes that operate differenty when they are c
 | `__xor(x)`    | `3 ^ 4`        | |
 | `__not`       | `!true`        | |
 | `__eq(x)`     | `3 == 4`       | Inverts the result for `!=` |
+| `__part(x)`   | `3 === 4`      | Partial match. Inverts the result for `!==` |
 | `__lt(x)`     | `3 < 4`        | Inverts the result for `>=`|
 | `__lte(x)`    | `3 <= 4`       | Inverts the result for `>`. If not present, then `__lt` and `__eq` are used. |
 | `__len`       | `#value`       | |
@@ -269,6 +272,8 @@ These metamethods are called is special occasions:
 | ------------- | ----------- |
 | `__init(...)` | Called when a table is created. |
 | `__gc`        | Called when the table is destroyed. |
+
+Additionally, the "is nil" expression (`?exp`) doesn't have a metamethod and always returns false, except for nil values.
 
 
 ### Privacy
@@ -341,46 +346,76 @@ Every value in Zoe is a table. As such, if a method is called in a primary type,
 Expressions
 -----------
 
+In Zoe, everything is an expression. Every expression must return one single value. For example: `let mut a; if x > y { a = 3 } else { a = 4 }` is the same as `let a = if x > y { 3 } else { 4 }`.
+
 ### Control flow
 
-The following control flow commands are available: `goto` and `if`.
+Flow of the operation can be controlled with the following commands:
 
+```
+if BOOLEAN_EXPRESSION { RETURN_IF_TRUE } [ else { RETURN_IF_FALSE } ]
+for A, B, C {}     // C style (notice the commas instead of semicolons)
+for A: B {}
+while X {}
+do {} while X
+== X ==; goto X
+```
 
-Syntatic sugar
-==============
+The keywords `break` and `continue` can be used, just like in C.
 
+### Matches
 
-Local variables
----------------
+A special, more complete way of controlling flow is the `match` keyword. It works like rust.
 
-See the section _
-
-Operators
----------
-
-
-Matches
--------
-
-
-Object orientation
-------------------
-
+```
+match x {
+  1              => do_thing1(),
+  [1, _]         => do_thing2(),
+  [1, 2, _]: r   => do_thing3(r),
+  { abc:_ }      => do_thing4(),
+  _              => do_something_else(),
+}
+```
 
 Error management
 ----------------
+
+Errors are controlled via exceptions:
+
+```
+let a = try {
+            1/0
+        } except(...) {
+	    0
+	}
+
+try {
+    1/0
+} excepct(e: DivByZeroError) {
+    // do something
+}
+
+raise TypeError('error description')
+```
+
+Exception objects contains the error message and the stack trace.
 
 
 Modules
 -------
 
+Modules are tables, imported via the keyword `import`. Since every expression returns one value, the execution of one file will return one single value -- this is the module.
 
-C interface
------------
+`import` will search the path defined in `ZOE_PATH`.
 
+```
+let math = import 'math'
+```
 
 Standard library
 ================
+
+_TO BE DEFINED_
 
 ## nil
 
@@ -403,9 +438,6 @@ Standard library
 
 Advanced topics
 ===============
-
-Garbage collection
-------------------
 
 Tail calls
 ----------
