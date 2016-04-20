@@ -147,7 +147,7 @@ It is possible to create iterators by yielding the control from a function. Exam
 ```
 let one\_to\_ten = fn() {
     for mut i=0, i<10, ++i {
-    	yield i
+        yield i
     }
 }
 
@@ -386,8 +386,8 @@ Errors are controlled via exceptions:
 let a = try {
             1/0
         } except(...) {
-	    0
-	}
+            0
+        }
 
 try {
     1/0
@@ -472,11 +472,38 @@ _Decision pending: a debugger will be writted, or are we going to communicate wi
 Virtual machine reference
 =========================
 
+## Internal memory
+
+The virtual machine contains two pieces of internal memory:
+
+* a **operational stack**, where values are stored for common operations;
+* a **function stack**, used to return to the previous function;
+* a **heap**, where variables are stored.
+
+Both the operational stack and the heap increment and decrement references.
+
+## Opcodes
+
+The opcodes are:
+
+| Mnemonic | Parameters | Stack change | Description |
+| -------- | ---------- | ------------ | ----------- |
+| `pnil`   |            | +1           | Push a nil value into the stack                        |
+| `pbt`    |            | +1           | Push a boolean true into the stack                     |
+| `pn8`    | `u8`       | +1           | Push a 8-bit unsigned integer number into the stack    |
+| `pn64`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
+| `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
+| `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
+| `ptbl`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values       |
+
+
+## Bytecode format
+
 
 Development order
 =================
 
 
 <!--
-vim: wrap lbr nolist
+vim: wrap lbr nolist expandtab
 -->
