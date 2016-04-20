@@ -36,14 +36,14 @@ The following basic types are available from Zoe:
 
 | Type    | Example    | _Internal C++ type_ |
 | ------- | ---------- | ------------------- |
-| nil     | nil        | _nullptr\_t_        |
+| nil     | nil        | _nullptr\_t_        | _.
 | boolean | true       | _bool_              |
 | number  | 42.3       | _double_ (64 bits)  |
 | string  | 'hello'    | _string_            |
-| array   | [1, 2, 3]  | _vectori\<shared\_ptr\<ZValue>>_ |
+| array   | [1, 2, 3]  | _vector\<shared\_ptr\<ZValue>>_ |
 | table   | %{ hello: 'world' } | _unordered\_map\<shared\_ptr\<ZValue>, shared\_ptr\<ZValue>>_ |
 
-_Internally, every value is stored in a union called ZValue._ _\
+_Internally, every value is stored in a union called ZValue._
 
 Tables
 ------
