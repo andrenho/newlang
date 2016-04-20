@@ -32,6 +32,12 @@ Ideally, the Zoe code is translated to the core language before generating the B
 Types
 -----
 
+The following basic types are available from Zoe:
+
+| Type    | Example    | _Internal C++ type_ |
+| ------- | ---------- | ------------------- |
+| nil     | nil        | _nullptr\_t_        |
+| boolean | true       | _bool_              |
 
 
 Tables
