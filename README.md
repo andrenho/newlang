@@ -43,8 +43,12 @@ The following basic types are available from Zoe:
 | array   | [1, 2, 3]  | _vectori\<shared\_ptr\<ZValue>>_ |
 | table   | %{ hello: 'world' } | _unordered\_map\<shared\_ptr\<ZValue>, shared\_ptr\<ZValue>>_ |
 
+_Internally, every value is stored in a union called ZValue._ _\
+
 Tables
 ------
+
+Tables 
 
 ### Metamethods
 
@@ -55,6 +59,8 @@ Tables
 ### $ENV
 
 ### Weak tables
+
+### "Everything is a table"
 
 
 Functions
