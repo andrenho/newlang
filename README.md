@@ -253,18 +253,20 @@ There are special methods and attributes that operate differenty when they are c
 
 These meta-attributes define special configurations of the table:
 
-| Method        | Descrption |
-| ------------- | ---------- |
+| Method        | Description |
+| ------------- | ----------- |
 | `__proto`     | Prototype table (a table or array of tables) |
 
 These meta-attributes are read-only and can't be changed by the programmer:
 
-| Method        | Descrption |
-| ------------- | ---------- |
+| Method        | Description |
+| ------------- | ----------- |
 | `__ptr`       | Return the internal C pointer of this value |
 
 These metamethods are called is special occasions:
 
+| Method        | Description |
+| ------------- | ----------- |
 | `__init(...)` | Called when a table is created. |
 | `__gc`        | Called when the table is destroyed. |
 
