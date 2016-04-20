@@ -1,3 +1,6 @@
+This document is more a "brainstorming sesssion" rather than a guide.
+
+
 Philosophy
 ==========
 
@@ -71,6 +74,7 @@ Functions in Zoe are first-class functions. They are defined using the `fn` keyw
 * There can be optional arguments: `fn(a, b=42)`. Optional arguments must always be at the end of the arguments. A function with several optional arguments can be called by passing the arguments names: `myfunction(42, b=12, c=14)`.
 * The arguments can force specific types, for example: `fn(a: number, b: boolean)`. The types are, actually table prototypes (see section _Tables_), so they can be used to verify a class name.
 * Functions can be passed as arguments.
+* Parameters are always passed as constants, except when they are indicated as `mut`.
 * Nested functions are allowed.
 
 A function can be of the type `dl`. This means that the function will call an external library. Example: `fn umount(target) dl-> "umount", c\_const\_char. _This syntax is pending._
@@ -92,11 +96,23 @@ math = %{
 }
 ```
 
-### Const functions
-
 ### this (@)
 
+Internally, when a function is created, an additional parameter called `this` is always added to the parameter list. This is hidden from the user (syntatic sugar).
+
+The `@` symbol can be used as a shortcut. So `this.value` can also be called as `@value`.
+
+### Constant and mutable functions
+
+A constant (or pure) function is a function that can't touch any external data except for mutable parameters that are passed to it. A mutable function can change external data (such as `this` and "globals").
+
+Constant functions can only call other constant functions.
+
+Functions are, by default, constant. Mutable function can be defined as `fn(v) mut { @value = v }`.
+
 ### Closures
+
+
 
 ### Yields
 
