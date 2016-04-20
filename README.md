@@ -133,15 +133,29 @@ Another example:
 ```
 let mut var a = []
 let x = 20
-for i=0; i<10; ++i {
+for mut i=0; i<10; ++i {
     let mut y = 0
     a.push(fn() { y += 1; x+y })
 }
 ```
 
-### Yields
+### Iterator
 
+It is possible to create iterators by yielding the control from a function. Example:
 
+```
+let one_to_ten = fn() {
+    for mut i=0; i<10; ++i {
+    	yield i
+    }
+}
+
+for n: one_to_ten {
+    dbg(n)
+}
+
+// Result: 0123456789
+```
 
 Tables
 ------
@@ -163,6 +177,23 @@ tbl.hello = 'world'                              // alternative way to set data 
 
 Tables can't be used as keys, unless they have the metamethods `__hash` and `__==` implemented.
 
+### $ENV and local variables
+
+
+
+Any variables that are created are child of this variable. Example:
+
+```
+Zoe syntax                What actually happens internally
+----------                --------------------------------
+let a = 4                 $ENV.a = 4
+let mut b = 5             mut $ENV.b = 5
+let x = %{}               $ENV.x = %{}
+x.hello = 42              $ENV.x.hello = 42
+{                         let mut new_scope = %$ENV {}
+let a = 8                 
+
+
 ### Assignment
 
 ### Metamethods
@@ -170,8 +201,6 @@ Tables can't be used as keys, unless they have the metamethods `__hash` and `__=
 ### Visibility
 
 ### Const 
-
-### $ENV
 
 ### Weak tables
 
