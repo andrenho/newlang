@@ -534,6 +534,12 @@ The opcodes are:
 
 ## Bytecode format
 
+| Position | # bytes | Description          |
+| -------- | ------- | -------------------- |
+| `00`     |       8 | Magic code           |
+| `08`     |       8 | String list position |
+| `10`     |     _n_ | Code                 |
+| _n_      |     _n_ | Strings              |
 
 Development order
 =================
@@ -574,6 +580,7 @@ Development order
 1. Privacy
 1. Constness
 1. Abstract functions
+1. Short circuit operators
 1. Control flow
 1. Matches
 1. Error management
