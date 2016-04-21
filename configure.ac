@@ -20,7 +20,8 @@ AC_PROG_CXX([g++ clang++])
 AC_PROG_LEX
 AC_PROG_YACC
 AC_PROG_AWK
-AX_VALGRIND_DFLT([memcheck], [on])
+AX_VALGRIND_DFLT([drd], [off])
+AX_VALGRIND_DFLT([helgrind], [off])
 AX_VALGRIND_CHECK
 
 # gold

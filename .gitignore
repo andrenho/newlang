@@ -62,6 +62,8 @@ configure
 .deps
 stamp-h1
 build-aux
+test-suite-*
+build/zoe.supp
 *~
 
 # vim files
