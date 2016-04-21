@@ -34,6 +34,11 @@
 # aux files
 depend
 zoe
+check_zoe
+check_zoe.log
+check_zoe.trs
+.dirstamp
+test-suite.log
 lib/lexer.h
 lib/lexer.cc
 lib/parser.h
