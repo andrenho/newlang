@@ -6,6 +6,8 @@ AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 # check for programs
 AC_PROG_CXX
+AC_PROG_LEX
+AC_PROG_YACC
 
 # check for libraries
 
