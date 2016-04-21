@@ -544,6 +544,8 @@ The opcodes are:
 Development order
 =================
 
+## Version 0.3.0
+
 1. Create build and test environment
 1. Create ZValue
 1. Create VM
@@ -556,6 +558,9 @@ Development order
 1. Expression inside strings
 1. Table prototypes
 1. Scopes
+
+## Version 0.3.1
+
 1. Basic function calls
 1. Function calls with arguments
 1. Function calls with optional and named arguments
@@ -570,6 +575,9 @@ Development order
 1. Pure/impure functions
 1. Closures, upvalues
 1. Iterators
+
+## Version 0.3.2
+
 1. Table initialization + short syntax
 1. $G, $ENV and local variables
 1. Value assignment, local variable assignment
@@ -580,21 +588,33 @@ Development order
 1. Privacy
 1. Constness
 1. Abstract functions
+
+## Version 0.3.3
+
 1. Short circuit operators
 1. Control flow
 1. Matches
 1. Error management
 1. Modules
+
+## Version 0.3.4
+
 1. Define standard library
 1. Write standard library
+
+## Version 0.3.5
+
 1. Weak tables
 1. Tail calls
 1. Using external libraries
 1. Threads
 1. Unicode support
 1. Debugging
-1. Slices and negative subscripts
 
+## Version 0.3.6
+
+1. Slices and negative subscripts
+1. ...
 
 <!--
 vim: wrap lbr nolist expandtab
