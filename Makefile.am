@@ -1,18 +1,36 @@
 # 
-# custom targets
+# variables
 #
-if CLOC
-cloc: clean
-	cloc configure.ac Makefile.am src/*
+AM_CXXFLAGS = @build/WARNINGS
+AM_LDFLAGS = -lm
+
+if GCC
+  AM_CXXFLAGS += -Wunsafe-loop-optimizations -Wzero-as-null-pointer-constant -Wuseless-cast 
 endif
 
-if CPPLINT
-CPPLINT_FILTERS=-legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
-lint: clean
-	cpplint --filter=${CPPLINT_FILTERS} --linelength=120 lib/*.h lib/*.cc src/*.h src/*.cc tests/*.cc
+if DEBUG
+  AM_CXXFLAGS += -g -ggdb3 -O0 -DDEBUG -fno-inline-functions 
+  AM_LDFLAGS += -g
+if GCC
+  AM_CXXFLAGS += -fno-inline-small-functions
+endif
+else
+  AM_CXXFLAGS += -DNDEBUG -Ofast -fomit-frame-pointer -ffast-math -mfpmath=sse -fPIC -msse -msse2 -msse3 -mssse3 -msse4 -flto
+  AM_LDFLAGS += -flto
 endif
 
+if GOLD
+  AM_LDFLAGS += -fuse-ld=gold
+endif
+
+@VALGRIND_CHECK_RULES@
+VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
+EXTRA_DIST = build/zoe.supp
+
 #
-# subdirs
+# programs to build
 #
-SUBDIRS = src
+bin_PROGRAMS = zoe
+zoe_SOURCES = src/main.cc
+
+.PHONY: cloc

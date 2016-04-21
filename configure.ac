@@ -3,13 +3,15 @@ AC_INIT([zoe], [0.3.0], [https://github.com/andrenho/zoe/issues])
 AC_CONFIG_SRCDIR([src/main.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
-AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2])
+AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
 
 # check for programs
 : ${CXXFLAGS=""}             	    # remove default silly CXXFLAGS
 AC_PROG_CXX([g++ clang++])
 AC_PROG_LEX
 AC_PROG_YACC
+AX_VALGRIND_DFLT([memcheck], [on])
+AX_VALGRIND_CHECK
 
 AC_CHECK_PROGS([gold], [ld.gold])      # look for gold linker (instead of ld)
 AM_CONDITIONAL([GOLD], [test "$gold" = ld.gold])
