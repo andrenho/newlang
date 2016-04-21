@@ -12,6 +12,7 @@ EXTRA_DIST = build/zoe.supp
 TESTS = check_zoe
 check_PROGRAMS = check_zoe
 check_zoe_SOURCES = tests/tests.cc
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver.sh
 
 # 
 # custom targets

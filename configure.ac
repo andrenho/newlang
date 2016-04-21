@@ -8,12 +8,18 @@ AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
 
 #
+# check for files
+#
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
+
+#
 # check for programs
 #
 : ${CXXFLAGS=""}             	    # remove default silly CXXFLAGS
 AC_PROG_CXX([g++ clang++])
 AC_PROG_LEX
 AC_PROG_YACC
+AC_PROG_AWK
 AX_VALGRIND_DFLT([memcheck], [on])
 AX_VALGRIND_CHECK
 
