@@ -4,7 +4,9 @@
 #lib_LTLIBRARIES = libzoe.la
 libzoe_la_SOURCES = vm/zvalue.h vm/znil.h vm/zbool.h vm/znumber.h 	\
 		    vm/zstring.h vm/zarray.h vm/ztable.h vm/zoevm.h	\
-		    compiler/bytecode.h compiler/bytecode.cc
+		    vm/opcode.h						\
+		    compiler/bytecode.h compiler/bytecode.cc 		\
+		    compiler/literals.h
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = zoe
@@ -45,6 +47,11 @@ endif
 VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
 
 .PHONY: cloc cpplint coverage
+
+#
+# clean
+#
+CLEANFILES = *.log *.gcov **/*.gcov **/*.gcda **/*.gcno
 
 # 
 # variables

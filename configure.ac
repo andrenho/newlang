@@ -2,7 +2,7 @@
 # prelude
 #
 AC_INIT([zoe], [0.3.0], [https://github.com/andrenho/zoe/issues])
-AC_CONFIG_SRCDIR([src/main.cc])
+AC_CONFIG_SRCDIR([exe/main.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
@@ -20,6 +20,7 @@ AC_REQUIRE_AUX_FILE([tap-driver.sh])
 #
 : ${CXXFLAGS=""}             	    # remove default silly CXXFLAGS
 AC_PROG_CXX([g++ clang++])
+AC_LANG_CPLUSPLUS
 AC_PROG_LEX
 AC_PROG_YACC
 AC_PROG_AWK
@@ -59,6 +60,14 @@ AX_LIB_READLINE
 #
 AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
 AM_CONDITIONAL([GCC], [test "$GXX" = yes])
+AC_CHECK_SIZEOF([double])
+if test "$ac_cv_sizeof_double" != 8; then
+  AC_MSG_ERROR([Sorry, zoe doesn't work (yet) in platforms where sizeof(double) != 8])
+fi
+AC_C_BIGENDIAN
+if test x"$WORDS_BIGENDIAN" != x; then
+  AC_MSG_ERROR([Sorry, zoe doesn't work (yet) on big endian platforms.])
+fi
 
 #
 # check for conditional options

@@ -493,12 +493,12 @@ The opcodes are:
 | `pbf`    |            | +1           | Push a boolean false into the stack                    |
 | `pbt`    |            | +1           | Push a boolean true into the stack                     |
 | `pn8`    | `u8`       | +1           | Push a 8-bit unsigned integer number into the stack    |
-| `pn64`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
+| `pnum`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
 | `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
 | `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
 | `ptbl`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values       |
 | `pop`    |            | -1           | Pop one item from the stack                            |
-| `b`      | `u32`      |              | Unconditionally branch (jump) to address               |
+| `jmp`    | `u32`      |              | Unconditionally branch (jump) to address               |
 | `bt`     | `u32`      | -1           | Branch to address if value in stack is true            |
 | `pshs`   |            |              | Push a new scope                                       |
 | `pops`   |            |              | Pop scope                                              |
@@ -516,18 +516,17 @@ The opcodes are:
 | `bnot`   |            | -1 +1        | Operator binary not                                    |
 | `and`    |            | -2 +1        | Operator binary and                                    |
 | `or`     |            | -2 +1        | Operator binary or                                     |
-| `xor     |            | -2 +1        | Operator binary xor                                    |
+| `xor`    |            | -2 +1        | Operator binary xor                                    |
 | `not`    |            | -1 +1        | Operator boolean not                                   |
 | `eq`     |            | -2 +1        | Operator equals                                        |
 | `part`   |            | -2 +1        | Operator partial equals                                |
 | `lt`     |            | -2 +1        | Operator less than                                     |
 | `lte`    |            | -2 +1        | Operator less than or equal                            |
 | `len`    |            | -1 +1        | Operator length                                        |
-| `cat`    |            | -2 +1        | Operator concatenation                                 |
 | `get`    |            | -2 +1        | Operator get                                           |
 | `set`    |            | -3 +1        | Operator set                                           |
 | `del`    |            | -2 +1        | Operator delete                                        |
-| `call`   |            | -(1+n) +1    | Operator call                                          |
+| `insp`   |            | -1 +1        | Generate a inspection string                           |
 | `ptr`    |            | -1 +1        | Get internal pointer                                   |
 | `isnil`  |            | -1 +1        | Return if value in stack is nil                        |
 
@@ -536,7 +535,8 @@ The opcodes are:
 
 | Position | # bytes | Description          |
 | -------- | ------- | -------------------- |
-| `00`     |       8 | Magic code           |
+| `00`     |       4 | Magic code           |
+| `04`     |       4 | Version              |
 | `08`     |       8 | String list position |
 | `10`     |     _n_ | Code                 |
 | _n_      |     _n_ | Strings              |
@@ -547,8 +547,8 @@ Development order
 ## Version 0.3.0
 
 1. ~~Create build and test environment~~
-1. Create ZValue
-1. Create VM
+1. ~~Create ZValue~~
+1. ~~Create VM~~
 1. Create bytecode generator
 1. Create basic arrays/tables
 1. Getting/setting array
@@ -618,6 +618,14 @@ Development order
 
 1. Slices and negative subscripts
 1. ...
+
+
+Release checklist
+=================
+* `make check`
+* `make check-valgrind`
+* `./configure --enable-coverage && make check && make coverage`
+* `make distcheck`
 
 <!--
 vim: wrap lbr nolist expandtab

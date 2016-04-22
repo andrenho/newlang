@@ -4,6 +4,9 @@
 #include <vector>
 using namespace std;
 
+#include "compiler/bytecode.h"
+#include "compiler/literals.h"
+
 // {{{ TEST INFRASTRUCTURE
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -27,6 +30,25 @@ static void _run_test(string const& desc, function<void()> f)
     test_list.push_back({ desc, f });
 }
 #define run_test(test) _run_test(#test, test)
+
+
+// 
+// util functions
+//
+template<typename T> string to_string(vector<T> const& v) {
+    string s = "[";
+    for(size_t i=0; i<v.size(); ++i) {
+        if(i != 0) {
+            s.append(", ");
+        }
+        s.append(to_string(v[i]));
+    }
+    return s + "]";
+}
+
+static string to_string(string const& s) {
+    return s;
+}
 
 
 //
@@ -125,10 +147,103 @@ static void test_tool()
 
 // }}}
 
+// {{{ BYTECODE GENERATOR
+
+static void bytecode_generation()
+{
+    {
+        Bytecode b;
+        b.Add(PNIL);
+
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            PNIL,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+
+    {
+        Bytecode b;
+        b.Add(PN8, 0x24_u8);
+
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            PN8,  0x24,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+
+    {
+        Bytecode b;
+        b.Add(PARY, 0x1224_u16);
+
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            PARY, 0x24, 0x12,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+
+    {
+        Bytecode b;
+        b.Add(BT, 0x12345678_u32);
+
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            BT,   0x78, 0x56, 0x34, 0x12,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+
+    {
+        Bytecode b;
+        b.Add(PNUM, 3.1416);
+
+        // number generated from <http://www.binaryconvert.com/convert_double.html>
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            PNUM, 0xA7, 0xE8, 0x48, 0x2E, 0xFF, 0x21, 0x09, 0x40,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+}
+
+
+static void bytecode_strings()
+{
+    Bytecode b;
+    b.Add(PSTR, "hello");
+    uint64_t h = hash<string>()("hello");
+
+#pragma GCC diagnostic ignored "-Wnarrowing"
+#pragma GCC diagnostic push
+    vector<uint8_t> expected = {
+        0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+        0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+        PSTR, 0x00, 0x00, 0x00, 0x00,
+        'h',  'e',  'l',  'l',  'o', 0,                   // string
+        h & 0xFF, (h >> 8) & 0xFF, (h >> 16) & 0xFF, (h >> 24) & 0xFF, // hash
+        (h >> 32) & 0xFF, (h >> 40) & 0xFF, (h >> 48) & 0xFF, (h >> 56)
+    };
+#pragma GCC diagnostic pop
+    mequals(b.GenerateZB(), expected);
+}
+
+// }}}
+
 static void prepare_tests()
 {
     // test tool
     run_test(test_tool);
+
+    // bytecode
+    run_test(bytecode_generation);
+    run_test(bytecode_strings);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
