@@ -1,10 +1,10 @@
-#ifndef LIB_ZSTRING_H_
-#define LIB_ZSTRING_H_
+#ifndef VM_ZSTRING_H_
+#define VM_ZSTRING_H_
 
 #include <string>
 using namespace;
 
-#include "lib/zvalue.h"
+#include "vm/zvalue.h"
 
 class ZString : public ZValue {
 public:

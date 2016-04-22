@@ -1,5 +1,5 @@
-#ifndef LIB_BYTECODE_H_
-#define LIB_BYTECODE_H_
+#ifndef COMPILER_BYTECODE_H_
+#define COMPILER_BYTECODE_H_
 
 #include <cstdint>
 #include <string>

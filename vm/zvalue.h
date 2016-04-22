@@ -1,5 +1,5 @@
-#ifndef LIB_ZVALUE_H_
-#define LIB_ZVALUE_H_
+#ifndef VM_ZVALUE_H_
+#define VM_ZVALUE_H_
 
 class ZValue {
 };

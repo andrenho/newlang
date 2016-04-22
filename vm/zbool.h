@@ -1,7 +1,7 @@
-#ifndef LIB_ZBOOL_H_
-#define LIB_ZBOOL_H_
+#ifndef VM_ZBOOL_H_
+#define VM_ZBOOL_H_
 
-#include "lib/zvalue.h"
+#include "vm/zvalue.h"
 
 class ZBool : public ZValue {
 public:

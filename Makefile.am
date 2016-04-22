@@ -2,13 +2,13 @@
 # programs to build
 #
 #lib_LTLIBRARIES = libzoe.la
-libzoe_la_SOURCES = lib/zvalue.h lib/znil.h lib/zbool.h lib/znumber.h 	\
-		    lib/zstring.h lib/zarray.h lib/ztable.h lib/zoevm.h	\
-		    lib/bytecode.h lib/bytecode.cc
+libzoe_la_SOURCES = vm/zvalue.h vm/znil.h vm/zbool.h vm/znumber.h 	\
+		    vm/zstring.h vm/zarray.h vm/ztable.h vm/zoevm.h	\
+		    compiler/bytecode.h compiler/bytecode.cc
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = zoe
-zoe_SOURCES = src/main.cc $(libzoe_la_SOURCES)
+zoe_SOURCES = exe/main.cc $(libzoe_la_SOURCES)
 zoe_CXXFLAGS = $(AM_CXXFLAGS)
 
 EXTRA_DIST = build/zoe.supp

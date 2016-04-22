@@ -1,5 +1,5 @@
-#ifndef LIB_ZOEVM_H_
-#define LIB_ZOEVM_H_
+#ifndef VM_ZOEVM_H_
+#define VM_ZOEVM_H_
 
 class ZoeVM {
 };

@@ -1,7 +1,7 @@
-#ifndef LIB_ZNUMBER_H_
-#define LIB_ZNUMBER_H_
+#ifndef VM_ZNUMBER_H_
+#define VM_ZNUMBER_H_
 
-#include "lib/zvalue.h"
+#include "vm/zvalue.h"
 
 class ZNumber : public ZValue {
 public:

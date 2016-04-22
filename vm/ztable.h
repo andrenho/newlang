@@ -1,7 +1,7 @@
-#ifndef LIB_ZTABLE_H_
-#define LIB_ZTABLE_H_
+#ifndef VM_ZTABLE_H_
+#define VM_ZTABLE_H_
 
-#include "lib/zvalue.h"
+#include "vm/zvalue.h"
 
 class ZTable : public ZValue {
 };

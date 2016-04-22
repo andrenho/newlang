@@ -1,7 +1,7 @@
-#ifndef LIB_ZNIL_H_
-#define LIB_ZNIL_H_
+#ifndef VM_ZNIL_H_
+#define VM_ZNIL_H_
 
-#include "lib/zvalue.h"
+#include "vm/zvalue.h"
 
 class ZNil : public ZValue {
 };

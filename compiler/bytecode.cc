@@ -1,4 +1,4 @@
-#include "lib/bytecode.h"
+#include "compiler/bytecode.h"
 
 // {{{ READ/GENERATE BYTECODE
 
