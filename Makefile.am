@@ -83,7 +83,7 @@ if DEBUG
 	        -Wunused-value -Wunused-variable -Wvariadic-macros 		\
 	        -Wvolatile-register-var -Wwrite-strings -Winvalid-pch 		\
 	        -Wconversion -Weffc++ -Wold-style-cast -Wsign-promo 		\
-	        -Winline -Wswitch-enum -Wmissing-declarations -Wsign-conversion
+	        -Winline -Wswitch-enum -Wmissing-declarations
   AM_CXXFLAGS += -g -ggdb3 -O0 -DDEBUG -fno-inline-functions 
   AM_LDFLAGS += -g
 if GCC

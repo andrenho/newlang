@@ -1,20 +1,43 @@
 #include "compiler/bytecode.h"
 
+#include <cassert>
+#include <cstring>
 #include <algorithm>
 #include <stdexcept>
 using namespace std;
 
+#define NO_ADDRESS (0xFFFFFFFF)
+
 // {{{ READ/GENERATE BYTECODE
+
+constexpr uint8_t Bytecode::_MAGIC[];
 
 Bytecode::Bytecode(vector<uint8_t> const& from_zb)
 {
+    if(from_zb.size() < 16 || !equal(begin(from_zb), begin(from_zb)+8, _MAGIC)) {
+        throw runtime_error("Not a valid ZB file.");
+    }
+
+    uint64_t str_pos = *reinterpret_cast<uint64_t const*>(&from_zb[8]);
+    copy(begin(from_zb) + 16, begin(from_zb) + str_pos, back_inserter(_code));
+
+    while(str_pos < from_zb.size()) {
+        string   s(reinterpret_cast<const char*>(&from_zb[str_pos]));
+        str_pos += s.size() + 1;
+        uint64_t h = *reinterpret_cast<uint64_t const*>(&from_zb[str_pos]);
+        str_pos += 8;
+        _strings.push_back({ s, h });
+    }
+    assert(str_pos == from_zb.size());
 }
 
 
-vector<uint8_t> Bytecode::GenerateZB() const 
+vector<uint8_t> Bytecode::GenerateZB()
 {
+    AdjustLabels();
+
     // magic number and version
-    vector<uint8_t> data = { 0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00 };
+    vector<uint8_t> data(begin(_MAGIC), end(_MAGIC));
 
     // string list position
     uint64_t pos = 16 + _code.size();
@@ -111,5 +134,47 @@ void Bytecode::Add(Opcode op, string const& s)
 }
 
 // }}}
+
+// {{{ LABELS
+
+Label Bytecode::CreateLabel()
+{
+    _labels.push_back({ NO_ADDRESS, {} });
+    return _labels.size() - 1;
+}
+
+
+void Bytecode::SetLabel(Label const& lbl)
+{
+    _labels[lbl].address = _code.size();
+}
+
+
+void Bytecode::AddLabel(Label const& lbl)
+{
+    // add reference
+    _labels[lbl].refs.push_back(_code.size());
+
+    // add filler bytes
+    for(int i=0; i<8; ++i) {
+        _code.push_back(0);
+    }
+}
+
+
+void Bytecode::AdjustLabels()
+{
+    for(auto const& label: _labels) {
+        assert(label.address != NO_ADDRESS);  // Label without a corresponding address.
+        for(auto const& ref: label.refs) {
+            assert(ref <= (_code.size() + 8)); 
+            // overwrite 8 bytes of code with address
+            memcpy(&_code[ref], &label.address, 8);
+        }
+    }
+    _labels.clear();
+}
+
+/// }}}
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

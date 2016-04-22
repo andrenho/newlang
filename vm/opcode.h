@@ -18,7 +18,7 @@ using namespace std;
     /* scopes */                                                                    \
     X(PSHS), X(POPS),                                                               \
     /* operators */                                                                 \
-    X(UMN), X(ADD), X(SUB), X(MUL), X(DIV), X(IDIV), X(MOD), X(POW), X(SHL),        \
+    X(UNM), X(ADD), X(SUB), X(MUL), X(DIV), X(IDIV), X(MOD), X(POW), X(SHL),        \
     X(SHR), X(BNOT), X(AND), X(OR), X(XOR), X(NOT), X(EQ), X(PART), X(LT), X(LTE),  \
     X(LEN), X(GET), X(SET), X(DEL), X(INSP), X(PTR), X(ISNIL)
 

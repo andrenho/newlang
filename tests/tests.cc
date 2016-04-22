@@ -62,7 +62,7 @@ template<typename T> static void _mequals(string const& code, function<T()> cons
     try {
         result = f();
         if(result != expected) {
-            cout << "not ok " << tests_run << " - " << m << " (expected " << to_string(expected) << ", found " << to_string(result) << ")" << endl;
+            cout << "not ok " << tests_run << " - " << m << " (found " << to_string(expected) << ", expected " << to_string(result) << ")" << endl;
         } else {
             cout << "ok " << tests_run << " - " << m << " == " << to_string(expected) << endl;
         }
@@ -211,6 +211,11 @@ static void bytecode_generation()
         };
         mequals(b.GenerateZB(), expected);
     }
+
+    {
+        Bytecode b;
+        mthrows(b.Add(PNUM));
+    }
 }
 
 
@@ -234,6 +239,43 @@ static void bytecode_strings()
     mequals(b.GenerateZB(), expected);
 }
 
+
+static void bytecode_readback()
+{
+    Bytecode b1;
+    b1.Add(PSTR, "hello");
+    vector<uint8_t> data = b1.GenerateZB();
+
+    Bytecode b2(data);
+    mequals(b2.GenerateZB(), b1.GenerateZB());
+
+    mthrows(Bytecode(vector<uint8_t>{}));
+}
+
+
+static void bytecode_labels()
+{
+    Bytecode bc;
+    Label x = bc.CreateLabel();
+
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(UNM);
+    }
+    bc.SetLabel(x);
+
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(UNM);
+    }
+    bc.AddLabel(x);
+    for(int i=0; i<0x10; ++i) {
+        bc.Add(UNM);
+    }
+    bc.GenerateZB();
+
+    mequals(bc.Code()[0x20], 0x10, "Label set (byte #0)");
+    mequals(bc.Code()[0x21], 0x00, "Label set (byte #1)");
+}
+
 // }}}
 
 static void prepare_tests()
@@ -244,6 +286,8 @@ static void prepare_tests()
     // bytecode
     run_test(bytecode_generation);
     run_test(bytecode_strings);
+    run_test(bytecode_readback);
+    run_test(bytecode_labels);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
