@@ -2,6 +2,8 @@
 #define VM_ZVALUE_H_
 
 class ZValue {
+public:
+    virtual ~ZValue() {}
 };
 
 #endif

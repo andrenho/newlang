@@ -7,7 +7,7 @@ class ZNumber : public ZValue {
 public:
     explicit ZNumber(double value) : Value(value) {}
 
-    const double value;
+    const double Value;
 };
 
 #endif

@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <vector>
 using namespace std;
 
 #include "compiler/bytecode.h"
 #include "compiler/literals.h"
+#include "vm/zoevm.h"
+#include "vm/znumber.h"
 
 // {{{ TEST INFRASTRUCTURE
 
@@ -46,9 +49,11 @@ template<typename T> string to_string(vector<T> const& v) {
     return s + "]";
 }
 
+/*
 static string to_string(string const& s) {
     return s;
 }
+*/
 
 
 //
@@ -278,6 +283,27 @@ static void bytecode_labels()
 
 // }}}
 
+// {{{ VM BASICS
+
+static void vm_stack()
+{
+    ZoeVM Z;
+    
+    mequals(Z.StackSize(), 1);
+    Z.Push(make_shared<ZNumber>(10));
+    mequals(Z.StackSize(), 2);
+    mequals(Z.GetPtr<ZNumber>()->Value, 10);
+    mequals(Z.GetCopy<ZNumber>()->Value, 10);
+
+    Z.Pop();
+    mequals(Z.StackSize(), 1);
+    Z.Pop();
+    mequals(Z.StackSize(), 0);
+    mthrows(Z.Pop());
+}
+
+// }}}
+
 static void prepare_tests()
 {
     // test tool
@@ -288,6 +314,9 @@ static void prepare_tests()
     run_test(bytecode_strings);
     run_test(bytecode_readback);
     run_test(bytecode_labels);
+
+    // VM
+    run_test(vm_stack);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
