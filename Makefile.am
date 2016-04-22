@@ -25,7 +25,7 @@ endif
 if CPPLINT
 CPPLINT_FILTERS ?= -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
 lint: clean
-	cpplint --filter=${CPPLINT_FILTERS} --linelength=120 $(zoe_SOURCES)
+	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES)
 endif
 
 if COV
@@ -41,7 +41,22 @@ VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
 # 
 # variables
 #
-AM_CXXFLAGS = @build/WARNINGS
+AM_CXXFLAGS = -Wfatal-errors -Wextra -Wall -Wcast-align -Wcast-qual 		\
+	      -Wchar-subscripts -Wcomment -Wdisabled-optimization 		\
+	      -Wfloat-equal -Wformat -Wformat=2 -Wformat-nonliteral 		\
+	      -Wformat-security -Wformat-y2k -Wimport -Winit-self 		\
+	      -Winvalid-pch -Wmissing-braces -Wmissing-field-initializers 	\
+	      -Wmissing-format-attribute -Wmissing-include-dirs 		\
+	      -Wmissing-noreturn -Wpacked -Wparentheses -Wpointer-arith 	\
+	      -Wredundant-decls -Wreturn-type -Wsequence-point 			\
+	      -Wsign-compare -Wstack-protector -Wstrict-aliasing 		\
+	      -Wstrict-aliasing=2 -Wswitch -Wtrigraphs -Wuninitialized 		\
+	      -Wunknown-pragmas -Wunreachable-code -Wunused 			\
+	      -Wunused-function -Wunused-label -Wunused-parameter 		\
+	      -Wunused-value -Wunused-variable -Wvariadic-macros 		\
+	      -Wvolatile-register-var -Wwrite-strings -Winvalid-pch 		\
+	      -Wconversion -Weffc++ -Wold-style-cast -Wsign-promo 		\
+	      -Winline -Wswitch-enum -Wmissing-declarations -Wsign-conversion
 AM_LDFLAGS = -lm
 
 # gcc specific warnings
