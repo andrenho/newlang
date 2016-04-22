@@ -546,7 +546,7 @@ Development order
 
 ## Version 0.3.0
 
-1. ~Create build and test environment~
+1. ~~Create build and test environment~~
 1. Create ZValue
 1. Create VM
 1. Create basic lexer/parser, capable of reading basic values (binary, hexa...), and parsing comments
