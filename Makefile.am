@@ -19,13 +19,13 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver
 #
 if CLOC
 cloc: clean
-	cloc --exclude-dir=old configure.ac Makefile.am src
+	cloc --exclude-dir=old configure.ac Makefile.am src tests
 endif
 
 if CPPLINT
 CPPLINT_FILTERS ?= -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
 lint: clean
-	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES)
+	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES) $(check_zoe_SOURCES)
 endif
 
 if COV
@@ -92,5 +92,3 @@ if COV
   AM_CXXFLAGS += -fprofile-arcs -ftest-coverage
   AM_LDFLAGS += -lgcov --coverage
 endif
-
-
