@@ -7,6 +7,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
 
+AM_PROG_AR
+LT_INIT([disable-static])
+
 #
 # check for files
 #

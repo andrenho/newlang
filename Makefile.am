@@ -1,8 +1,15 @@
 #
 # programs to build
 #
+#lib_LTLIBRARIES = libzoe.la
+libzoe_la_SOURCES = lib/zvalue.h lib/znil.h lib/zbool.h lib/znumber.h 	\
+		    lib/zstring.h lib/zarray.h lib/ztable.h lib/zoevm.h	\
+		    lib/bytecode.h lib/bytecode.cc
+#libzoe_la_LDFLAGS = -version-info 0:0:0
+
 bin_PROGRAMS = zoe
-zoe_SOURCES = src/main.cc
+zoe_SOURCES = src/main.cc $(libzoe_la_SOURCES)
+zoe_CXXFLAGS = $(AM_CXXFLAGS)
 
 EXTRA_DIST = build/zoe.supp
 
@@ -11,7 +18,8 @@ EXTRA_DIST = build/zoe.supp
 #
 TESTS = check_zoe
 check_PROGRAMS = check_zoe
-check_zoe_SOURCES = tests/tests.cc
+check_zoe_SOURCES = tests/tests.cc $(libzoe_la_SOURCES)
+check_zoe_CXXFLAGS = $(AM_CXXFLAGS)
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver.sh
 
 # 
@@ -19,13 +27,13 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver
 #
 if CLOC
 cloc: clean
-	cloc --exclude-dir=old configure.ac Makefile.am src tests
+	cloc --exclude-dir=old configure.ac Makefile.am $(zoe_SOURCES) tests/tests.cc
 endif
 
 if CPPLINT
 CPPLINT_FILTERS ?= -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
 lint: clean
-	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES) $(check_zoe_SOURCES)
+	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES) tests/tests.cc
 endif
 
 if COV
@@ -41,22 +49,9 @@ VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
 # 
 # variables
 #
-AM_CXXFLAGS = -Wfatal-errors -Wextra -Wall -Wcast-align -Wcast-qual 		\
-	      -Wchar-subscripts -Wcomment -Wdisabled-optimization 		\
-	      -Wfloat-equal -Wformat -Wformat=2 -Wformat-nonliteral 		\
-	      -Wformat-security -Wformat-y2k -Wimport -Winit-self 		\
-	      -Winvalid-pch -Wmissing-braces -Wmissing-field-initializers 	\
-	      -Wmissing-format-attribute -Wmissing-include-dirs 		\
-	      -Wmissing-noreturn -Wpacked -Wparentheses -Wpointer-arith 	\
-	      -Wredundant-decls -Wreturn-type -Wsequence-point 			\
-	      -Wsign-compare -Wstack-protector -Wstrict-aliasing 		\
-	      -Wstrict-aliasing=2 -Wswitch -Wtrigraphs -Wuninitialized 		\
-	      -Wunknown-pragmas -Wunreachable-code -Wunused 			\
-	      -Wunused-function -Wunused-label -Wunused-parameter 		\
-	      -Wunused-value -Wunused-variable -Wvariadic-macros 		\
-	      -Wvolatile-register-var -Wwrite-strings -Winvalid-pch 		\
-	      -Wconversion -Weffc++ -Wold-style-cast -Wsign-promo 		\
-	      -Winline -Wswitch-enum -Wmissing-declarations -Wsign-conversion
+ACLOCAL_AMFLAGS = -I m4
+
+AM_CXXFLAGS = 
 AM_LDFLAGS = -lm
 
 # gcc specific warnings
@@ -66,6 +61,22 @@ endif
 
 # debugging flags
 if DEBUG
+  AM_CXXFLAGS += -Wfatal-errors -Wextra -Wall -Wcast-align -Wcast-qual 		\
+	        -Wchar-subscripts -Wcomment -Wdisabled-optimization 		\
+	        -Wfloat-equal -Wformat -Wformat=2 -Wformat-nonliteral 		\
+	        -Wformat-security -Wformat-y2k -Wimport -Winit-self 		\
+	        -Winvalid-pch -Wmissing-braces -Wmissing-field-initializers 	\
+	        -Wmissing-format-attribute -Wmissing-include-dirs 		\
+	        -Wmissing-noreturn -Wpacked -Wparentheses -Wpointer-arith 	\
+	        -Wredundant-decls -Wreturn-type -Wsequence-point 		\
+	        -Wsign-compare -Wstack-protector -Wstrict-aliasing 		\
+	        -Wstrict-aliasing=2 -Wswitch -Wtrigraphs -Wuninitialized	\
+	        -Wunknown-pragmas -Wunreachable-code -Wunused 			\
+	        -Wunused-function -Wunused-label -Wunused-parameter 		\
+	        -Wunused-value -Wunused-variable -Wvariadic-macros 		\
+	        -Wvolatile-register-var -Wwrite-strings -Winvalid-pch 		\
+	        -Wconversion -Weffc++ -Wold-style-cast -Wsign-promo 		\
+	        -Winline -Wswitch-enum -Wmissing-declarations -Wsign-conversion
   AM_CXXFLAGS += -g -ggdb3 -O0 -DDEBUG -fno-inline-functions 
   AM_LDFLAGS += -g
 if GCC

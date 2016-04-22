@@ -10,7 +10,7 @@ using namespace std;
 #pragma GCC diagnostic ignored "-Wsign-promo"
 
 static int tests_run = 0;
-static string current_test;
+static string current_test;  // NOLINT runtime/string
 
 
 //
