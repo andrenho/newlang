@@ -1,8 +1,9 @@
 #ifndef VM_ZOEVM_H_
 #define VM_ZOEVM_H_
 
-#include <vector>
+#include <cstdint>
 #include <memory>
+#include <vector>
 using namespace std;
 
 #include "vm/zvalue.h"
@@ -18,9 +19,14 @@ public:
     ssize_t            StackSize() const;
     ZValue const&      Push(shared_ptr<ZValue> value);
     shared_ptr<ZValue> Pop();
+    ZType              GetType(ssize_t pos=-1) const;
     ZValue const*      GetPtr(ssize_t pos=-1) const;
     shared_ptr<ZValue> GetCopy(ssize_t pos=-1) const;
     // {{{ stack templates
+    template<typename T> shared_ptr<T> Pop() {
+        return dynamic_pointer_cast<T>(Pop());
+    }
+
     template<typename T> T const* GetPtr(ssize_t pos=-1) const {
         auto ptr = GetCopy(pos);
         return dynamic_cast<T const*>(ptr.get());
@@ -30,6 +36,11 @@ public:
         return dynamic_pointer_cast<T>(GetCopy(pos));
     }
     //}}}
+    
+    // 
+    // code execution
+    //
+    void ExecuteBytecode(vector<uint8_t> const& bytecode);
 
 private:
     vector<shared_ptr<ZValue>> _stack = {};

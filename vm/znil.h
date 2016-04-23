@@ -4,6 +4,8 @@
 #include "vm/zvalue.h"
 
 class ZNil : public ZValue {
+public:
+    ZNil() : ZValue(NIL) {}
 };
 
 #endif

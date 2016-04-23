@@ -4,6 +4,8 @@
 #include "vm/zvalue.h"
 
 class ZTable : public ZValue {
+public:
+    ZTable() : ZValue(TABLE) {}
 };
 
 #endif

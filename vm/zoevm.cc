@@ -1,14 +1,20 @@
 #include "vm/zoevm.h"
 
 #include <cassert>
+#include <stdexcept>
 
+#include "compiler/bytecode.h"
 #include "vm/znil.h"
+#include "vm/zbool.h"
+#include "vm/znumber.h"
+#include "vm/zstring.h"
+#include "vm/zarray.h"
+#include "vm/ztable.h"
 
 ZoeVM::ZoeVM()
 {
     _stack.push_back(make_shared<ZNil>());
 }
-
 
 // {{{ STACK MANAGEMENT
 
@@ -61,6 +67,65 @@ shared_ptr<ZValue> ZoeVM::GetCopy(ssize_t pos) const
         throw out_of_range("Stack access out of range");
     }
     return _stack[i];
+}
+
+
+ZType ZoeVM::GetType(ssize_t pos) const
+{
+    return GetPtr(pos)->Type();
+}
+
+// }}}
+
+// {{{ CODE EXECUTION
+
+void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
+{
+    Bytecode b(bytecode);
+
+#pragma GCC diagnostic ignored "-Wswitch-enum"  // TODO
+#pragma GCC diagnostic push
+    uint64_t p = 0;
+    while(p < b.Code().size()) {
+        switch(b.GetCode<Opcode>(p)) {
+
+            case PNIL:
+                Push(make_shared<ZNil>());
+                ++p;
+                break;
+
+            case PBT:
+                Push(make_shared<ZBool>(true));
+                ++p;
+                break;
+
+            case PBF:
+                Push(make_shared<ZBool>(false));
+                ++p;
+                break;
+
+            case PN8:
+                Push(make_shared<ZNumber>(b.GetCode<uint8_t>(p+1)));
+                p += 2;
+                break;
+
+            case PNUM: 
+                Push(make_shared<ZNumber>(b.GetCode<double>(p+1)));
+                p += 9;
+                break;
+
+            case PSTR: {
+                    Bytecode::String s = b.Strings().at(b.GetCode<uint32_t>(p+1));
+                    Push(make_shared<ZString>(s.str, s.hash));
+                }
+                p += 9;
+                break;
+
+            default:
+                throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
+        }
+    }
+#pragma GCC diagnostic pop
 }
 
 // }}}

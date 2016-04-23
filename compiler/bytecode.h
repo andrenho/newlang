@@ -1,6 +1,7 @@
 #ifndef COMPILER_BYTECODE_H_
 #define COMPILER_BYTECODE_H_
 
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -15,7 +16,7 @@ public:
     Bytecode() {}
 
     // read/write code
-    Bytecode(vector<uint8_t> const& from_zb);
+    explicit Bytecode(vector<uint8_t> const& from_zb);
     vector<uint8_t> GenerateZB();
 
     // add to code
@@ -23,8 +24,21 @@ public:
     void Add(Opcode op, double value);
     void Add(Opcode op, uint8_t value);
     void Add(Opcode op, uint16_t value);
+    void Add(Opcode op, uint16_t value, uint8_t value2);
     void Add(Opcode op, uint32_t value);
     void Add(Opcode op, string const& s);
+
+    // read code
+    // {{{ T GetCode(uint64_t pos) const;
+    template<typename T> typename enable_if<sizeof(T) == 1, T>::type GetCode(uint64_t pos) const {
+        return static_cast<T>(Code().at(pos));
+    }
+    template<typename T> typename enable_if<sizeof(T) != 1, T>::type GetCode(uint64_t pos) const {
+        assert(pos + sizeof(T) <= Code().size());
+        T t = *reinterpret_cast<T const*>(&Code()[pos]);
+        return t;
+    }
+    // }}}
     
     // labels
     struct LabelRef {

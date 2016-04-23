@@ -8,7 +8,12 @@ using namespace std;
 #include "compiler/bytecode.h"
 #include "compiler/literals.h"
 #include "vm/zoevm.h"
+#include "vm/znil.h"
+#include "vm/zbool.h"
 #include "vm/znumber.h"
+#include "vm/zstring.h"
+#include "vm/zarray.h"
+#include "vm/ztable.h"
 
 // {{{ TEST INFRASTRUCTURE
 
@@ -49,11 +54,9 @@ template<typename T> string to_string(vector<T> const& v) {
     return s + "]";
 }
 
-/*
 static string to_string(string const& s) {
     return s;
 }
-*/
 
 
 //
@@ -67,7 +70,7 @@ template<typename T> static void _mequals(string const& code, function<T()> cons
     try {
         result = f();
         if(result != expected) {
-            cout << "not ok " << tests_run << " - " << m << " (found " << to_string(expected) << ", expected " << to_string(result) << ")" << endl;
+            cout << "not ok " << tests_run << " - " << m << " (found " << to_string(result) << ", expected " << to_string(expected) << ")" << endl;
         } else {
             cout << "ok " << tests_run << " - " << m << " == " << to_string(expected) << endl;
         }
@@ -75,6 +78,12 @@ template<typename T> static void _mequals(string const& code, function<T()> cons
         cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")";
     }
 }
+
+template<typename T> static void _mequals(string const& code, function<string()> const& f, const char* expected, string const& message="")
+{
+    _mequals<string>(code, f, string(expected), message);
+}
+
 #define mequals(code, expected, ...) _mequals<decltype(expected)>(string(#code), [&]() { return code; }, expected, ##__VA_ARGS__)
 
 
@@ -194,6 +203,18 @@ static void bytecode_generation()
 
     {
         Bytecode b;
+        b.Add(PTBL, 0x1234_u16, 0x56_u8);
+
+        vector<uint8_t> expected = {
+            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+            0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+            PTBL, 0x34, 0x12, 0x56,
+        };
+        mequals(b.GenerateZB(), expected);
+    }
+
+    {
+        Bytecode b;
         b.Add(BT, 0x12345678_u32);
 
         vector<uint8_t> expected = {
@@ -283,7 +304,7 @@ static void bytecode_labels()
 
 // }}}
 
-// {{{ VM BASICS
+// {{{ VIRTUAL MACHINE
 
 static void vm_stack()
 {
@@ -302,6 +323,53 @@ static void vm_stack()
     mthrows(Z.Pop());
 }
 
+static void vm_stack_pnil()
+{
+    Bytecode b;
+    b.Add(PNIL);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+
+    mequals(Z.StackSize(), 2);
+    mequals(Z.GetType(), NIL);
+}
+
+static void vm_stack_bool()
+{
+    Bytecode b;
+    b.Add(PBT);
+    b.Add(PBF);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+
+    mequals(Z.StackSize(), 3);
+    mequals(Z.GetType(), BOOL);
+    auto v = Z.Pop<ZBool>();
+    mequals(v->Value, false);
+    mequals(Z.GetPtr<ZBool>()->Value, true);
+}
+
+static void vm_stack_number()
+{
+    Bytecode b;
+    b.Add(PN8, 120_u8);
+    b.Add(PNUM, 3.1416);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+    auto v = Z.Pop<ZNumber>();
+    mequals(v->Value, 3.1416);
+    mequals(Z.GetPtr<ZNumber>()->Value, 120);
+}
+
+static void vm_stack_string()
+{
+    Bytecode b;
+    b.Add(PSTR, "hello");
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+    mequals(Z.GetPtr<ZString>()->Value(), "hello");
+}
+
 // }}}
 
 static void prepare_tests()
@@ -317,6 +385,10 @@ static void prepare_tests()
 
     // VM
     run_test(vm_stack);
+    run_test(vm_stack_pnil);
+    run_test(vm_stack_bool);
+    run_test(vm_stack_number);
+    run_test(vm_stack_string);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

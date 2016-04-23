@@ -5,7 +5,7 @@
 
 class ZNumber : public ZValue {
 public:
-    explicit ZNumber(double value) : Value(value) {}
+    explicit ZNumber(double value) : ZValue(NUMBER), Value(value) {}
 
     const double Value;
 };

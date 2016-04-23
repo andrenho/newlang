@@ -4,6 +4,8 @@
 #include "vm/zvalue.h"
 
 class ZArray : public ZValue {
+public:
+    ZArray() : ZValue(ARRAY) {}
 };
 
 #endif

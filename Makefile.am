@@ -11,7 +11,7 @@ libzoe_la_SOURCES = vm/zvalue.h vm/znil.h vm/zbool.h vm/znumber.h 	\
 
 bin_PROGRAMS = zoe
 zoe_SOURCES = exe/main.cc $(libzoe_la_SOURCES)
-zoe_CXXFLAGS = $(AM_CXXFLAGS)
+#zoe_CXXFLAGS = $(AM_CXXFLAGS)
 
 EXTRA_DIST = build/zoe.supp
 
@@ -82,7 +82,7 @@ if DEBUG
 	        -Wunused-function -Wunused-label -Wunused-parameter 		\
 	        -Wunused-value -Wunused-variable -Wvariadic-macros 		\
 	        -Wvolatile-register-var -Wwrite-strings -Winvalid-pch 		\
-	        -Wconversion -Weffc++ -Wold-style-cast -Wsign-promo 		\
+		-Wconversion -Weffc++ -Wold-style-cast				\
 	        -Winline -Wswitch-enum -Wmissing-declarations
   AM_CXXFLAGS += -g -ggdb3 -O0 -DDEBUG -fno-inline-functions 
   AM_LDFLAGS += -g

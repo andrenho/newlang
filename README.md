@@ -496,7 +496,7 @@ The opcodes are:
 | `pnum`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
 | `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
 | `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
-| `ptbl`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values       |
+| `ptbl`   | `u16` `u8` | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values, with these characteristics |
 | `pop`    |            | -1           | Pop one item from the stack                            |
 | `jmp`    | `u32`      |              | Unconditionally branch (jump) to address               |
 | `bt`     | `u32`      | -1           | Branch to address if value in stack is true            |
@@ -548,8 +548,9 @@ Development order
 
 1. ~~Create build and test environment~~
 1. ~~Create ZValue~~
-1. ~~Create VM~~
 1. ~~Create bytecode generator~~
+1. Create VM, stack, and basic execution
+1. Basic parsing
 1. Create basic arrays/tables
 1. Getting/setting array
 1. Getting/setting table key/values
@@ -622,6 +623,7 @@ Development order
 
 Release checklist
 =================
+* `make lint`
 * `make check`
 * `make check-valgrind`
 * `./configure --enable-coverage && make check && make coverage`
