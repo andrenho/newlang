@@ -130,6 +130,15 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 p += 3;
                 break;
 
+            case PTBL: {
+                    uint16_t n = b.GetCode<uint16_t>(p+1);
+                    TableConfig tc = b.GetCode<TableConfig>(p+3);
+                    auto tbl = make_shared<ZTable>(end(_stack)-(n*2), end(_stack), tc);
+                    Push(tbl);
+                }
+                p += 4;
+                break;
+
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
         }

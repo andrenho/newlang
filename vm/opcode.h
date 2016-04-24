@@ -34,6 +34,8 @@ const vector<string> opcode_names = {
 };
 #undef X
 
+enum TableConfig : uint8_t { PUB = 0b01, MUT = 0b10 };
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:syntax=cpp

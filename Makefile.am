@@ -2,10 +2,17 @@
 # programs to build
 #
 #lib_LTLIBRARIES = libzoe.la
-libzoe_la_SOURCES = vm/zvalue.h vm/znil.h vm/zbool.h vm/znumber.h 	\
-		    vm/zstring.h vm/zarray.h vm/ztable.h vm/zoevm.h	\
-		    vm/zoevm.cc vm/opcode.h vm/ztype.h vm/ztype.cc	\
-		    compiler/bytecode.h compiler/bytecode.cc 		\
+libzoe_la_SOURCES = vm/ztype.h vm/ztype.cc			\
+		    vm/zvalue.h 				\
+		    vm/znil.h 					\
+		    vm/zbool.h 					\
+		    vm/znumber.h 				\
+		    vm/zstring.h 				\
+		    vm/zarray.h 				\
+		    vm/ztable.h vm/ztable.cc 			\
+		    vm/zoevm.h vm/zoevm.cc 			\
+		    vm/opcode.h 				\
+		    compiler/bytecode.h compiler/bytecode.cc 	\
 		    compiler/literals.h
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 

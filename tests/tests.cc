@@ -395,6 +395,22 @@ static void vm_stack_array()
     mequals(items.at(1)->Type(), STRING);
 }
 
+static void vm_stack_table()
+{
+    Bytecode b;
+
+    // { hello: 'world', [42]: 'answer', answer: 42 }
+    b.Add(PSTR, "hello");
+    b.Add(PSTR, "world");
+    b.Add(PN8, 42_u8);
+    b.Add(PSTR, "answer");
+    b.Add(PSTR, "answer");
+    b.Add(PN8, 42_u8);
+    b.Add(PTBL, 3_u16, PUB|MUT);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+}
+
 // }}}
 
 static void prepare_tests()
@@ -416,6 +432,7 @@ static void prepare_tests()
     run_test(vm_stack_number);
     run_test(vm_stack_string);
     run_test(vm_stack_array);
+    run_test(vm_stack_table);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
