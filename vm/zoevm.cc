@@ -139,6 +139,11 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 p += 4;
                 break;
 
+            case POP:
+                Pop();
+                ++p;
+                break;
+
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
         }

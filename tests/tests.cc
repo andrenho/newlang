@@ -413,7 +413,18 @@ static void vm_stack_table()
     auto const& items = Z.GetPtr<ZTable>()->Items();
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")))->Value(), "world");
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)))->Value(), "answer");
-    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("answer")))->Value(), 42);
+    mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")))->Value, 42);
+    mthrows(items.at(make_shared<ZString>("nothing")));
+}
+
+static void vm_stack_pop()
+{
+    Bytecode b;
+    b.Add(POP);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+
+    mequals(Z.StackSize(), 0);
 }
 
 // }}}
@@ -438,6 +449,7 @@ static void prepare_tests()
     run_test(vm_stack_string);
     run_test(vm_stack_array);
     run_test(vm_stack_table);
+    run_test(vm_stack_pop);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

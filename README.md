@@ -549,9 +549,9 @@ Development order
 1. ~~Create build and test environment~~
 1. ~~Create ZValue~~
 1. ~~Create bytecode generator~~
-1. Create VM, stack, and basic execution
+1. ~~Create VM, stack, and basic execution~~
+1. ~~Create basic arrays/tables~~
 1. Basic parsing
-1. Create basic arrays/tables
 1. Getting/setting array
 1. Getting/setting table key/values
 1. Expression inside strings
