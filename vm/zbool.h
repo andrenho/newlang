@@ -5,7 +5,9 @@
 
 class ZBool : public ZValue {
 public:
-    explicit ZBool(bool value) : ZValue(BOOL), Value(value) {}
+    explicit ZBool(bool value) : ZValue(StaticType()), Value(value) {}
+
+    static ZType StaticType() { return BOOL; }
 
     const bool Value;
 };

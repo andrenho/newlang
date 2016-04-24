@@ -1,6 +1,7 @@
 #include "vm/zoevm.h"
 
 #include <cassert>
+#include <list>
 #include <stdexcept>
 
 #include "compiler/bytecode.h"
@@ -118,7 +119,15 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     Bytecode::String s = b.Strings().at(b.GetCode<uint32_t>(p+1));
                     Push(make_shared<ZString>(s.str, s.hash));
                 }
-                p += 9;
+                p += 5;
+                break;
+
+            case PARY: {
+                    uint16_t n = b.GetCode<uint16_t>(p+1);
+                    auto ary = make_shared<ZArray>(end(_stack)-n, end(_stack));
+                    Push(ary);
+                }
+                p += 3;
                 break;
 
             default:

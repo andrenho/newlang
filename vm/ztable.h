@@ -5,7 +5,9 @@
 
 class ZTable : public ZValue {
 public:
-    ZTable() : ZValue(TABLE) {}
+    ZTable() : ZValue(StaticType()) {}
+
+    static ZType StaticType() { return TABLE; }
 };
 
 #endif

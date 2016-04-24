@@ -5,7 +5,15 @@
 
 class ZArray : public ZValue {
 public:
-    ZArray() : ZValue(ARRAY) {}
+    template<typename It>
+    ZArray(It _begin, It _end) : ZValue(StaticType()), _items(_begin, _end) {}
+
+    static ZType StaticType() { return ARRAY; }
+
+    vector<shared_ptr<ZValue>> const& Items() const { return _items; }
+
+private:
+    vector<shared_ptr<ZValue>> _items;
 };
 
 #endif

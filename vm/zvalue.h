@@ -1,9 +1,7 @@
 #ifndef VM_ZVALUE_H_
 #define VM_ZVALUE_H_
 
-enum ZType {
-    NIL, BOOL, NUMBER, STRING, ARRAY, TABLE
-};
+#include "vm/ztype.h"
 
 class ZValue {
 public:
@@ -12,7 +10,7 @@ public:
     ZType Type() const { return _type; }
 
 protected:
-    ZValue(ZType type) : _type(type) {}
+    explicit ZValue(ZType type) : _type(type) {}
     const ZType _type;
 };
 

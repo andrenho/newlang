@@ -5,7 +5,9 @@
 
 class ZNil : public ZValue {
 public:
-    ZNil() : ZValue(NIL) {}
+    ZNil() : ZValue(StaticType()) {}
+
+    static ZType StaticType() { return NIL; }
 };
 
 #endif

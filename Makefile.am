@@ -4,7 +4,7 @@
 #lib_LTLIBRARIES = libzoe.la
 libzoe_la_SOURCES = vm/zvalue.h vm/znil.h vm/zbool.h vm/znumber.h 	\
 		    vm/zstring.h vm/zarray.h vm/ztable.h vm/zoevm.h	\
-		    vm/zoevm.cc vm/opcode.h				\
+		    vm/zoevm.cc vm/opcode.h vm/ztype.h vm/ztype.cc	\
 		    compiler/bytecode.h compiler/bytecode.cc 		\
 		    compiler/literals.h
 #libzoe_la_LDFLAGS = -version-info 0:0:0
@@ -45,6 +45,13 @@ endif
 
 @VALGRIND_CHECK_RULES@
 VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
+
+check-leaks: check_zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./check_zoe
+
+gen-suppressions: check_zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./check_zoe
+	sed -i -e '/^==.*$$/d' build/zoe.supp
 
 .PHONY: cloc cpplint coverage
 

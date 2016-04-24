@@ -323,6 +323,15 @@ static void vm_stack()
     mthrows(Z.Pop());
 }
 
+static void vm_stack_type()
+{
+    ZoeVM Z;
+
+    mequals(Z.StackSize(), 1);
+    mequals(Z.GetType(), NIL);
+    mthrows(Z.GetPtr<ZNumber>());
+}
+
 static void vm_stack_pnil()
 {
     Bytecode b;
@@ -370,6 +379,22 @@ static void vm_stack_string()
     mequals(Z.GetPtr<ZString>()->Value(), "hello");
 }
 
+static void vm_stack_array()
+{
+    Bytecode b;
+    b.Add(PNUM, 3.1416);
+    b.Add(PSTR, "hello");
+    b.Add(PARY, 2_u16);
+
+    ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+
+    auto const& items = Z.GetPtr<ZArray>()->Items();
+    mequals(items.size(), 2);
+    mequals(items.at(0)->Type(), NUMBER);
+    mequals(dynamic_pointer_cast<ZNumber>(items.at(0))->Value, 3.1416);
+    mequals(items.at(1)->Type(), STRING);
+}
+
 // }}}
 
 static void prepare_tests()
@@ -385,10 +410,12 @@ static void prepare_tests()
 
     // VM
     run_test(vm_stack);
+    run_test(vm_stack_type);
     run_test(vm_stack_pnil);
     run_test(vm_stack_bool);
     run_test(vm_stack_number);
     run_test(vm_stack_string);
+    run_test(vm_stack_array);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

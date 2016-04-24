@@ -18,23 +18,36 @@ public:
     ssize_t            StackAbs(ssize_t pos) const;
     ssize_t            StackSize() const;
     ZValue const&      Push(shared_ptr<ZValue> value);
-    shared_ptr<ZValue> Pop();
     ZType              GetType(ssize_t pos=-1) const;
+    shared_ptr<ZValue> Pop();
     ZValue const*      GetPtr(ssize_t pos=-1) const;
     shared_ptr<ZValue> GetCopy(ssize_t pos=-1) const;
-    // {{{ stack templates
+    // {{{ stack templates: Pop<T>(), GetPtr<T>(), GetCopy<T>()
     template<typename T> shared_ptr<T> Pop() {
-        return dynamic_pointer_cast<T>(Pop());
+        auto ptr = dynamic_pointer_cast<T>(Pop());
+        ValidateType<T>(ptr->Type());
+        return ptr;
     }
 
     template<typename T> T const* GetPtr(ssize_t pos=-1) const {
         auto ptr = GetCopy(pos);
+        ValidateType<T>(ptr->Type());
         return dynamic_cast<T const*>(ptr.get());
     }
 
     template<typename T> shared_ptr<T> GetCopy(ssize_t pos=-1) const {
-        return dynamic_pointer_cast<T>(GetCopy(pos));
+        auto ptr = dynamic_pointer_cast<T>(GetCopy(pos));
+        ValidateType<T>(ptr->Type());
+        return ptr;
     }
+
+private:
+    template<typename T> void ValidateType(ZType type) const {
+        if(type != T::StaticType()) {
+            throw "Invalid type: expected " + Typename(T::StaticType()) + ", found " + Typename(type);
+        }
+    }
+public:
     //}}}
     
     // 

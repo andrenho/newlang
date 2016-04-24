@@ -9,7 +9,9 @@ using namespace std;
 class ZString : public ZValue {
 public:
     explicit ZString(string const& value) : ZString(value, 0) {}
-    ZString(string const& value, size_t hsh) : ZValue(STRING), _value(value), _hash(hsh)  {}
+    ZString(string const& value, size_t hsh) : ZValue(StaticType()), _value(value), _hash(hsh)  {}
+
+    static ZType StaticType() { return STRING; }
 
     string const& Value() const { return _value; }
 
