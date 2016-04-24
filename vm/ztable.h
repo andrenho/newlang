@@ -6,23 +6,43 @@ using namespace std;
 
 #include "vm/zvalue.h"
 
+struct ZTableHash {
+    
+    size_t operator()(shared_ptr<ZValue> const& k) const {
+        return k->Hash();
+    }
+
+    bool operator()(shared_ptr<ZValue> const& a, shared_ptr<ZValue> const& b) const {
+        return a->OpEq(b);
+    }
+
+};
+
+
+typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTableHash> ZTableHashMap;
+
+#include <iostream>
 class ZTable : public ZValue {
 public:
     template<typename It>
     ZTable(It _begin, It _end, TableConfig tc) 
             : ZValue(StaticType()), _config(tc) {
-        // TODO
+        for(auto& t=_begin; t < _end; ++t) {
+            auto key = *t++;
+            _items[key] = *t;
+        }
     }
 
+    virtual bool OpEq(shared_ptr<ZValue> other) const {
+        (void) other;
+        return false;  // TODO
+    }
+    
     static ZType StaticType() { return TABLE; }
+    ZTableHashMap const& Items() const { return _items; }
 
 private:
-    struct ZTableHash {
-        size_t operator()(shared_ptr<ZValue> const& k) const;
-        bool   operator()(shared_ptr<ZValue> const& a, shared_ptr<ZValue> const& b) const;
-    };
-
-    unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTableHash> _items = {};
+    ZTableHashMap _items = {};
     TableConfig _config;
 };
 

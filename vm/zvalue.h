@@ -8,6 +8,12 @@ public:
     virtual ~ZValue() {}
 
     ZType Type() const { return _type; }
+    
+    virtual uint64_t Hash() {
+        throw invalid_argument("Values of type " + Typename(_type) + " can't be used as table key.");
+    }
+
+    virtual bool OpEq(shared_ptr<ZValue> other) const = 0;
 
 protected:
     explicit ZValue(ZType type) : _type(type) {}

@@ -70,12 +70,12 @@ template<typename T> static void _mequals(string const& code, function<T()> cons
     try {
         result = f();
         if(result != expected) {
-            cout << "not ok " << tests_run << " - " << m << " (found " << to_string(result) << ", expected " << to_string(expected) << ")" << endl;
+            cout << "not ok " << tests_run << " - " << m << " (found " << to_string(result) << ", expected " << to_string(expected) << ")\n";
         } else {
-            cout << "ok " << tests_run << " - " << m << " == " << to_string(expected) << endl;
+            cout << "ok " << tests_run << " - " << m << " == " << to_string(expected) << "\n";
         }
     } catch(exception const& e) {
-        cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")";
+        cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")\n";
     }
 }
 
@@ -93,9 +93,9 @@ static void _mthrows(string const& code, function<void()> const& f, string const
     string m = string("[ ") + current_test + " ] " + ((message != "") ? message : code);
     try {
         f();
-        cout << "not ok " << tests_run << " - " << m << " (expected exception)" << endl;
+        cout << "not ok " << tests_run << " - " << m << " (expected exception)\n";
     } catch(...) {
-        cout << "ok " << tests_run << " - " << m << " (exception thrown)" << endl;
+        cout << "ok " << tests_run << " - " << m << " (exception thrown)\n";
     }
 }
 #define mthrows(code, ...) _mthrows(string(#code), [&]() { code; }, ##__VA_ARGS__)
@@ -107,9 +107,9 @@ static void _mnothrow(string const& code, function<void()> const& f, string cons
     string m = string("[ ") + current_test + " ] " + ((message != "") ? message : code);
     try {
         f();
-        cout << "ok " << tests_run << " - " << m << " (no exception thrown)" << endl;
+        cout << "ok " << tests_run << " - " << m << " (no exception thrown)\n";
     } catch(exception const& e) {
-        cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")";
+        cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")\n";
     }
 }
 #define mnothrow(code, ...) _mnothrow(string(#code), [&]() { code; }, ##__VA_ARGS__)
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
         test.f();
     }
         
-    cout << "1.." << tests_run << endl;
+    cout << "1.." << tests_run << "\n";
 }
 
 
@@ -409,6 +409,11 @@ static void vm_stack_table()
     b.Add(PTBL, 3_u16, PUB|MUT);
 
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
+
+    auto const& items = Z.GetPtr<ZTable>()->Items();
+    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")))->Value(), "world");
+    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)))->Value(), "answer");
+    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("answer")))->Value(), 42);
 }
 
 // }}}
