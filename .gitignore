@@ -60,7 +60,6 @@ configure
 stamp-h1
 build-aux
 test-suite-*
-build/zoe.supp
 libtool
 m4/libtool.m4
 m4/lt*.m4
