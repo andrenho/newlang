@@ -19,6 +19,9 @@ public:
     explicit Bytecode(vector<uint8_t> const& from_zb);
     vector<uint8_t> GenerateZB();
 
+    // parse code
+    explicit Bytecode(string const& code);
+
     // add to code
     void Add(Opcode op);
     void Add(Opcode op, double value);

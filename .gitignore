@@ -47,8 +47,6 @@ libzoe.so.*
 runtests
 gmon.out
 .gdbinit
-
-# autotools files
 Makefile
 Makefile.in
 aclocal.m4
@@ -67,6 +65,7 @@ libtool
 m4/libtool.m4
 m4/lt*.m4
 config.cache
+compiler/parser.output
 *~
 
 # vim files

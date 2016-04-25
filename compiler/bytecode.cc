@@ -60,6 +60,16 @@ vector<uint8_t> Bytecode::GenerateZB()
 
 // }}}
 
+// {{{ PARSE CODE
+
+Bytecode::Bytecode(string const& code)
+{
+    extern int parse(Bytecode&, string const&);  // defined in compiler/parser.yy
+    parse(*this, code);
+}
+
+// }}}
+
 // {{{ ADD CODE
 
 void Bytecode::Add(Opcode op)

@@ -302,6 +302,19 @@ static void bytecode_labels()
     mequals(bc.Code()[0x21], 0x00, "Label set (byte #1)");
 }
 
+
+static void bytecode_parse()
+{
+    Bytecode b("3");
+
+    vector<uint8_t> expected = {
+        0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
+        0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+        PN8,  0x03,
+    };
+    mequals(b.GenerateZB(), expected);
+}
+
 // }}}
 
 // {{{ VIRTUAL MACHINE
@@ -439,6 +452,7 @@ static void prepare_tests()
     run_test(bytecode_strings);
     run_test(bytecode_readback);
     run_test(bytecode_labels);
+    run_test(bytecode_parse);
 
     // VM
     run_test(vm_stack);
