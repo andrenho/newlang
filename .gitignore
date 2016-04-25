@@ -39,7 +39,7 @@ check_zoe.log
 check_zoe.trs
 .dirstamp
 test-suite.log
-compiler/lexer.h
+compiler/lexer.hh
 compiler/lexer.cc
 compiler/parser.hh
 compiler/parser.cc

@@ -1,7 +1,7 @@
 #ifndef VM_ZARRAY_H_
 #define VM_ZARRAY_H_
 
-#include "vm/zvalue.h"
+#include "vm/zvalue.hh"
 
 class ZArray : public ZValue {
 public:

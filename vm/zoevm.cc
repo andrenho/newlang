@@ -1,16 +1,16 @@
-#include "vm/zoevm.h"
+#include "vm/zoevm.hh"
 
 #include <cassert>
 #include <list>
 #include <stdexcept>
 
-#include "compiler/bytecode.h"
-#include "vm/znil.h"
-#include "vm/zbool.h"
-#include "vm/znumber.h"
-#include "vm/zstring.h"
-#include "vm/zarray.h"
-#include "vm/ztable.h"
+#include "compiler/bytecode.hh"
+#include "vm/znil.hh"
+#include "vm/zbool.hh"
+#include "vm/znumber.hh"
+#include "vm/zstring.hh"
+#include "vm/zarray.hh"
+#include "vm/ztable.hh"
 
 ZoeVM::ZoeVM()
 {

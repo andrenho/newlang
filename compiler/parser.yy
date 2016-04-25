@@ -7,7 +7,7 @@
 #pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 
 #include "compiler/parser.hh"
-#include "compiler/lexer.h"
+#include "compiler/lexer.hh"
 
 void yyerror(void* scanner, const char *s);
 

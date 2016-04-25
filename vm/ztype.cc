@@ -1,4 +1,4 @@
-#include "vm/ztype.h"
+#include "vm/ztype.hh"
 
 string Typename(ZType type) {
     switch(type) {

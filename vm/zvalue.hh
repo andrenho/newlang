@@ -1,7 +1,7 @@
 #ifndef VM_ZVALUE_H_
 #define VM_ZVALUE_H_
 
-#include "vm/ztype.h"
+#include "vm/ztype.hh"
 
 class ZValue {
 public:

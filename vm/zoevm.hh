@@ -6,7 +6,7 @@
 #include <vector>
 using namespace std;
 
-#include "vm/zvalue.h"
+#include "vm/zvalue.hh"
 
 class ZoeVM {
 public:

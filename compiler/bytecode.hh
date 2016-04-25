@@ -7,7 +7,7 @@
 #include <vector>
 using namespace std;
 
-#include "vm/opcode.h"
+#include "vm/opcode.hh"
 
 typedef uint64_t Label;
 

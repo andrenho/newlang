@@ -2,19 +2,19 @@
 # programs to build
 #
 #lib_LTLIBRARIES = libzoe.la
-libzoe_la_SOURCES = vm/ztype.h vm/ztype.cc			\
-		    vm/zvalue.h 				\
-		    vm/znil.h 					\
-		    vm/zbool.h 					\
-		    vm/znumber.h 				\
-		    vm/zstring.h 				\
-		    vm/zarray.h 				\
-		    vm/ztable.h vm/ztable.cc 			\
-		    vm/zoevm.h vm/zoevm.cc 			\
-		    vm/opcode.h 				\
-		    compiler/bytecode.h compiler/bytecode.cc 	\
-		    compiler/literals.h				\
-		    compiler/lexer.ll compiler/lexer.h		\
+libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
+		    vm/zvalue.hh 				\
+		    vm/znil.hh 					\
+		    vm/zbool.hh 				\
+		    vm/znumber.hh 				\
+		    vm/zstring.hh 				\
+		    vm/zarray.hh 				\
+		    vm/ztable.hh vm/ztable.cc 			\
+		    vm/zoevm.hh vm/zoevm.cc 			\
+		    vm/opcode.hh 				\
+		    compiler/bytecode.hh compiler/bytecode.cc 	\
+		    compiler/literals.hh			\
+		    compiler/lexer.ll compiler/lexer.hh		\
 		    compiler/parser.yy
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
@@ -38,7 +38,7 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver
 #
 if CLOC
 cloc: clean
-	cloc --exclude-dir=old configure.ac Makefile.am $(zoe_SOURCES) tests/tests.cc
+	cloc --exclude-dir=old --skip-archive=compiler/lexer.hh configure.ac Makefile.am $(zoe_SOURCES) tests/tests.cc
 endif
 
 if CPPLINT
@@ -78,11 +78,11 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = 
 AM_LDFLAGS = -lm
 
-AM_LFLAGS = --header-file=../compiler/lexer.h    # this hack is necessary because, by default, yylwrap build the header file in the temporary aux directory
+AM_LFLAGS = --header-file=../compiler/lexer.hh    # this hack is necessary because, by default, yylwrap build the header file in the temporary aux directory
 AM_YFLAGS = -d
-BUILT_SOURCES = compiler/lexer.h compiler/parser.hh
+BUILT_SOURCES = compiler/lexer.hh compiler/parser.hh
 
-compiler/lexer.h: compiler/lexer.ll
+compiler/lexer.hh: compiler/lexer.ll
 
 # gcc specific warnings
 if GCC

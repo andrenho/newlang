@@ -4,7 +4,7 @@
 #include <unordered_map>
 using namespace std;
 
-#include "vm/zvalue.h"
+#include "vm/zvalue.hh"
 
 struct ZTableHash {
     

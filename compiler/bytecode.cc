@@ -1,4 +1,4 @@
-#include "compiler/bytecode.h"
+#include "compiler/bytecode.hh"
 
 #include <cassert>
 #include <cstring>

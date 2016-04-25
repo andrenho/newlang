@@ -6,7 +6,7 @@
 #include <functional>
 using namespace std;
 
-#include "vm/zvalue.h"
+#include "vm/zvalue.hh"
 
 class ZNumber : public ZValue {
 public:

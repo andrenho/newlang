@@ -5,7 +5,7 @@
 #include <string>
 using namespace std;
 
-#include "vm/zvalue.h"
+#include "vm/zvalue.hh"
 
 class ZString : public ZValue {
 public:
