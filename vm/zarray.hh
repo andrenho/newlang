@@ -15,11 +15,13 @@ public:
         return false;  // TODO
     }
     
-    vector<shared_ptr<ZValue>> const& Items() const { return _items; }
+    vector<shared_ptr<ZValue>> const& Value() const { return _items; }
 
 private:
     vector<shared_ptr<ZValue>> _items;
 };
+
+template<> struct cpp_type<vector<shared_ptr<ZValue>>> { typedef ZArray type; };
 
 #endif
 

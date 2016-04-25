@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "vm/zvalue.hh"
+#include "vm/opcode.hh"  // TODO - for TableConfig
 
 struct ZTableHash {
     
@@ -21,7 +22,6 @@ struct ZTableHash {
 
 typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTableHash> ZTableHashMap;
 
-#include <iostream>
 class ZTable : public ZValue {
 public:
     template<typename It>

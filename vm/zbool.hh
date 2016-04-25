@@ -5,22 +5,26 @@
 
 class ZBool : public ZValue {
 public:
-    explicit ZBool(bool value) : ZValue(StaticType()), Value(value) {}
+    explicit ZBool(bool value) : ZValue(StaticType()), _value(value) {}
 
-    uint64_t Hash() { return Value ? 1 : 2; }
+    bool     Value() const { return _value; }
+    uint64_t Hash() { return _value ? 1 : 2; }
 
     virtual bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
-            return Value == dynamic_pointer_cast<ZBool>(other)->Value;
+            return _value == dynamic_pointer_cast<ZBool>(other)->Value();
         }
     }
     
     static ZType StaticType() { return BOOL; }
 
-    const bool Value;
+private:
+    const bool _value;
 };
+
+template<> struct cpp_type<bool> { typedef ZBool type; };
 
 #endif
 

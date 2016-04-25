@@ -41,6 +41,11 @@ public:
         return ptr;
     }
 
+    template<typename T> T CopyCppValue(ssize_t pos=-1) const {
+        auto ptr = GetCopy<typename cpp_type<T>::type>(pos);
+        return ptr->Value();
+    }
+
 private:
     template<typename T> void ValidateType(ZType type) const {
         if(type != T::StaticType()) {

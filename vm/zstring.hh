@@ -12,6 +12,7 @@ public:
     explicit ZString(string const& value) : ZString(value, 0) {}
     ZString(string const& value, size_t hsh) : ZValue(StaticType()), _value(value), _hash(hsh)  {}
 
+    string const& Value() const { return _value; }
     uint64_t Hash() {
         if(_hash == 0) {
             _hash = hash<string>()(_value);
@@ -29,12 +30,12 @@ public:
 
     static ZType StaticType() { return STRING; }
 
-    string const& Value() const { return _value; }
-
 private:
     string _value;
     size_t _hash;
 };
+
+template<> struct cpp_type<string> { typedef ZString type; };
 
 #endif
 

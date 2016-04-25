@@ -10,22 +10,26 @@ using namespace std;
 
 class ZNumber : public ZValue {
 public:
-    explicit ZNumber(double value) : ZValue(StaticType()), Value(value) {}
+    explicit ZNumber(double value) : ZValue(StaticType()), _value(value) {}
 
-    uint64_t Hash() { return hash<double>()(Value); }
+    double   Value() const { return _value; }
+    uint64_t Hash() { return hash<double>()(_value); }
 
     virtual bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
-            return abs(Value - dynamic_pointer_cast<ZNumber>(other)->Value) < numeric_limits<double>::epsilon();
+            return abs(_value - dynamic_pointer_cast<ZNumber>(other)->Value()) < numeric_limits<double>::epsilon();
         }
     }
     
     static ZType StaticType() { return NUMBER; }
 
-    const double Value;
+private:
+    const double _value;
 };
+
+template<> struct cpp_type<double> { typedef ZNumber type; };
 
 #endif
 

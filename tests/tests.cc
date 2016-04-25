@@ -78,12 +78,10 @@ template<typename T> static void _mequals(string const& code, function<T()> cons
         cout << "not ok " << tests_run << " - " << m << " (exception thrown: " << e.what() << ")\n";
     }
 }
-
 template<typename T> static void _mequals(string const& code, function<string()> const& f, const char* expected, string const& message="")
 {
     _mequals<string>(code, f, string(expected), message);
 }
-
 #define mequals(code, expected, ...) _mequals<decltype(expected)>(string(#code), [&]() { return code; }, expected, ##__VA_ARGS__)
 
 
@@ -113,6 +111,30 @@ static void _mnothrow(string const& code, function<void()> const& f, string cons
     }
 }
 #define mnothrow(code, ...) _mnothrow(string(#code), [&]() { code; }, ##__VA_ARGS__)
+
+// 
+// ZoeVM execution assertions
+//
+
+template<typename S, typename T> static void zequals(S const& code, T const& expected)
+{
+    ZoeVM Z;
+    Bytecode b(code);
+    Z.ExecuteBytecode(b.GenerateZB());
+    _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
+}
+template<typename S> static void zequals(S const& code, const char* expected)
+{
+    zequals(code, string(expected));
+}
+template<typename S> static void zequals(S const& code, nullptr_t)
+{
+    ZoeVM Z;
+    Bytecode b(code);
+    Z.ExecuteBytecode(b.GenerateZB());
+    _mequals<ZType>(string(code), [&]() { return Z.GetType(-1); }, NIL);
+}
+
 
 //
 // MAIN PROCEDURE
@@ -326,8 +348,8 @@ static void vm_stack()
     mequals(Z.StackSize(), 1);
     Z.Push(make_shared<ZNumber>(10));
     mequals(Z.StackSize(), 2);
-    mequals(Z.GetPtr<ZNumber>()->Value, 10);
-    mequals(Z.GetCopy<ZNumber>()->Value, 10);
+    mequals(Z.GetPtr<ZNumber>()->Value(), 10);
+    mequals(Z.GetCopy<ZNumber>()->Value(), 10);
 
     Z.Pop();
     mequals(Z.StackSize(), 1);
@@ -367,8 +389,8 @@ static void vm_stack_bool()
     mequals(Z.StackSize(), 3);
     mequals(Z.GetType(), BOOL);
     auto v = Z.Pop<ZBool>();
-    mequals(v->Value, false);
-    mequals(Z.GetPtr<ZBool>()->Value, true);
+    mequals(v->Value(), false);
+    mequals(Z.GetPtr<ZBool>()->Value(), true);
 }
 
 static void vm_stack_number()
@@ -379,8 +401,8 @@ static void vm_stack_number()
 
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
     auto v = Z.Pop<ZNumber>();
-    mequals(v->Value, 3.1416);
-    mequals(Z.GetPtr<ZNumber>()->Value, 120);
+    mequals(v->Value(), 3.1416);
+    mequals(Z.GetPtr<ZNumber>()->Value(), 120);
 }
 
 static void vm_stack_string()
@@ -404,7 +426,7 @@ static void vm_stack_array()
     auto const& items = Z.GetPtr<ZArray>()->Items();
     mequals(items.size(), 2);
     mequals(items.at(0)->Type(), NUMBER);
-    mequals(dynamic_pointer_cast<ZNumber>(items.at(0))->Value, 3.1416);
+    mequals(dynamic_pointer_cast<ZNumber>(items.at(0))->Value(), 3.1416);
     mequals(items.at(1)->Type(), STRING);
 }
 
@@ -426,7 +448,7 @@ static void vm_stack_table()
     auto const& items = Z.GetPtr<ZTable>()->Items();
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")))->Value(), "world");
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)))->Value(), "answer");
-    mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")))->Value, 42);
+    mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")))->Value(), 42);
     mthrows(items.at(make_shared<ZString>("nothing")));
 }
 
@@ -438,6 +460,18 @@ static void vm_stack_pop()
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
 
     mequals(Z.StackSize(), 0);
+}
+
+// }}}
+
+// {{{ ZOE BASIC EXECUTION
+
+static void zoe_literals()
+{
+    ZoeVM Z;
+    Bytecode b("3");
+    Z.ExecuteBytecode(b.GenerateZB());
+    zequals("3", 3.0);
 }
 
 // }}}
@@ -464,6 +498,9 @@ static void prepare_tests()
     run_test(vm_stack_array);
     run_test(vm_stack_table);
     run_test(vm_stack_pop);
+
+    // execution
+    run_test(zoe_literals);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

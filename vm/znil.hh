@@ -7,7 +7,8 @@ class ZNil : public ZValue {
 public:
     ZNil() : ZValue(StaticType()) {}
 
-    uint64_t Hash() { return 0; }
+    nullptr_t Value() const { return nullptr; }
+    uint64_t  Hash() { return 0; }
 
     virtual bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
@@ -19,6 +20,8 @@ public:
     
     static ZType StaticType() { return NIL; }
 };
+
+template<> struct cpp_type<nullptr_t> { typedef ZNil type; };
 
 #endif
 
