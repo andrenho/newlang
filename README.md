@@ -628,6 +628,8 @@ Release checklist
 * `make check-valgrind`
 * `./configure --enable-coverage && make check && make coverage`
 * `make distcheck`
+* Compile with clang++
+* Compile in mingw
 
 <!--
 vim: wrap lbr nolist expandtab

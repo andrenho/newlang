@@ -39,11 +39,10 @@ check_zoe.log
 check_zoe.trs
 .dirstamp
 test-suite.log
-lib/lexer.h
-lib/lexer.cc
-lib/parser.h
-lib/parser.cc
-lib/parser.output
+compiler/lexer.h
+compiler/lexer.cc
+compiler/parser.hh
+compiler/parser.cc
 libzoe.so.*
 runtests
 gmon.out
@@ -64,6 +63,10 @@ stamp-h1
 build-aux
 test-suite-*
 build/zoe.supp
+libtool
+m4/libtool.m4
+m4/lt*.m4
+config.cache
 *~
 
 # vim files

@@ -13,7 +13,9 @@ libzoe_la_SOURCES = vm/ztype.h vm/ztype.cc			\
 		    vm/zoevm.h vm/zoevm.cc 			\
 		    vm/opcode.h 				\
 		    compiler/bytecode.h compiler/bytecode.cc 	\
-		    compiler/literals.h
+		    compiler/literals.h				\
+		    compiler/lexer.ll compiler/lexer.h		\
+		    compiler/parser.yy
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = zoe
@@ -66,14 +68,21 @@ gen-suppressions: check_zoe
 # clean
 #
 CLEANFILES = *.log *.gcov **/*.gcov **/*.gcda **/*.gcno
+DISTCLEANFILES = zoe-*.tar.*
 
 # 
-# variables
+# flags
 #
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CXXFLAGS = 
 AM_LDFLAGS = -lm
+
+AM_LFLAGS = --header-file=../compiler/lexer.h    # this hack is necessary because, by default, yylwrap build the header file in the temporary aux directory
+AM_YFLAGS = -d
+BUILT_SOURCES = compiler/lexer.h compiler/parser.hh
+
+compiler/lexer.h: compiler/lexer.ll
 
 # gcc specific warnings
 if GCC

@@ -21,12 +21,25 @@ AC_REQUIRE_AUX_FILE([tap-driver.sh])
 : ${CXXFLAGS=""}             	    # remove default silly CXXFLAGS
 AC_PROG_CXX([g++ clang++])
 AC_LANG_CPLUSPLUS
+AC_LANG(C++)
 AC_PROG_LEX
 AC_PROG_YACC
 AC_PROG_AWK
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
 AX_VALGRIND_DFLT([drd], [off])
 AX_VALGRIND_DFLT([helgrind], [off])
 AX_VALGRIND_CHECK
+
+if test "x$LEX" != xflex; then
+  missing=`./build-aux/missing flex`
+  AC_MSG_ERROR([flex not found.])
+fi
+
+if test "x$YACC" != "xbison -y"; then
+  missing=`./build-aux/missing bison`
+  AC_MSG_ERROR([bison not found.])
+fi
 
 # gold
 AC_CHECK_PROGS([gold], [ld.gold])      # look for gold linker (instead of ld)
