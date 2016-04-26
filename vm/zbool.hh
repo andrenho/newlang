@@ -18,7 +18,7 @@ public:
         }
     }
 
-    string Inspect() const { return "nil"; }
+    string Inspect() const { return _value ? "true" : "false"; }
     
     static ZType StaticType() { return BOOL; }
 
