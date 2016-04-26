@@ -516,6 +516,12 @@ static void zoe_array_init()
 
 static void zoe_table_init()
 {
+    zinspect("%{}", "%{}");
+    zinspect("%{hello: 'world'}", "%{hello: 'world'}");
+    zinspect("%{hello: 'world',}", "%{hello: 'world'}");
+    zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
+    zinspect("%{hello: []}", "%{hello: []}");
+    zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
 }
 
 // }}}
