@@ -1,7 +1,6 @@
 #ifndef VM_ZSTRING_H_
 #define VM_ZSTRING_H_
 
-#include <functional>
 #include <string>
 using namespace std;
 
@@ -13,28 +12,16 @@ public:
     ZString(string const& value, size_t hsh) : ZValue(StaticType()), _value(value), _hash(hsh)  {}
 
     string const& Value() const { return _value; }
-    uint64_t Hash() {
-        if(_hash == 0) {
-            _hash = hash<string>()(_value);
-        }
-        return _hash;
-    }
+    uint64_t Hash() const;
 
-    bool OpEq(shared_ptr<ZValue> other) const {
-        if(Type() != other->Type()) {
-            return false;
-        } else {
-            return Value() == dynamic_pointer_cast<ZString>(other)->Value();
-        }
-    }
-
-    string Inspect() const { return "nil"; }
+    bool OpEq(shared_ptr<ZValue> other) const;
+    string Inspect() const;
 
     static ZType StaticType() { return STRING; }
 
 private:
     string _value;
-    size_t _hash;
+    mutable size_t _hash;
 };
 
 template<> struct cpp_type<string> { typedef ZString type; };

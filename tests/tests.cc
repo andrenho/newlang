@@ -142,6 +142,7 @@ static void zinspect(const char* code, const char* expected)
     ZoeVM Z;
     Bytecode b(code);
     Z.ExecuteBytecode(b.GenerateZB());
+    _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
     _mequals<string>(string(code), [&]() { return Z.GetPtr(-1)->Inspect(); }, expected);
 }
 
@@ -497,10 +498,20 @@ static void zoe_literals()
 static void zoe_inspection()
 {
     zinspect("3", "3");
+    zinspect("3.14", "3.14");
+    zinspect("true", "true");
+    zinspect("'hello'", "'hello'");
 }
 
 static void zoe_array_init()
 {
+    zinspect("[]", "[]");
+    zinspect("[2,3]", "[2, 3]");
+    zinspect("[2,3,]", "[2, 3]");
+    zinspect("[[1]]", "[[1]]");
+    zinspect("[2, 3, []]", "[2, 3, []]");
+    zinspect("[2, [3, 4], 5]", "[2, [3, 4], 5]");
+    zinspect("[2, 3, ['abc', true, [nil]]]", "[2, 3, ['abc', true, [nil]]]");
 }
 
 static void zoe_table_init()

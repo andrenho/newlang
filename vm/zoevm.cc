@@ -51,6 +51,15 @@ shared_ptr<ZValue> ZoeVM::Pop()
 }
 
 
+void ZoeVM::Pop(uint16_t n)
+{
+    if(_stack.size() < n) {
+        throw underflow_error("Stack underflow");
+    }
+    _stack.resize(_stack.size() - n);
+}
+
+
 ZValue const* ZoeVM::GetPtr(ssize_t pos) const
 {
     ssize_t i = StackAbs(pos);
@@ -125,6 +134,7 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
             case PARY: {
                     uint16_t n = b.GetCode<uint16_t>(p+1);
                     auto ary = make_shared<ZArray>(end(_stack)-n, end(_stack));
+                    Pop(n);
                     Push(ary);
                 }
                 p += 3;
@@ -134,6 +144,7 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     uint16_t n = b.GetCode<uint16_t>(p+1);
                     TableConfig tc = b.GetCode<TableConfig>(p+3);
                     auto tbl = make_shared<ZTable>(end(_stack)-(n*2), end(_stack), tc);
+                    Pop(static_cast<uint16_t>(n*2));
                     Push(tbl);
                 }
                 p += 4;

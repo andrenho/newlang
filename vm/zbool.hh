@@ -8,17 +8,10 @@ public:
     explicit ZBool(bool value) : ZValue(StaticType()), _value(value) {}
 
     bool     Value() const { return _value; }
-    uint64_t Hash() { return _value ? 1 : 2; }
+    uint64_t Hash() const { return _value ? 1 : 2; }
 
-    bool OpEq(shared_ptr<ZValue> other) const {
-        if(Type() != other->Type()) {
-            return false;
-        } else {
-            return _value == dynamic_pointer_cast<ZBool>(other)->Value();
-        }
-    }
-
-    string Inspect() const { return _value ? "true" : "false"; }
+    bool     OpEq(shared_ptr<ZValue> other) const;
+    string   Inspect() const;
     
     static ZType StaticType() { return BOOL; }
 

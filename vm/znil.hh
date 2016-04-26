@@ -8,7 +8,7 @@ public:
     ZNil() : ZValue(StaticType()) {}
 
     nullptr_t Value() const { return nullptr; }
-    uint64_t  Hash() { return 0; }
+    uint64_t  Hash() const { return 0; }
 
     bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {

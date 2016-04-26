@@ -20,6 +20,7 @@ public:
     ZValue const&      Push(shared_ptr<ZValue> value);
     ZType              GetType(ssize_t pos=-1) const;
     shared_ptr<ZValue> Pop();
+    void               Pop(uint16_t n);
     ZValue const*      GetPtr(ssize_t pos=-1) const;
     shared_ptr<ZValue> GetCopy(ssize_t pos=-1) const;
     // {{{ stack templates: Pop<T>(), GetPtr<T>(), GetCopy<T>()

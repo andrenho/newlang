@@ -67,6 +67,9 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 
 %%
 
+//
+// CODE
+//
 code: optsep exps optsep
     | SEP
     ;
@@ -79,19 +82,47 @@ exps: exps SEP { b.Add(POP); } exp
     |          { b.Add(POP); } exp
     ;
 
-exp: NIL        { b.Add(PNIL); }
-   | NUMBER     { add_number(b, $1); }
-   | BOOLEAN    { b.Add($1 ? PBT : PBF); }
-   | strings    { b.Add(PSTR, *$1); delete $1; }
+
+//
+// EXPRESSIONS
+//
+exp: literal_exp
+   | array_init
    ;
 
-// strings
+
+// 
+// LITERAL EXPRESSIONS
+//
+literal_exp: NIL        { b.Add(PNIL); }
+           | NUMBER     { add_number(b, $1); }
+           | BOOLEAN    { b.Add($1 ? PBT : PBF); }
+           | strings    { b.Add(PSTR, *$1); delete $1; }
+           ;
+
 string: STRING
       ;
 
 strings: string             { $$ = new string(*$1); delete $1; }
        | string strings     { $$ = new string(*$1 + *$2); delete $1; delete $2; }
        ;
+
+// 
+// ARRAY INITIALIZATION
+//
+
+array_init: '['              { b.counters.push(0); } 
+             array_items ']' { b.Add(PARY, static_cast<uint16_t>(b.counters.top())); 
+                               b.counters.pop(); }
+          ;
+
+array_items: %empty
+           | array_item                 { ++b.counters.top(); }
+           | array_item ',' array_items { ++b.counters.top(); }
+           ;
+
+array_item: exp
+          ;
 
 %%
 

@@ -1,6 +1,9 @@
 #ifndef VM_ZVALUE_H_
 #define VM_ZVALUE_H_
 
+#include <memory>
+using namespace std;
+
 #include "vm/ztype.hh"
 
 class ZValue {
@@ -9,7 +12,7 @@ public:
 
     ZType Type() const { return _type; }
     
-    virtual uint64_t Hash() {
+    virtual uint64_t Hash() const {
         throw invalid_argument("Values of type " + Typename(_type) + " can't be used as table key.");
     }
 

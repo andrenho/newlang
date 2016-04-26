@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <stack>
 #include <string>
 #include <vector>
 using namespace std;
@@ -13,7 +14,7 @@ typedef uint64_t Label;
 
 class Bytecode {
 public:
-    Bytecode() {}
+    Bytecode() : counters() {}
 
     // read/write code
     explicit Bytecode(vector<uint8_t> const& from_zb);
@@ -59,6 +60,9 @@ public:
     };
     vector<uint8_t> const& Code() const { return _code; }
     vector<String> const&  Strings() const { return _strings; }
+
+    // extra data used by the parser
+    stack<uint64_t> counters;
 
 private:
     vector<uint8_t>  _code = {};

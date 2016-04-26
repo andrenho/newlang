@@ -5,10 +5,10 @@
 libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
 		    vm/zvalue.hh 				\
 		    vm/znil.hh 					\
-		    vm/zbool.hh 				\
-		    vm/znumber.hh 				\
-		    vm/zstring.hh 				\
-		    vm/zarray.hh 				\
+		    vm/zbool.hh vm/zbool.cc			\
+		    vm/znumber.hh vm/znumber.cc			\
+		    vm/zstring.hh vm/zstring.cc			\
+		    vm/zarray.hh vm/zarray.cc			\
 		    vm/ztable.hh vm/ztable.cc 			\
 		    vm/zoevm.hh vm/zoevm.cc 			\
 		    vm/opcode.hh 				\
