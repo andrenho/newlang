@@ -39,22 +39,57 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 
 /* define debugging output */
 %verbose
+%error-verbose
 %printer { fprintf(yyoutput, "%f", $$); } NUMBER;
+%printer { fprintf(yyoutput, "%s", $$ ? "true" : "false"); } BOOLEAN;
+%printer { fprintf(yyoutput, "'%s'", $$->c_str()); } STRING;
+%printer { fprintf(yyoutput, "%s", $$->c_str()); } IDENTIFIER;
+
+/* start parsing by this token */
+%start code
 
 /*
  * DATA STRUCTURE
  */
 %union {
-    double      number;
+    double       number;
+    bool         boolean;
+    std::string* str;
+    Label        label;
 }
 
 %token <number>  NUMBER
+%token <boolean> BOOLEAN
+%token <str>     STRING IDENTIFIER
+%token NIL LET SEP
 
 %%
 
-exp: %empty
+code: optsep exps optsep
+    | SEP
+    ;
+
+optsep: %empty
+      | SEP
+      ;
+
+exps: exps SEP { b.Add(POP); } exp
+    |          { b.Add(POP); } exp
+    ;
+
+exp: NIL        { b.Add(PNIL); }
    | NUMBER     { add_number(b, $1); }
+   | BOOLEAN    { b.Add($1 ? PBT : PBF); }
+   | strings
    ;
+
+// strings
+string: STRING  { b.Add(PSTR, *$1); delete $1; }
+      ;
+
+strings: string
+       | string strings 
+       ;
 
 %%
 

@@ -29,7 +29,9 @@ private:
     const double _value;
 };
 
-template<> struct cpp_type<double> { typedef ZNumber type; };
+template<> struct cpp_type<double>       { typedef ZNumber type; };
+template<> struct cpp_type<int>          { typedef ZNumber type; };
+template<> struct cpp_type<unsigned int> { typedef ZNumber type; };
 
 #endif
 

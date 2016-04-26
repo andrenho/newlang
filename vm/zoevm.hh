@@ -24,26 +24,26 @@ public:
     shared_ptr<ZValue> GetCopy(ssize_t pos=-1) const;
     // {{{ stack templates: Pop<T>(), GetPtr<T>(), GetCopy<T>()
     template<typename T> shared_ptr<T> Pop() {
-        auto ptr = dynamic_pointer_cast<T>(Pop());
+        auto ptr = Pop();
         ValidateType<T>(ptr->Type());
-        return ptr;
+        return static_pointer_cast<T>(ptr);
     }
 
     template<typename T> T const* GetPtr(ssize_t pos=-1) const {
-        auto ptr = GetCopy(pos);
+        ZValue const* ptr = GetPtr(pos);
         ValidateType<T>(ptr->Type());
-        return dynamic_cast<T const*>(ptr.get());
+        return static_cast<T const*>(ptr);
     }
 
     template<typename T> shared_ptr<T> GetCopy(ssize_t pos=-1) const {
-        auto ptr = dynamic_pointer_cast<T>(GetCopy(pos));
+        auto ptr = GetCopy(pos);
         ValidateType<T>(ptr->Type());
-        return ptr;
+        return static_pointer_cast<T>(ptr);
     }
 
     template<typename T> T CopyCppValue(ssize_t pos=-1) const {
-        auto ptr = GetCopy<typename cpp_type<T>::type>(pos);
-        return ptr->Value();
+        auto ptr = GetPtr<typename cpp_type<T>::type>(pos);
+        return static_cast<T>(ptr->Value());
     }
 
 private:

@@ -121,6 +121,7 @@ template<typename S, typename T> static void zequals(S const& code, T const& exp
     ZoeVM Z;
     Bytecode b(code);
     Z.ExecuteBytecode(b.GenerateZB());
+    _mequals<ssize_t>(string(code) + " -> stacksize == 1", [&]() { return Z.StackSize(); }, 1);
     _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
 }
 template<typename S> static void zequals(S const& code, const char* expected)
@@ -331,8 +332,8 @@ static void bytecode_parse()
 
     vector<uint8_t> expected = {
         0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
-        0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
-        PN8,  0x03,
+        0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
+        POP,  PN8,  0x03,
     };
     mequals(b.GenerateZB(), expected);
 }
@@ -468,10 +469,16 @@ static void vm_stack_pop()
 
 static void zoe_literals()
 {
-    ZoeVM Z;
-    Bytecode b("3");
-    Z.ExecuteBytecode(b.GenerateZB());
     zequals("3", 3.0);
+    zequals("3.14", 3.14);
+    zequals("0xABCD_EF01", 0xABCDEF01);
+    zequals("0b10_1010", 0b101010);
+    zequals("0o1234", 01234);
+    zequals("true", true);
+    zequals("false", false);
+    zequals("nil", nullptr);
+    zequals("'hello'", "hello");
+    //zequals("'he' 'llo'", "hello");
 }
 
 // }}}
