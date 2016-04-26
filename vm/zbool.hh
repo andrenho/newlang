@@ -10,13 +10,15 @@ public:
     bool     Value() const { return _value; }
     uint64_t Hash() { return _value ? 1 : 2; }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
             return _value == dynamic_pointer_cast<ZBool>(other)->Value();
         }
     }
+
+    string Inspect() const { return "nil"; }
     
     static ZType StaticType() { return BOOL; }
 

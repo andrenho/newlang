@@ -20,13 +20,15 @@ public:
         return _hash;
     }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
             return Value() == dynamic_pointer_cast<ZString>(other)->Value();
         }
     }
+
+    string Inspect() const { return "nil"; }
 
     static ZType StaticType() { return STRING; }
 

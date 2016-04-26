@@ -10,10 +10,12 @@ public:
 
     static ZType StaticType() { return ARRAY; }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         (void) other;
         return false;  // TODO
     }
+
+    string Inspect() const { return "nil"; }
     
     vector<shared_ptr<ZValue>> const& Value() const { return _items; }
 

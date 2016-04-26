@@ -33,10 +33,12 @@ public:
         }
     }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         (void) other;
         return false;  // TODO
     }
+
+    string Inspect() const { return "nil"; }
     
     static ZType StaticType() { return TABLE; }
     ZTableHashMap const& Value() const { return _items; }

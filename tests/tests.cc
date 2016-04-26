@@ -137,6 +137,15 @@ template<typename S> static void zequals(S const& code, nullptr_t)
 }
 
 
+static void zinspect(const char* code, const char* expected)
+{
+    ZoeVM Z;
+    Bytecode b(code);
+    Z.ExecuteBytecode(b.GenerateZB());
+    _mequals<string>(string(code), [&]() { return Z.GetPtr(-1)->Inspect(); }, expected);
+}
+
+
 //
 // MAIN PROCEDURE
 //
@@ -479,6 +488,15 @@ static void zoe_literals()
     zequals("nil", nullptr);
     zequals("'hello'", "hello");
     zequals("'he' 'llo'", "hello");
+    zequals("'he' 'l' 'lo'", "hello");
+    zequals("'he${'ll'}o'", "hello");
+    zequals("'${'hell'}o'", "hello");
+    zequals("'he${'llo'}'", "hello");
+}
+
+static void zoe_inspection()
+{
+    zinspect("3", "3");
 }
 
 static void zoe_array_init()
@@ -516,6 +534,7 @@ static void prepare_tests()
 
     // execution
     run_test(zoe_literals);
+    run_test(zoe_inspection);
     run_test(zoe_array_init);
     run_test(zoe_table_init);
 }

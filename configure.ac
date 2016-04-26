@@ -38,7 +38,6 @@ fi
 
 if test "x$YACC" != "xbison -y"; then
   missing=`./build-aux/missing bison`
-  AC_SUBST(YACC, [bison])
   AC_MSG_ERROR([bison not found.])
 fi
 

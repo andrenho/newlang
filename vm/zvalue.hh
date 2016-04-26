@@ -13,7 +13,8 @@ public:
         throw invalid_argument("Values of type " + Typename(_type) + " can't be used as table key.");
     }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const = 0;
+    virtual string Inspect() const = 0;
+    virtual bool   OpEq(shared_ptr<ZValue> other) const = 0;
 
 protected:
     explicit ZValue(ZType type) : _type(type) {}

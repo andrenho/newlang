@@ -51,19 +51,19 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 /*
  * DATA STRUCTURE
  */
-/*
 %union {
     double       number;
     bool         boolean;
     std::string* str;
     Label        label;
 }
-*/
-%define api.value.type union
-%token <double>       NUMBER
-%token <bool>         BOOLEAN
-%token <std::string*> STRING IDENTIFIER
+
+%token <number>  NUMBER
+%token <boolean> BOOLEAN
+%token <str>     STRING IDENTIFIER
 %token NIL LET SEP
+
+%type <str> string strings
 
 %%
 
@@ -82,15 +82,15 @@ exps: exps SEP { b.Add(POP); } exp
 exp: NIL        { b.Add(PNIL); }
    | NUMBER     { add_number(b, $1); }
    | BOOLEAN    { b.Add($1 ? PBT : PBF); }
-   | strings
+   | strings    { b.Add(PSTR, *$1); delete $1; }
    ;
 
 // strings
-string: STRING  { b.Add(PSTR, *$1); delete $1; }
+string: STRING
       ;
 
-strings: string
-       | string strings
+strings: string             { $$ = new string(*$1); delete $1; }
+       | string strings     { $$ = new string(*$1 + *$2); delete $1; delete $2; }
        ;
 
 %%

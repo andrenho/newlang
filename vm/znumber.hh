@@ -15,13 +15,15 @@ public:
     double   Value() const { return _value; }
     uint64_t Hash() { return hash<double>()(_value); }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
             return abs(_value - dynamic_pointer_cast<ZNumber>(other)->Value()) < numeric_limits<double>::epsilon();
         }
     }
+
+    string Inspect() const { return "nil"; }
     
     static ZType StaticType() { return NUMBER; }
 

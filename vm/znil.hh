@@ -10,13 +10,15 @@ public:
     nullptr_t Value() const { return nullptr; }
     uint64_t  Hash() { return 0; }
 
-    virtual bool OpEq(shared_ptr<ZValue> other) const {
+    bool OpEq(shared_ptr<ZValue> other) const {
         if(Type() != other->Type()) {
             return false;
         } else {
             return true;
         }
     }
+
+    string Inspect() const { return "nil"; }
     
     static ZType StaticType() { return NIL; }
 };
