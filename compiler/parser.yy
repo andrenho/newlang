@@ -51,16 +51,18 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 /*
  * DATA STRUCTURE
  */
+/*
 %union {
     double       number;
     bool         boolean;
     std::string* str;
     Label        label;
 }
-
-%token <number>  NUMBER
-%token <boolean> BOOLEAN
-%token <str>     STRING IDENTIFIER
+*/
+%define api.value.type union
+%token <double>       NUMBER
+%token <bool>         BOOLEAN
+%token <std::string*> STRING IDENTIFIER
 %token NIL LET SEP
 
 %%
@@ -88,7 +90,7 @@ string: STRING  { b.Add(PSTR, *$1); delete $1; }
       ;
 
 strings: string
-       | string strings 
+       | string strings
        ;
 
 %%

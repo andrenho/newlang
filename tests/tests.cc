@@ -121,7 +121,7 @@ template<typename S, typename T> static void zequals(S const& code, T const& exp
     ZoeVM Z;
     Bytecode b(code);
     Z.ExecuteBytecode(b.GenerateZB());
-    _mequals<ssize_t>(string(code) + " -> stacksize == 1", [&]() { return Z.StackSize(); }, 1);
+    _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
     _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
 }
 template<typename S> static void zequals(S const& code, const char* expected)
@@ -478,7 +478,15 @@ static void zoe_literals()
     zequals("false", false);
     zequals("nil", nullptr);
     zequals("'hello'", "hello");
-    //zequals("'he' 'llo'", "hello");
+    zequals("'he' 'llo'", "hello");
+}
+
+static void zoe_array_init()
+{
+}
+
+static void zoe_table_init()
+{
 }
 
 // }}}
@@ -508,6 +516,8 @@ static void prepare_tests()
 
     // execution
     run_test(zoe_literals);
+    run_test(zoe_array_init);
+    run_test(zoe_table_init);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
