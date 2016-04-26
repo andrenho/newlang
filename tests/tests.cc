@@ -423,7 +423,7 @@ static void vm_stack_array()
 
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
 
-    auto const& items = Z.GetPtr<ZArray>()->Items();
+    auto const& items = Z.GetPtr<ZArray>()->Value();
     mequals(items.size(), 2);
     mequals(items.at(0)->Type(), NUMBER);
     mequals(dynamic_pointer_cast<ZNumber>(items.at(0))->Value(), 3.1416);
@@ -445,7 +445,7 @@ static void vm_stack_table()
 
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
 
-    auto const& items = Z.GetPtr<ZTable>()->Items();
+    auto const& items = Z.GetPtr<ZTable>()->Value();
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")))->Value(), "world");
     mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)))->Value(), "answer");
     mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")))->Value(), 42);

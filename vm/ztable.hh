@@ -39,7 +39,7 @@ public:
     }
     
     static ZType StaticType() { return TABLE; }
-    ZTableHashMap const& Items() const { return _items; }
+    ZTableHashMap const& Value() const { return _items; }
 
 private:
     ZTableHashMap _items = {};
