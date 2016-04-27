@@ -7,6 +7,7 @@
 using namespace std;
 
 #include "vm/zvalue.hh"
+#include "vm/ztable.hh"
 
 class ZoeVM {
 public:
@@ -63,6 +64,7 @@ public:
 
 private:
     vector<shared_ptr<ZValue>> _stack = {};
+    shared_ptr<ZTable> _env;
 };
 
 #endif

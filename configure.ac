@@ -72,7 +72,7 @@ AX_LIB_READLINE
 # check for typedefs, structures and compiler characteristics
 #
 AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
-AM_CONDITIONAL([GCC], [test "$GXX" = yes])
+AM_CONDITIONAL([GCC], [test "$CXX" = g++])
 AC_CHECK_SIZEOF([double])
 if test "$ac_cv_sizeof_double" != 8; then
   AC_MSG_ERROR([Sorry, zoe doesn't work (yet) in platforms where sizeof(double) != 8])

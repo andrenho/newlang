@@ -479,7 +479,6 @@ static void vm_stack_pop()
 
 static void zoe_literals()
 {
-    zequals("3", 3.0);
     zequals("3.14", 3.14);
     zequals("0xABCD_EF01", 0xABCDEF01);
     zequals("0b10_1010", 0b101010);
@@ -526,6 +525,7 @@ static void zoe_table_init()
     zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
     zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");
+    zinspect("$ENV", "&{}");
 }
 
 // }}}

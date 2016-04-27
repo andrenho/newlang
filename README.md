@@ -553,13 +553,14 @@ Development order
 1. ~~Create basic arrays/tables~~
 1. ~~Basic parsing~~
 1. ~~Expression inside strings~~
-1. Parser locations
-1. Getting/setting array
+1. ~~$ENV and local variables~~
 1. Getting/setting table key/values
 1. Table prototypes
 1. Scopes
 1. Some sort of basic documentation
 1. Create REPL
+1. Parser locations
+1. Run in Windows
 
 ## Version 0.3.1
 
@@ -580,9 +581,8 @@ Development order
 
 ## Version 0.3.2
 
-1. Table initialization + short syntax
-1. $G, $ENV and local variables
 1. Value assignment, local variable assignment
+1. Getting/setting array
 1. Metadata & operator syntax
 1. Table and array equality
 1. Constructor/destructor
@@ -598,6 +598,7 @@ Development order
 1. Matches
 1. Error management
 1. Modules
+1. Partial interpretation (for REPL)
 
 ## Version 0.3.4
 

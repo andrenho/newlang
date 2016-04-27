@@ -24,14 +24,13 @@ typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTable
 
 class ZTable : public ZValue {
 public:
-    template<typename ForwardIter>
-    ZTable(ForwardIter const& _begin, ForwardIter const& _end, TableConfig tc) 
-            : ZValue(StaticType()), _config(tc) {
+    ZTable(TableConfig tc) : ZValue(StaticType()), _config(tc) {}
+    template<typename Iter> ZTable(Iter const& _begin, Iter const& _end, TableConfig tc) : ZTable(tc) {{{
         for(auto t = _begin; t != _end;) {   // copy iterator because it is const
             auto key = *t++;
             _items[key] = *t++;
         }
-    }
+    }}}
 
     bool OpEq(shared_ptr<ZValue> other) const;
     string Inspect() const;

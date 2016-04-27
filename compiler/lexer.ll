@@ -11,6 +11,9 @@
 // set start conditions from within bison
 #define YY_HEADER_EXPORT_START_CONDITIONS
 
+// initialize locations
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+
 #include <cstdlib>
 #include <cstring>
 
@@ -29,6 +32,7 @@ static char* remove_undersc(char* t);
 
 /* we are using a bison-compatible scanner */
 %option bison-bridge
+%option bison-locations
 
 /* we need to pass a Bytecode object around to fill it */
 %option extra-type="Bytecode*"
@@ -77,6 +81,8 @@ SPACES       [ \t]+
 {OCTAL}         { yylval->number = (double)(strtoll(remove_undersc(&yytext[2]), NULL, 8)); return NUMBER; }
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
+
+\$ENV           { return ENV; }
 
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }

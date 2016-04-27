@@ -24,12 +24,13 @@ using namespace std;
  * PROTOTYPES
  */
 static void add_number(Bytecode& b, double num);
-void yyerror(void* scanner, Bytecode& b, const char *s);
+void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s);
 
 %}
 
 /* make the perser reentrant */
 %define api.pure full
+%locations
 
 /* since we are operating reentrant, we need to pass the scanner state around */
 %param { void* scanner }
@@ -63,7 +64,7 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
 %token <integer> PROPERTY
-%token NIL SEP _MUT _PUB
+%token NIL SEP ENV _MUT _PUB
 
 %type <str> string strings
 %type <integer> array_items table_items        /* $$ is a counter */
@@ -93,6 +94,7 @@ exps: exps SEP { b.Add(POP); } exp
 exp: literal_exp
    | array_init
    | table_init
+   | ENV                { b.Add(PENV); }
    ;
 
 
@@ -176,9 +178,9 @@ int parse(Bytecode& b, string const& code)
 }
 
 
-void yyerror(void* scanner, Bytecode& b, const char* s)
+void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char* s)
 {
-    cerr << s << "\n";
+    cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << "\n";
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:syntax=yacc

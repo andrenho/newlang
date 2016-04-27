@@ -14,6 +14,7 @@
 #include "vm/ztable.hh"
 
 ZoeVM::ZoeVM()
+    : _env(make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT)))
 {
     _stack.push_back(make_shared<ZNil>());
 }
@@ -149,6 +150,11 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     Push(tbl);
                 }
                 p += 4;
+                break;
+
+            case PENV:
+                Push(_env);
+                ++p;
                 break;
 
             case POP:
