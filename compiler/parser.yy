@@ -54,6 +54,7 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 %union {
     double       number;
     bool         boolean;
+    size_t       integer;
     std::string* str;
     Label        label;
 }
@@ -61,9 +62,10 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL LET SEP
+%token NIL SEP _MUT _PUB
 
 %type <str> string strings
+/* %type <integer> table_property table_properties */
 
 %%
 
@@ -88,6 +90,7 @@ exps: exps SEP { b.Add(POP); } exp
 //
 exp: literal_exp
    | array_init
+/*   | table_init */
    ;
 
 
@@ -110,7 +113,6 @@ strings: string             { $$ = new string(*$1); delete $1; }
 // 
 // ARRAY INITIALIZATION
 //
-
 array_init: '['              { b.counters.push(0); } 
              array_items ']' { b.Add(PARY, static_cast<uint16_t>(b.counters.top())); 
                                b.counters.pop(); }
@@ -123,6 +125,32 @@ array_items: %empty
 
 array_item: exp
           ;
+
+//
+// TABLE INITIALIZATION
+//
+/*
+table_init: '%' table_properties '{' table_items '}'
+          | '&' '{' table_items '}'
+          ;
+
+table_properties: %empty
+                | table_property table_properties
+                ;
+
+table_property: _PUB
+              | _MUT
+              ;
+
+table_items: %empty
+           | table_item
+           | table_item ',' table_items
+           ;
+
+table_item: IDENTIFIER ':' exp
+          | '[' exp ']' ':' exp
+          ;
+*/
 
 %%
 

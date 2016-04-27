@@ -551,19 +551,16 @@ Development order
 1. ~~Create bytecode generator~~
 1. ~~Create VM, stack, and basic execution~~
 1. ~~Create basic arrays/tables~~
-1. Basic parsing
+1. ~~Basic parsing~~
 1. Getting/setting array
 1. Getting/setting table key/values
-1. Expression inside strings
+1. ~~Expression inside strings~~
 1. Table prototypes
 1. Scopes
-
-## Version 0.3.1
-
-1. Create basic lexer/parser, capable of reading basic values (binary, hexa...), and parsing comments
+1. Some sort of basic documentation
 1. Create REPL
 
-## Version 0.3.2
+## Version 0.3.1
 
 1. Basic function calls
 1. Function calls with arguments
@@ -580,7 +577,7 @@ Development order
 1. Closures, upvalues
 1. Iterators
 
-## Version 0.3.3
+## Version 0.3.2
 
 1. Table initialization + short syntax
 1. $G, $ENV and local variables
@@ -593,7 +590,7 @@ Development order
 1. Constness
 1. Abstract functions
 
-## Version 0.3.4
+## Version 0.3.3
 
 1. Short circuit operators
 1. Control flow
@@ -601,12 +598,12 @@ Development order
 1. Error management
 1. Modules
 
-## Version 0.3.5
+## Version 0.3.4
 
 1. Define standard library
 1. Write standard library
 
-## Version 0.3.6
+## Version 0.3.5
 
 1. Weak tables
 1. Tail calls
@@ -615,9 +612,10 @@ Development order
 1. Unicode support
 1. Debugging
 
-## Version 0.3.7
+## Version 0.3.6
 
 1. Slices and negative subscripts
+1. Complete documentation
 1. ...
 
 
