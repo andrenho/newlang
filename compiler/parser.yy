@@ -95,6 +95,7 @@ exp: literal_exp
    | array_init
    | table_init
    | ENV                { b.Add(PENV); }
+   | table_set
    ;
 
 
@@ -153,6 +154,13 @@ table_items: %empty                      { $$ = 0; }
 table_item: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
           | '[' exp ']' ':' exp
           ;
+
+// 
+// TABLE SET
+//
+table_set: exp '[' exp ']' '=' exp
+         | exp '.' IDENTIFIER '=' exp
+         ;
 
 %%
 

@@ -528,6 +528,10 @@ static void zoe_table_init()
     zinspect("$ENV", "&{}");
 }
 
+static zoe_table_get_set()
+{
+}
+
 // }}}
 
 static void prepare_tests()
@@ -558,6 +562,7 @@ static void prepare_tests()
     run_test(zoe_inspection);
     run_test(zoe_array_init);
     run_test(zoe_table_init);
+    run_test(zoe_table_get_set);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
