@@ -9,7 +9,6 @@ bool ZTable::OpEq(shared_ptr<ZValue> other) const
 }
 
 
-#include <iostream> // TODO
 string ZTable::Inspect() const 
 {
     string s = (_config == (PUB|MUT)) ? "&{" : "%" + InspectProperties(_config) + "{";
