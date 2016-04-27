@@ -70,6 +70,10 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s);
 %type <integer> array_items table_items        /* $$ is a counter */
 %type <integer> table_properties               /* $$ is a TableConfig instance */
 
+%precedence '='
+%precedence '[' ']'
+%precedence '.'
+
 %%
 
 //
@@ -95,7 +99,7 @@ exp: literal_exp
    | array_init
    | table_init
    | ENV                { b.Add(PENV); }
-   | table_set
+   | set_op
    ;
 
 
@@ -125,13 +129,10 @@ opt_comma: %empty
          | ','
          ;
 
-array_items: %empty                     { $$ = 0; }
-           | array_item                 { $$ = 1; }
-           | array_items ',' array_item { ++$$; }
+array_items: %empty              { $$ = 0; }
+           | exp                 { $$ = 1; }
+           | array_items ',' exp { ++$$; }
            ;
-
-array_item: exp
-          ;
 
 //
 // TABLE INITIALIZATION
@@ -156,11 +157,11 @@ table_item: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
           ;
 
 // 
-// TABLE SET
+// SET OPERATOR
 //
-table_set: exp '[' exp ']' '=' exp
-         | exp '.' IDENTIFIER '=' exp
-         ;
+set_op: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; } '=' exp { b.Add(SET); }
+      | exp '[' exp ']' '=' exp { b.Add(SET); }
+      ;
 
 %%
 
@@ -188,7 +189,7 @@ int parse(Bytecode& b, string const& code)
 
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char* s)
 {
-    cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << "\n";
+    cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << s << "\n";
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:syntax=yacc

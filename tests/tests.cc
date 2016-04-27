@@ -116,6 +116,18 @@ static void _mnothrow(string const& code, function<void()> const& f, string cons
 // ZoeVM execution assertions
 //
 
+static void minvalid_syntax(const char* code)
+{
+    ++tests_run;
+    try {
+        Bytecode b(code);
+        cout << "ok " << tests_run << " - " << code << " (invalid syntax)\n";
+    } catch(...) {
+        cout << "not ok " << tests_run << " - " << code << " (syntax not invalid)\n";
+    }
+}
+
+
 template<typename S, typename T> static void zequals(S const& code, T const& expected)
 {
     ZoeVM Z;
@@ -477,6 +489,11 @@ static void vm_stack_pop()
 
 // {{{ ZOE BASIC EXECUTION
 
+static void zoe_invalid()
+{
+    minvalid_syntax("3 3");
+}
+
 static void zoe_literals()
 {
     zequals("3.14", 3.14);
@@ -525,11 +542,12 @@ static void zoe_table_init()
     zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
     zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");
-    zinspect("$ENV", "&{}");
 }
 
-static zoe_table_get_set()
+static void zoe_table_get_set()
 {
+    zinspect("$ENV", "&{}");
+    zinspect("$ENV.hello = 42", "&{hello: 42}");
 }
 
 // }}}
@@ -558,6 +576,7 @@ static void prepare_tests()
     run_test(vm_stack_pop);
 
     // execution
+    run_test(zoe_invalid);
     run_test(zoe_literals);
     run_test(zoe_inspection);
     run_test(zoe_array_init);
