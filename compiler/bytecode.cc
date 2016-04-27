@@ -13,7 +13,6 @@ using namespace std;
 constexpr uint8_t Bytecode::_MAGIC[];
 
 Bytecode::Bytecode(vector<uint8_t> const& from_zb)
-    : counters()
 {
     if(from_zb.size() < 16 || !equal(begin(from_zb), begin(from_zb)+8, _MAGIC)) {
         throw runtime_error("Not a valid ZB file.");
@@ -64,7 +63,6 @@ vector<uint8_t> Bytecode::GenerateZB()
 // {{{ PARSE CODE
 
 Bytecode::Bytecode(string const& code)
-    : counters()
 {
     extern int parse(Bytecode&, string const&);  // defined in compiler/parser.yy
     parse(*this, code);

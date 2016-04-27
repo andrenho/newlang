@@ -552,9 +552,10 @@ Development order
 1. ~~Create VM, stack, and basic execution~~
 1. ~~Create basic arrays/tables~~
 1. ~~Basic parsing~~
+1. ~~Expression inside strings~~
+1. Parser locations
 1. Getting/setting array
 1. Getting/setting table key/values
-1. ~~Expression inside strings~~
 1. Table prototypes
 1. Scopes
 1. Some sort of basic documentation

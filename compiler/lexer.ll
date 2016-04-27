@@ -81,8 +81,8 @@ SPACES       [ \t]+
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
-mut             { return _MUT; }
-pub             { return _PUB; }
+mut             { yylval->integer = MUT; return PROPERTY; }
+pub             { yylval->integer = PUB; return PROPERTY; }
 
 '                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }
 <STR>\\n              { yylval->str->append(1, '\n'); }

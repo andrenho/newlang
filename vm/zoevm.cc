@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <list>
+#include <iostream>   // TODO
 #include <stdexcept>
 
 #include "compiler/bytecode.hh"

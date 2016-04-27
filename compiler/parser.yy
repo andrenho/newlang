@@ -62,10 +62,12 @@ void yyerror(void* scanner, Bytecode& b, const char *s);
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
+%token <integer> PROPERTY
 %token NIL SEP _MUT _PUB
 
 %type <str> string strings
-/* %type <integer> table_property table_properties */
+%type <integer> array_items table_items        /* $$ is a counter */
+%type <integer> table_properties               /* $$ is a TableConfig instance */
 
 %%
 
@@ -90,7 +92,7 @@ exps: exps SEP { b.Add(POP); } exp
 //
 exp: literal_exp
    | array_init
-/*   | table_init */
+   | table_init
    ;
 
 
@@ -113,14 +115,16 @@ strings: string             { $$ = new string(*$1); delete $1; }
 // 
 // ARRAY INITIALIZATION
 //
-array_init: '['              { b.counters.push(0); } 
-             array_items ']' { b.Add(PARY, static_cast<uint16_t>(b.counters.top())); 
-                               b.counters.pop(); }
+array_init: '[' array_items opt_comma ']' { b.Add(PARY, static_cast<uint16_t>($2)); }
           ;
 
-array_items: %empty
-           | array_item                 { ++b.counters.top(); }
-           | array_item ',' array_items { ++b.counters.top(); }
+opt_comma: %empty
+         | ','
+         ;
+
+array_items: %empty                     { $$ = 0; }
+           | array_item                 { $$ = 1; }
+           | array_items ',' array_item { ++$$; }
            ;
 
 array_item: exp
@@ -129,28 +133,24 @@ array_item: exp
 //
 // TABLE INITIALIZATION
 //
-/*
-table_init: '%' table_properties '{' table_items '}'
-          | '&' '{' table_items '}'
+table_init: '%' table_properties '{' table_items opt_comma '}' 
+              { b.Add(PTBL, static_cast<uint16_t>($4), static_cast<uint8_t>($2)); }
+          | '&' '{' table_items opt_comma '}'
+              { b.Add(PTBL, static_cast<uint16_t>($3), PUB|MUT); }
           ;
 
-table_properties: %empty
-                | table_property table_properties
+table_properties: %empty                    { $$ = 0; }
+                | PROPERTY table_properties { $$ = $1 | $2; }
                 ;
 
-table_property: _PUB
-              | _MUT
-              ;
-
-table_items: %empty
-           | table_item
-           | table_item ',' table_items
+table_items: %empty                      { $$ = 0; }
+           | table_item                  { $$ = 1; }
+           | table_items ',' table_item  { ++$$; }
            ;
 
-table_item: IDENTIFIER ':' exp
+table_item: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
           | '[' exp ']' ':' exp
           ;
-*/
 
 %%
 

@@ -24,12 +24,12 @@ typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTable
 
 class ZTable : public ZValue {
 public:
-    template<typename It>
-    ZTable(It _begin, It _end, TableConfig tc) 
+    template<typename ForwardIter>
+    ZTable(ForwardIter const& _begin, ForwardIter const& _end, TableConfig tc) 
             : ZValue(StaticType()), _config(tc) {
-        for(auto& t=_begin; t < _end; ++t) {
+        for(auto t = _begin; t != _end;) {   // copy iterator because it is const
             auto key = *t++;
-            _items[key] = *t;
+            _items[key] = *t++;
         }
     }
 
@@ -40,6 +40,8 @@ public:
     ZTableHashMap const& Value() const { return _items; }
 
 private:
+    static string InspectProperties(TableConfig tc);
+
     ZTableHashMap _items = {};
     TableConfig _config;
 };

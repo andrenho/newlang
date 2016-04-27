@@ -9,7 +9,7 @@ using namespace std;
 class ZArray : public ZValue {
 public:
     template<typename It>
-    ZArray(It _begin, It _end) : ZValue(StaticType()), _items(_begin, _end) {}
+    ZArray(It const& _begin, It const& _end) : ZValue(StaticType()), _items(_begin, _end) {}
 
     vector<shared_ptr<ZValue>> const& Value() const { return _items; }
 

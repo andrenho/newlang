@@ -522,6 +522,10 @@ static void zoe_table_init()
     zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
     zinspect("%{hello: []}", "%{hello: []}");
     zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
+    zinspect("\%pub {hello: 'world'}", "\%pub {hello: 'world'}");
+    zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");
+    zinspect("&{hello: 'world'}", "&{hello: 'world'}");
+    zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");
 }
 
 // }}}
@@ -553,7 +557,7 @@ static void prepare_tests()
     run_test(zoe_literals);
     run_test(zoe_inspection);
     run_test(zoe_array_init);
-    //run_test(zoe_table_init);
+    run_test(zoe_table_init);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
