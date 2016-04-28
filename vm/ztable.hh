@@ -57,6 +57,7 @@ public:
     }}}
 
     string Inspect() const override;
+    void   Clear() { _items.clear(); }
 
     bool OpEq(shared_ptr<ZValue> other) const override;
     void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc) override;

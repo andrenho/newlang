@@ -558,7 +558,7 @@ Development order
 1. ~~$ENV and local variables~~
 1. ~~Getting/setting table key/values~~
 1. ~~Table initialization: mut and pub~~
-1. Table prototypes
+1. ~~Table prototypes~~
 1. Scopes
 1. Some sort of basic documentation
 1. Create REPL
@@ -630,10 +630,11 @@ Release checklist
 * `make lint`
 * `make check`
 * `make check-valgrind`
-* `./configure --enable-coverage && make check && make coverage`
+* `make check-leaks`
 * `make distcheck`
 * `./configure-devel CXX=clang++ && make check`
 * Compile in mingw
+* `./configure --enable-coverage && make check && make coverage`
 
 <!--
 vim: wrap lbr nolist expandtab

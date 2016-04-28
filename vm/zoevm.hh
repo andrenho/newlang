@@ -12,6 +12,7 @@ using namespace std;
 class ZoeVM {
 public:
     ZoeVM();
+    ~ZoeVM();
 
     // 
     // stack management

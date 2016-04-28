@@ -16,14 +16,14 @@ void ZTable::OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig
     auto search = _items.find(key);
     if(search == _items.end()) {
         // look in prototypes
-        auto current = static_pointer_cast<ZTable>(_prototype);
+        auto current = static_cast<ZTable*>(_prototype.get());
         while(current) {
             auto search2 = current->_items.find(key);
             if(search2 != current->_items.end()) {
                 current->OpSet(key, value, tc);
                 return;
             }
-            current = static_pointer_cast<ZTable>(current->_prototype);
+            current = static_cast<ZTable*>(current->_prototype.get());
         }
         // if the program got here, it is because the key was not found
         // in the prototypes, so we set is as soon as we leave this if block
@@ -54,9 +54,8 @@ shared_ptr<ZValue> ZTable::OpGet(shared_ptr<ZValue> key) const
     if(search == _items.end()) {
         if(_prototype) {
             return static_pointer_cast<ZTable>(_prototype)->OpGet(key);
-        } else {
-            throw zoe_runtime_error("Property " + key->Inspect() + " not found.");
         }
+        throw zoe_runtime_error("Property " + key->Inspect() + " not found.");
     }
 
     ZTableValue const& v = search->second;

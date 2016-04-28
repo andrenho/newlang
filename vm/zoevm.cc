@@ -19,6 +19,15 @@ ZoeVM::ZoeVM()
     _stack.push_back(make_shared<ZNil>());
 }
 
+ZoeVM::~ZoeVM()
+{
+    /* At the end of execution, we clear $ENV. By doing that, we break the
+     * circular references and allow all shared_ptr<ZValue>s to be cleared
+     * as well, giving us a clean exit on valgrind. */
+    _env->Clear();
+}
+
+
 // {{{ STACK MANAGEMENT
 
 ssize_t ZoeVM::StackAbs(ssize_t pos) const

@@ -221,6 +221,7 @@ int parse(Bytecode& b, string const& code)
 
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char* s)
 {
+    yylex_destroy(scanner);     // gives us a clean exit
     throw zoe_syntax_error(s);
     //cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << s << "\n";
 }
