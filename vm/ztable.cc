@@ -9,6 +9,12 @@ bool ZTable::OpEq(shared_ptr<ZValue> other) const
 }
 
 
+void ZTable::OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc)
+{
+    _items[key] = value;
+}
+
+
 string ZTable::Inspect() const 
 {
     string s = (_config == (PUB|MUT)) ? "&{" : "%" + InspectProperties(_config) + "{";

@@ -5,6 +5,8 @@
 using namespace std;
 
 #include "vm/ztype.hh"
+#include "vm/opcode.hh"
+#include "vm/exceptions.hh"
 
 class ZValue {
 public:
@@ -13,11 +15,14 @@ public:
     ZType Type() const { return _type; }
     
     virtual uint64_t Hash() const {
-        throw invalid_argument("Values of type " + Typename(_type) + " can't be used as table key.");
+        throw zoe_runtime_error("Values of type " + Typename(_type) + " can't be used as table key.");
     }
 
     virtual string Inspect() const = 0;
     virtual bool   OpEq(shared_ptr<ZValue> other) const = 0;
+    virtual void   OpSet(shared_ptr<ZValue>, shared_ptr<ZValue>, TableConfig) {
+        throw zoe_runtime_error(Typename(Type()) + "s can't be set.");
+    }
 
 protected:
     explicit ZValue(ZType type) : _type(type) {}

@@ -547,7 +547,10 @@ static void zoe_table_init()
 static void zoe_table_get_set()
 {
     zinspect("$ENV", "&{}");
-    zinspect("$ENV.hello = 42", "&{hello: 42}");
+    zequals("$ENV.hello = 42", 42);
+    zinspect("$ENV.hello = 42; $ENV", "&{hello: 42}");
+    zequals("$ENV.hello = 42; $ENV.hello", 42);
+    zequals("$ENV['hello'] = 42; $ENV['hello']", 42);
 }
 
 // }}}

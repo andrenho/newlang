@@ -32,9 +32,11 @@ public:
         }
     }}}
 
-    bool OpEq(shared_ptr<ZValue> other) const;
     string Inspect() const;
-    
+
+    bool OpEq(shared_ptr<ZValue> other) const;
+    void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc);
+
     static ZType StaticType() { return TABLE; }
     ZTableHashMap const& Value() const { return _items; }
 

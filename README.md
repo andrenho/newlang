@@ -525,7 +525,7 @@ The opcodes are:
 | `lte`    |            | -2 +1        | Operator less than or equal                            |
 | `len`    |            | -1 +1        | Operator length                                        |
 | `get`    |            | -2 +1        | Operator get                                           |
-| `set`    |            | -3 +1        | Operator set                                           |
+| `set`    | `u8`       | -3 +1        | Operator set (possible mutable)                        |
 | `del`    |            | -2 +1        | Operator delete                                        |
 | `insp`   |            | -1 +1        | Generate a inspection string                           |
 | `ptr`    |            | -1 +1        | Get internal pointer                                   |
@@ -556,6 +556,7 @@ Development order
 1. ~~Expression inside strings~~
 1. ~~$ENV and local variables~~
 1. Getting/setting table key/values
+1. Table initialization: mut and pub
 1. Table prototypes
 1. Scopes
 1. Some sort of basic documentation

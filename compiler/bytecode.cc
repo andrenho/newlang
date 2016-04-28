@@ -75,7 +75,7 @@ Bytecode::Bytecode(string const& code)
 void Bytecode::Add(Opcode op)
 {
     if(op != PN8 && op != PNUM && op != PSTR && op != PARY && op != PTBL
-            && op != JMP && op != BT && op != CALL) {
+            && op != JMP && op != BT && op != CALL && op != SET) {
         _code.push_back(op);
     } else {
         throw invalid_argument("Parameter missing");
@@ -98,7 +98,7 @@ void Bytecode::Add(Opcode op, double value)
 void Bytecode::Add(Opcode op, uint8_t value)
 {
     _code.push_back(op);
-    if(op == PN8 || op == CALL) {
+    if(op == PN8 || op == CALL || op == SET) {
         _code.push_back(value);
     } else {
         throw invalid_argument("Invalid integer parameter for this opcode");

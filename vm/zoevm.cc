@@ -62,6 +62,15 @@ void ZoeVM::Pop(uint16_t n)
 }
 
 
+void ZoeVM::Remove(ssize_t pos)
+{
+    ssize_t i = StackAbs(pos);
+    if(i >= StackSize()) {
+        throw out_of_range("Stack access out of range");
+    }
+    _stack.erase(begin(_stack) + i);
+}
+
 ZValue const* ZoeVM::GetPtr(ssize_t pos) const
 {
     ssize_t i = StackAbs(pos);
@@ -160,6 +169,13 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
             case POP:
                 Pop();
                 ++p;
+                break;
+
+            case SET:
+                GetCopy(-3)->OpSet(GetCopy(-2), GetCopy(-1), b.GetCode<TableConfig>(p+1));
+                Remove(-3);
+                Remove(-2);
+                p += 2;
                 break;
 
             default:
