@@ -66,7 +66,7 @@ public:
 
 private:
     vector<shared_ptr<ZValue>> _stack = {};
-    shared_ptr<class ZEnv> _env;
+    shared_ptr<ZTable> _env;
 };
 
 #endif

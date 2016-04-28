@@ -57,6 +57,7 @@ public:
     }}}
 
     string Inspect() const override;
+    void   Clear() { _items.clear(); }
 
     bool OpEq(shared_ptr<ZValue> other) const override;
     void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc) override;
@@ -66,12 +67,10 @@ public:
     static ZType StaticType() { return TABLE; }
     ZTableHashMap const& Value() const { return _items; }
 
-protected:
-    ZTableHashMap _items = {};
-    shared_ptr<ZValue> _prototype = nullptr;
-
 private:
+    ZTableHashMap _items = {};
     bool _pubmut;                   // fields are public and mutable by default
+    shared_ptr<ZValue> _prototype = nullptr;
 };
 
 #endif

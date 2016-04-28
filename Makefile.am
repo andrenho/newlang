@@ -11,7 +11,6 @@ libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
 		    vm/zarray.hh vm/zarray.cc			\
 		    vm/ztable.hh vm/ztable.cc 			\
 		    vm/zoevm.hh vm/zoevm.cc 			\
-		    vm/zenv.hh					\
 		    vm/exceptions.hh                            \
 		    vm/opcode.hh 				\
 		    compiler/bytecode.hh compiler/bytecode.cc 	\
