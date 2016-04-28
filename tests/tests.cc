@@ -556,11 +556,14 @@ static void zoe_table_get_set()
 
 static void zoe_table_pub_mut()
 {
+    zequals("$ENV.x = &{a: 42}; $ENV.x.a", 42);
     zequals("$ENV.x = &{a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
-    zthrows("$ENV.x = %%{a: 42}; $ENV.x.a = 12; $ENV.x.a");
-    zthrows("$ENV.x = %%{pub a: 42}; $ENV.x.a = 12; $ENV.x.a");   // public but not mutable
-    zthrows("$ENV.x = %%{mut a: 42}; $ENV.x.a = 12; $ENV.x.a");   // mutable but not public
-    zequals("$ENV.x = %%{pub mut a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
+    zthrows("$ENV.x = %{a: 42}; $ENV.x.a = 12");
+    zthrows("$ENV.x = %{pub a: 42}; $ENV.x.a = 12; $ENV.x.a");   // public but not mutable
+    zthrows("$ENV.x = %{mut a: 42}; $ENV.x.a = 12; $ENV.x.a");   // mutable but not public
+    zthrows("$ENV.x = %{a: 42}; $ENV.x.a");
+    zequals("$ENV.x = %{pub a: 42}; $ENV.x.a", 42);
+    zequals("$ENV.x = %{pub mut a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
 }
 
 // }}}
