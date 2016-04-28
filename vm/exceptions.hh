@@ -4,7 +4,12 @@
 #include <stdexcept>
 using namespace std;
 
-class zoe_runtime_error : public runtime_error {
+class zoe_runtime_error : public logic_error {
+public:
+    using logic_error::logic_error;
+};
+
+class zoe_syntax_error : public runtime_error {
 public:
     using runtime_error::runtime_error;
 };

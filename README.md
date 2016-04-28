@@ -496,8 +496,8 @@ The opcodes are:
 | `pnum`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
 | `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
 | `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
-| `ptbl`   | `u16`      | -(n\*3) +1   | Push a table with _n_ stacked pair of key/values/properties          |
-| `ptbx`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values, public and mutable |
+| `ptbl`   | `u16`      | -(n\*3)-1 +1 | Push a table with _n_ stacked pair of key/values/properties          |
+| `ptbx`   | `u16`      | -(n\*2)-1 +1 | Push a table with _n_ stacked pair of key/values, public and mutable |
 | `penv`   |            | +1           | Push $ENV into the stack                               |
 | `pop`    |            | -1           | Pop one item from the stack                            |
 | `jmp`    | `u32`      |              | Unconditionally branch (jump) to address               |
@@ -557,8 +557,7 @@ Development order
 1. ~~Expression inside strings~~
 1. ~~$ENV and local variables~~
 1. ~~Getting/setting table key/values~~
-1. Table initialization: mut and pub
-1. Delete from table
+1. ~~Table initialization: mut and pub~~
 1. Table prototypes
 1. Scopes
 1. Some sort of basic documentation
@@ -589,6 +588,7 @@ Development order
 1. Getting/setting array
 1. Metadata & operator syntax
 1. Table and array equality
+1. Delete from table
 1. Constructor/destructor
 1. Operator assignment
 1. Privacy

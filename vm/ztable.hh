@@ -33,8 +33,15 @@ typedef unordered_map<shared_ptr<ZValue>, ZTableValue, ZTableHash, ZTableHash> Z
 class ZTable : public ZValue {
 public:
     explicit ZTable(bool pubmut) : ZValue(StaticType()), _pubmut(pubmut) {}
+
     template<typename Iter> ZTable(Iter const& _begin, Iter const& _end, bool pubmut) : ZTable(pubmut) {{{
-        for(auto t = _begin; t != _end;) {   // copy iterator because it is const
+    
+        // find prototypes
+        auto t = _begin;
+        OpProto(*t++);
+
+        // load data
+        while(t != _end) {
             auto key = *t++;
 
             /* If using PTBL opcode, then pubmut = false, else if using PTBX, pubmut = true.
@@ -53,6 +60,7 @@ public:
 
     bool OpEq(shared_ptr<ZValue> other) const override;
     void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc) override;
+    void OpProto(shared_ptr<ZValue> proto) override;
     shared_ptr<ZValue> OpGet(shared_ptr<ZValue> key) const override;
 
     static ZType StaticType() { return TABLE; }
@@ -60,7 +68,8 @@ public:
 
 private:
     ZTableHashMap _items = {};
-    bool _pubmut;               // fields are public and mutable by default
+    bool _pubmut;                   // fields are public and mutable by default
+    shared_ptr<ZValue> _prototype = nullptr;
 };
 
 #endif

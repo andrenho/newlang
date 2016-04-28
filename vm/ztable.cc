@@ -14,8 +14,21 @@ void ZTable::OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig
     // find attribute configuration (PUB|MUT if no element)
     TableConfig t = static_cast<TableConfig>(PUB|MUT);
     auto search = _items.find(key);
-    if(search != _items.end()) {
+    if(search == _items.end()) {
+        // look in prototypes
+        auto current = static_pointer_cast<ZTable>(_prototype);
+        while(current) {
+            auto search2 = current->_items.find(key);
+            if(search2 != current->_items.end()) {
+                current->OpSet(key, value, tc);
+                return;
+            }
+            current = static_pointer_cast<ZTable>(current->_prototype);
+        }
+        // if the program got here, it is because the key was not found
+        // in the prototypes, so we set is as soon as we leave this if block
 
+    } else {
         // verify configuration
         t = search->second.config;
         if(!(t & MUT)) {
@@ -26,7 +39,7 @@ void ZTable::OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig
             throw zoe_runtime_error("Property " + key->Inspect() + " is private.");
         }
 
-        // remove existing item
+        // remove existing item (prepare for insertion)
         _items.erase(search);
     }
 
@@ -39,8 +52,12 @@ shared_ptr<ZValue> ZTable::OpGet(shared_ptr<ZValue> key) const
 {
     auto search = _items.find(key);
     if(search == _items.end()) {
-        throw zoe_runtime_error("Property " + key->Inspect() + " not found.");
-    } 
+        if(_prototype) {
+            return static_pointer_cast<ZTable>(_prototype)->OpGet(key);
+        } else {
+            throw zoe_runtime_error("Property " + key->Inspect() + " not found.");
+        }
+    }
 
     ZTableValue const& v = search->second;
     if(!(v.config & PUB)) {
@@ -48,6 +65,16 @@ shared_ptr<ZValue> ZTable::OpGet(shared_ptr<ZValue> key) const
         throw zoe_runtime_error("Property " + key->Inspect() + " is private.");
     }
     return _items.at(key).value;
+}
+
+
+void ZTable::OpProto(shared_ptr<ZValue> proto)
+{
+    if(proto->Type() == TABLE) {
+        _prototype = proto;
+    } else if(proto->Type() != NIL) { 
+        throw zoe_runtime_error("Table prototype must be a table");
+    }
 }
 
 

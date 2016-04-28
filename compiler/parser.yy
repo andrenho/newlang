@@ -23,12 +23,13 @@ using namespace std;
 #include "compiler/bytecode.hh"
 #include "compiler/parser.hh"
 #include "compiler/lexer.hh"
+#include "vm/exceptions.hh"
 
 /* 
  * PROTOTYPES
  */
 static void add_number(Bytecode& b, double num);
-void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s);
+void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attribute__((noreturn));
 
 %}
 
@@ -68,15 +69,15 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s);
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL SEP ENV _MUT _PUB
+%token NIL SEP ENV _MUT _PUB _DEL
 
 %type <str> string strings
 %type <integer> array_items table_items table_items_x     /* $$ is a counter */
 %type <u8> properties                                     /* $$ is a TableConfig instance */
 
-%precedence '='
-%precedence '[' ']'
-%precedence '.'
+%nonassoc '='
+%precedence '['
+%left '.'
 
 %%
 
@@ -142,11 +143,15 @@ array_items: %empty              { $$ = 0; }
 //
 // TABLE INITIALIZATION
 //
-table_init: '%' '{' table_items opt_comma '}' 
+table_init: '%' opt_identifier '{' table_items opt_comma '}' 
               { b.Add(PTBL, static_cast<uint16_t>($table_items)); }
-          | '&' '{' table_items_x opt_comma '}'
+          | '&' opt_identifier '{' table_items_x opt_comma '}'
               { b.Add(PTBX, static_cast<uint16_t>($table_items_x)); }
           ;
+
+opt_identifier: %empty       { b.Add(PNIL); }
+              | exp
+              ;
 
 table_items: %empty                      { $$ = 0; }
            | table_item                  { $$ = 1; }
@@ -172,17 +177,22 @@ table_item_x: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
             ;
 
 // 
+// TABLE EXPRESSION
+//
+table_exp: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; }
+         | exp '[' exp ']'
+         ;
+
+// 
 // SET OPERATOR
 //
-set_op: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; } '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
-      | exp '[' exp ']' '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
+set_op: table_exp '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
       ;
 
 // 
 // GET OPERATOR
 //
-get_op: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; b.Add(GET); }
-      | exp '[' exp ']'    { b.Add(GET); }
+get_op: table_exp { b.Add(GET); }
       ;
 
 %%
@@ -211,7 +221,7 @@ int parse(Bytecode& b, string const& code)
 
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char* s)
 {
-    cerr << "error: " << s << "\n";
+    throw zoe_syntax_error(s);
     //cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << s << "\n";
 }
 

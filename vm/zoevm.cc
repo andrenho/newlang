@@ -153,8 +153,8 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
 
             case PTBL: {
                     uint16_t n = b.GetCode<uint16_t>(p+1);
-                    auto tbl = make_shared<ZTable>(end(_stack)-(n*3), end(_stack), false);
-                    Pop(static_cast<uint16_t>(n*3));
+                    auto tbl = make_shared<ZTable>(end(_stack)-(n*3)-1, end(_stack), false);
+                    Pop(static_cast<uint16_t>(n*3+1));
                     Push(tbl);
                 }
                 p += 3;
@@ -162,8 +162,8 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
 
             case PTBX: {
                     uint16_t n = b.GetCode<uint16_t>(p+1);
-                    auto tbl = make_shared<ZTable>(end(_stack)-(n*2), end(_stack), true);
-                    Pop(static_cast<uint16_t>(n*2));
+                    auto tbl = make_shared<ZTable>(end(_stack)-(n*2)-1, end(_stack), true);
+                    Pop(static_cast<uint16_t>(n*2+1));
                     Push(tbl);
                 }
                 p += 3;

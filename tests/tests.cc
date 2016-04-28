@@ -121,9 +121,9 @@ static void minvalid_syntax(const char* code)
     ++tests_run;
     try {
         Bytecode b(code);
-        cout << "ok " << tests_run << " - " << code << " (invalid syntax)\n";
-    } catch(...) {
         cout << "not ok " << tests_run << " - " << code << " (syntax not invalid)\n";
+    } catch(zoe_syntax_error const& e) {
+        cout << "ok " << tests_run << " - " << code << " (syntax invalid: " << e.what() << ")\n";
     }
 }
 
@@ -566,6 +566,15 @@ static void zoe_table_pub_mut()
     zequals("$ENV.x = %{pub mut a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
 }
 
+static void zoe_table_proto()
+{
+    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.b.a", 42);
+    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.a = 12; $ENV.b.a", 12);
+    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.a", 12);
+    zequals("$ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.b.a", 12);
+    zthrows("$ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.a");
+}
+
 // }}}
 
 static void prepare_tests()
@@ -599,6 +608,7 @@ static void prepare_tests()
     run_test(zoe_table_init);
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
+    run_test(zoe_table_proto);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

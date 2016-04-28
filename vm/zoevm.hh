@@ -52,7 +52,7 @@ public:
 private:
     template<typename T> void ValidateType(ZType type) const {
         if(type != T::StaticType()) {
-            throw "Invalid type: expected " + Typename(T::StaticType()) + ", found " + Typename(type);
+            throw zoe_runtime_error("Invalid type: expected " + Typename(T::StaticType()) + ", found " + Typename(type));
         }
     }
 public:
