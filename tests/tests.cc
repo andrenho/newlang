@@ -568,11 +568,11 @@ static void zoe_table_pub_mut()
 
 static void zoe_table_proto()
 {
-    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.b.a", 42);
-    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.a = 12; $ENV.b.a", 12);
-    zequals("$ENV.a = 42; $ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.a", 12);
-    zequals("$ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.b.a", 12);
-    zthrows("$ENV.b = &$ENV {}; $ENV.b.a = 12; $ENV.a");
+    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.b.a", 42);
+    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.a = 12; $ENV.b.a", 12);
+    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.a", 12);
+    zequals("$ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.b.a", 12);
+    zthrows("$ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.a");
 }
 
 // }}}

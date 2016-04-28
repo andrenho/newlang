@@ -106,6 +106,8 @@ exp: literal_exp
    | ENV                { b.Add(PENV); }
    | set_op
    | get_op
+   | '{' { b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); }
+   | '{' '}'
    ;
 
 
@@ -149,8 +151,8 @@ table_init: '%' opt_identifier '{' table_items opt_comma '}'
               { b.Add(PTBX, static_cast<uint16_t>($table_items_x)); }
           ;
 
-opt_identifier: %empty       { b.Add(PNIL); }
-              | exp
+opt_identifier: %empty     { b.Add(PNIL); }
+              | '[' exp ']'
               ;
 
 table_items: %empty                      { $$ = 0; }
