@@ -19,7 +19,7 @@ Bytecode::Bytecode(vector<uint8_t> const& from_zb)
     }
 
     uint64_t str_pos = *reinterpret_cast<uint64_t const*>(&from_zb[8]);
-    copy(begin(from_zb) + 16, begin(from_zb) + str_pos, back_inserter(_code));
+    copy(begin(from_zb) + 16, begin(from_zb) + static_cast<long>(str_pos), back_inserter(_code));
 
     while(str_pos < from_zb.size()) {
         string   s(reinterpret_cast<const char*>(&from_zb[str_pos]));

@@ -8,10 +8,10 @@ public:
     explicit ZBool(bool value) : ZValue(StaticType()), _value(value) {}
 
     bool     Value() const { return _value; }
-    uint64_t Hash() const { return _value ? 1 : 2; }
+    uint64_t Hash() const override { return _value ? 1 : 2; }
 
-    bool     OpEq(shared_ptr<ZValue> other) const;
-    string   Inspect() const;
+    bool     OpEq(shared_ptr<ZValue> other) const override;
+    string   Inspect() const override;
     
     static ZType StaticType() { return BOOL; }
 

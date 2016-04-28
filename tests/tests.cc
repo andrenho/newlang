@@ -538,10 +538,10 @@ static void zoe_table_init()
     zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
     zinspect("%{hello: []}", "%{hello: []}");
     zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
-    zinspect("\%pub {hello: 'world'}", "\%pub {hello: 'world'}");
-    zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");
+    zinspect("\%pub {hello: 'world'}", "\%pub {hello: 'world'}");       // NOLINT
+    zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");       // NOLINT
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
-    zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");
+    zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");        // NOLINT
 }
 
 static void zoe_table_get_set()
@@ -551,6 +551,8 @@ static void zoe_table_get_set()
     zinspect("$ENV.hello = 42; $ENV", "&{hello: 42}");
     zequals("$ENV.hello = 42; $ENV.hello", 42);
     zequals("$ENV['hello'] = 42; $ENV['hello']", 42);
+    zinspect("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a", "&{b: 42}");
+    zequals("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a.b", 42);
 }
 
 // }}}

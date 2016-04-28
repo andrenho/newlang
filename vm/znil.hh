@@ -8,17 +8,13 @@ public:
     ZNil() : ZValue(StaticType()) {}
 
     nullptr_t Value() const { return nullptr; }
-    uint64_t  Hash() const { return 0; }
+    uint64_t  Hash() const override { return 0; }
 
-    bool OpEq(shared_ptr<ZValue> other) const {
-        if(Type() != other->Type()) {
-            return false;
-        } else {
-            return true;
-        }
+    bool OpEq(shared_ptr<ZValue> other) const override {
+        return Type() == other->Type();
     }
 
-    string Inspect() const { return "nil"; }
+    string Inspect() const override { return "nil"; }
     
     static ZType StaticType() { return NIL; }
 };

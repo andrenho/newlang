@@ -11,10 +11,10 @@ public:
     explicit ZNumber(double value) : ZValue(StaticType()), _value(value) {}
 
     double   Value() const { return _value; }
-    uint64_t Hash() const;
+    uint64_t Hash() const override;
 
-    bool     OpEq(shared_ptr<ZValue> other) const;
-    string   Inspect() const;
+    bool     OpEq(shared_ptr<ZValue> other) const override;
+    string   Inspect() const override;
     
     static ZType StaticType() { return NUMBER; }
 

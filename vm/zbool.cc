@@ -4,9 +4,8 @@ bool ZBool::OpEq(shared_ptr<ZValue> other) const
 {
     if(Type() != other->Type()) {
         return false;
-    } else {
-        return _value == dynamic_pointer_cast<ZBool>(other)->Value();
     }
+    return _value == dynamic_pointer_cast<ZBool>(other)->Value();
 }
 
 string ZBool::Inspect() const 

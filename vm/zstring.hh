@@ -12,10 +12,10 @@ public:
     ZString(string const& value, size_t hsh) : ZValue(StaticType()), _value(value), _hash(hsh)  {}
 
     string const& Value() const { return _value; }
-    uint64_t Hash() const;
+    uint64_t Hash() const override;
 
-    bool OpEq(shared_ptr<ZValue> other) const;
-    string Inspect() const;
+    bool OpEq(shared_ptr<ZValue> other) const override;
+    string Inspect() const override;
 
     static ZType StaticType() { return STRING; }
 

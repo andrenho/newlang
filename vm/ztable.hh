@@ -24,7 +24,7 @@ typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTable
 
 class ZTable : public ZValue {
 public:
-    ZTable(TableConfig tc) : ZValue(StaticType()), _config(tc) {}
+    explicit ZTable(TableConfig tc) : ZValue(StaticType()), _config(tc) {}
     template<typename Iter> ZTable(Iter const& _begin, Iter const& _end, TableConfig tc) : ZTable(tc) {{{
         for(auto t = _begin; t != _end;) {   // copy iterator because it is const
             auto key = *t++;
@@ -32,10 +32,11 @@ public:
         }
     }}}
 
-    string Inspect() const;
+    string Inspect() const override;
 
-    bool OpEq(shared_ptr<ZValue> other) const;
-    void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc);
+    bool OpEq(shared_ptr<ZValue> other) const override;
+    void OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc) override;
+    shared_ptr<ZValue> OpGet(shared_ptr<ZValue> key) const override;
 
     static ZType StaticType() { return TABLE; }
     ZTableHashMap const& Value() const { return _items; }

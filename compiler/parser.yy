@@ -1,10 +1,14 @@
 %{
 
 // ignore warnings from G++
-#pragma GCC diagnostic ignored "-Wuseless-cast"
+#if !__llvm__  // warnings not supported by clang++
+#  pragma GCC diagnostic ignored "-Wuseless-cast"
+#  pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#else
+#  pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
@@ -163,6 +167,13 @@ table_item: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
 //
 set_op: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; } '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
       | exp '[' exp ']' '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
+      ;
+
+// 
+// GET OPERATOR
+//
+get_op: exp '.' IDENTIFIER { b.Add(PSTR, *$3); delete $3; b.Add(GET); }
+      | exp '[' exp ']'    { b.Add(GET); }
       ;
 
 %%

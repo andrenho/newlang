@@ -14,9 +14,8 @@ bool ZNumber::OpEq(shared_ptr<ZValue> other) const
 {
     if(Type() != other->Type()) {
         return false;
-    } else {
-        return abs(_value - dynamic_pointer_cast<ZNumber>(other)->Value()) < numeric_limits<double>::epsilon();
     }
+    return abs(_value - dynamic_pointer_cast<ZNumber>(other)->Value()) < numeric_limits<double>::epsilon();
 }
 
 

@@ -555,7 +555,7 @@ Development order
 1. ~~Basic parsing~~
 1. ~~Expression inside strings~~
 1. ~~$ENV and local variables~~
-1. Getting/setting table key/values
+1. ~~Getting/setting table key/values~~
 1. Table initialization: mut and pub
 1. Table prototypes
 1. Scopes
@@ -630,7 +630,7 @@ Release checklist
 * `make check-valgrind`
 * `./configure --enable-coverage && make check && make coverage`
 * `make distcheck`
-* Compile with clang++
+* `./configure CXX=clang++ && make check`
 * Compile in mingw
 
 <!--

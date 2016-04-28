@@ -5,7 +5,7 @@ AC_INIT([zoe], [0.3.0], [https://github.com/andrenho/zoe/issues])
 AC_CONFIG_SRCDIR([exe/main.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])
-AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
+AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability dist-bzip2 subdir-objects])
 
 AM_PROG_AR
 LT_INIT([disable-static])
@@ -46,18 +46,18 @@ AC_CHECK_PROGS([gold], [ld.gold])      # look for gold linker (instead of ld)
 AM_CONDITIONAL([GOLD], [test "$gold" = ld.gold])
 
 # cloc
-AC_CHECK_PROGS([cloc], [cloc], [false])   # look for cpplint
+AC_CHECK_PROGS([cloc], [cloc], [false])   # look for clang-tidy
 if test "$cloc" = false; then
   AC_MSG_WARN(['cloc' was not found in the path. The target 'cloc' won't be built.'])
 fi
 AM_CONDITIONAL([CLOC], [test "$cloc" = cloc])
 
-# cpplit
-AC_CHECK_PROGS([cpplint], [cpplint], [false])   # look for cpplint
-if test "$cpplint" = false; then
-  AC_MSG_WARN(['cpplint' was not found in the path. The target 'cpplint' won't be built.'])
+# clang-tidy
+AC_CHECK_PROGS([clang_tidy], [clang-tidy], [false])   # look for clang-tidy
+if test "$clang_tidy" = false; then
+  AC_MSG_WARN(['clang-tidy' was not found in the path. The target 'lint' won't be built.'])
 fi
-AM_CONDITIONAL([CPPLINT], [test "$cpplint" = cpplint])
+AM_CONDITIONAL([CLANG_TIDY], [test "$clang_tidy" = clang-tidy])
 
 #
 # check for libraries

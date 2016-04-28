@@ -2,6 +2,7 @@
 #define VM_EXCEPTIONS_HH_
 
 #include <stdexcept>
+using namespace std;
 
 class zoe_runtime_error : public runtime_error {
 public:

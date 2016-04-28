@@ -1,10 +1,15 @@
 %{
 
 // ignore warnings from G++
-#pragma GCC diagnostic ignored "-Wuseless-cast"
+#if !__llvm__  // warnings not supported by clang++
+#  pragma GCC diagnostic ignored "-Wuseless-cast"
+#  pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
+#else
+#  pragma clang diagnostic ignored "-Wdeprecated-register"
+#  pragma clang diagnostic ignored "-Wmissing-noreturn"
+#endif
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-function"
 

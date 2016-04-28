@@ -77,7 +77,7 @@ ZValue const* ZoeVM::GetPtr(ssize_t pos) const
     if(i >= StackSize()) {
         throw out_of_range("Stack access out of range");
     }
-    return _stack[i].get();
+    return _stack[static_cast<size_t>(i)].get();
 }
 
 
@@ -87,7 +87,7 @@ shared_ptr<ZValue> ZoeVM::GetCopy(ssize_t pos) const
     if(i >= StackSize()) {
         throw out_of_range("Stack access out of range");
     }
-    return _stack[i];
+    return _stack[static_cast<size_t>(i)];
 }
 
 
@@ -176,6 +176,13 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 Remove(-3);
                 Remove(-2);
                 p += 2;
+                break;
+
+            case GET:
+                Push(GetPtr(-2)->OpGet(GetCopy(-1)));
+                Remove(-3);
+                Remove(-2);
+                ++p;
                 break;
 
             default:

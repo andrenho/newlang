@@ -15,9 +15,8 @@ bool ZString::OpEq(shared_ptr<ZValue> other) const
 {
     if(Type() != other->Type()) {
         return false;
-    } else {
-        return Value() == dynamic_pointer_cast<ZString>(other)->Value();
     }
+    return Value() == dynamic_pointer_cast<ZString>(other)->Value();
 }
 
 

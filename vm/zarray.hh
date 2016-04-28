@@ -13,8 +13,8 @@ public:
 
     vector<shared_ptr<ZValue>> const& Value() const { return _items; }
 
-    bool OpEq(shared_ptr<ZValue> other) const;
-    string Inspect() const;
+    bool OpEq(shared_ptr<ZValue> other) const override;
+    string Inspect() const override;
     
     static ZType StaticType() { return ARRAY; }
 

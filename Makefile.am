@@ -42,10 +42,10 @@ cloc: clean
 	cloc --exclude-dir=old --skip-archive=compiler/lexer.hh configure.ac Makefile.am $(zoe_SOURCES) tests/tests.cc
 endif
 
-if CPPLINT
-CPPLINT_FILTERS ?= -legal,-build/include,-whitespace,-readability/namespace,-build/header_guard,-build/namespaces,-readability/todo,-build/c++11,-runtime/references
-lint: clean
-	cpplint --filter=$(CPPLINT_FILTERS) --linelength=120 $(zoe_SOURCES) tests/tests.cc
+if CLANG_TIDY
+lint: 
+	clang-tidy $(filter-out compiler/lexer.ll compiler/lexer.hh compiler/parser.yy, $(zoe_SOURCES)) tests/tests.cc \
+		"-checks=*,-google-build-using-namespace,-google-readability-todo" -- -I. --std=c++14
 endif
 
 if COV

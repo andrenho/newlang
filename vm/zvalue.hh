@@ -20,8 +20,11 @@ public:
 
     virtual string Inspect() const = 0;
     virtual bool   OpEq(shared_ptr<ZValue> other) const = 0;
-    virtual void   OpSet(shared_ptr<ZValue>, shared_ptr<ZValue>, TableConfig) {
+    virtual void   OpSet(shared_ptr<ZValue> /* unused */, shared_ptr<ZValue> /* unused */, TableConfig /* unused */) {
         throw zoe_runtime_error(Typename(Type()) + "s can't be set.");
+    }
+    virtual shared_ptr<ZValue> OpGet(shared_ptr<ZValue> /* unused */) const {
+        throw zoe_runtime_error(Typename(Type()) + "s can't be get.");
     }
 
 protected:
