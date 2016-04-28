@@ -12,9 +12,10 @@
 #include "vm/zstring.hh"
 #include "vm/zarray.hh"
 #include "vm/ztable.hh"
+#include "vm/zenv.hh"
 
 ZoeVM::ZoeVM()
-    : _env(make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT)))
+    : _env(make_shared<ZEnv>())
 {
     _stack.push_back(make_shared<ZNil>());
 }
