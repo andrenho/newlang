@@ -89,7 +89,7 @@ static void _mthrows(string const& code, function<void()> const& f, string const
 {
     ++tests_run;
     string m = string("[ ") + current_test + " ] " + ((message != "") ? message : code);
-    try {
+    try {       // NOLINT - bug in linter
         f();
         cout << "not ok " << tests_run << " - " << m << " (expected exception)\n";
     } catch(...) {
@@ -103,7 +103,7 @@ static void _mnothrow(string const& code, function<void()> const& f, string cons
 {
     ++tests_run;
     string m = string("[ ") + current_test + " ] " + ((message != "") ? message : code);
-    try {
+    try {       // NOLINT - bug in linter
         f();
         cout << "ok " << tests_run << " - " << m << " (no exception thrown)\n";
     } catch(exception const& e) {

@@ -19,7 +19,7 @@ Bytecode::Bytecode(vector<uint8_t> const& from_zb)
     }
 
     uint64_t str_pos = *reinterpret_cast<uint64_t const*>(&from_zb[8]);
-    copy(begin(from_zb) + 16, begin(from_zb) + static_cast<long>(str_pos), back_inserter(_code));
+    copy(begin(from_zb) + 16, begin(from_zb) + static_cast<int64_t>(str_pos), back_inserter(_code));
 
     while(str_pos < from_zb.size()) {
         string   s(reinterpret_cast<const char*>(&from_zb[str_pos]));
@@ -37,7 +37,7 @@ vector<uint8_t> Bytecode::GenerateZB()
     AdjustLabels();
 
     // magic number and version
-    vector<uint8_t> data(begin(_MAGIC), end(_MAGIC));
+    vector<uint8_t> data(begin(_MAGIC), end(_MAGIC));           // NOLINT - bug in linter
 
     // string list position
     uint64_t pos = 16 + _code.size();
@@ -48,7 +48,7 @@ vector<uint8_t> Bytecode::GenerateZB()
     copy(begin(_code), end(_code), back_inserter(data));
 
     // add strings
-    for(auto const& s: _strings) {
+    for(auto const& s: _strings) {                              // NOLINT - bug in linter
         copy(begin(s.str), end(s.str), back_inserter(data));
         data.push_back(0);  // end of string
         uint8_t const* bytes = reinterpret_cast<uint8_t const*>(&s.hash);
@@ -134,9 +134,9 @@ void Bytecode::Add(Opcode op, uint16_t value, uint8_t value2)
 void Bytecode::Add(Opcode op, uint32_t value)
 {
     _code.push_back(op);
-    if(op == PSTR || op == JMP || op == BT) {
+    if(op == PSTR || op == JMP || op == BT) {                       // NOLINT - bug in linter
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
-        copy(bytes, bytes+4, back_inserter(_code));
+        copy(bytes, bytes+4, back_inserter(_code));                 // NOLINT - bug in linter
     } else {
         throw invalid_argument("Invalid integer parameter for this opcode");
     }
