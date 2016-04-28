@@ -575,6 +575,11 @@ static void zoe_table_proto()
     zthrows("$ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.a");
 }
 
+static void zoe_scopes()
+{
+    zequals("$ENV.a = 42; { $ENV.a = 12 }; $ENV.a", 42);
+}
+
 // }}}
 
 static void prepare_tests()
@@ -609,6 +614,7 @@ static void prepare_tests()
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
     run_test(zoe_table_proto);
+    run_test(zoe_scopes);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

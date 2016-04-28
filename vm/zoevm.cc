@@ -202,6 +202,25 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 ++p;
                 break;
 
+            case PSHS: {
+                    auto new_env = make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT));
+                    _env->OpProto(new_env);
+                    _env = new_env;
+                }
+                ++p;
+                break;
+
+            case POPS: {
+                    auto old_env = _env;
+                    if(!_env->Prototype()) {
+                        abort();
+                    }
+                    _env = static_pointer_cast<ZTable>(_env->Prototype());
+                    old_env->Clear();
+                }
+                ++p;
+                break;
+
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
         }

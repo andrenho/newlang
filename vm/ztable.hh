@@ -67,6 +67,8 @@ public:
     static ZType StaticType() { return TABLE; }
     ZTableHashMap const& Value() const { return _items; }
 
+    shared_ptr<ZValue> Prototype() const { return _prototype; }
+
 private:
     ZTableHashMap _items = {};
     bool _pubmut;                   // fields are public and mutable by default
