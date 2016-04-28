@@ -496,7 +496,8 @@ The opcodes are:
 | `pnum`   | `f64`      | +1           | Push a 64-bit floating point number into the stack     |
 | `pstr`   | `u32`      | +1           | Push a string from the 32-bit index into the stack     |
 | `pary`   | `u16`      | -n +1        | Push an array with _n_ stacked items into it           |
-| `ptbl`   | `u16` `u8` | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values, with these characteristics |
+| `ptbl`   | `u16`      | -(n\*3) +1   | Push a table with _n_ stacked pair of key/values/properties          |
+| `ptbx`   | `u16`      | -(n\*2) +1   | Push a table with _n_ stacked pair of key/values, public and mutable |
 | `penv`   |            | +1           | Push $ENV into the stack                               |
 | `pop`    |            | -1           | Pop one item from the stack                            |
 | `jmp`    | `u32`      |              | Unconditionally branch (jump) to address               |

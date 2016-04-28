@@ -38,7 +38,7 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver
 # custom targets
 #
 if CLOC
-cloc: clean
+cloc:
 	cloc --exclude-dir=old --skip-archive=compiler/lexer.hh configure.ac Makefile.am $(zoe_SOURCES) tests/tests.cc
 endif
 

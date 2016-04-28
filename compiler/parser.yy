@@ -71,8 +71,8 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s);
 %token NIL SEP ENV _MUT _PUB
 
 %type <str> string strings
-%type <integer> array_items table_items     /* $$ is a counter */
-%type <u8> properties                       /* $$ is a TableConfig instance */
+%type <integer> array_items table_items table_items_x     /* $$ is a counter */
+%type <u8> properties                                     /* $$ is a TableConfig instance */
 
 %precedence '='
 %precedence '[' ']'
@@ -142,15 +142,10 @@ array_items: %empty              { $$ = 0; }
 //
 // TABLE INITIALIZATION
 //
-table_init: '%' properties '{' table_items opt_comma '}' 
-              { b.Add(PTBL, static_cast<uint16_t>($table_items), $properties); }
-          | '&' '{' table_items opt_comma '}'
-              { b.Add(PTBL, static_cast<uint16_t>($table_items), PUB|MUT); }
-          ;
-
-properties: %empty          { $$ = 0; }
-          | _MUT properties { $$ = MUT | $2; }
-          | _PUB properties { $$ = PUB | $2; }
+table_init: '%' '{' table_items opt_comma '}' 
+              { b.Add(PTBL, static_cast<uint16_t>($table_items)); }
+          | '&' '{' table_items_x opt_comma '}'
+              { b.Add(PTBX, static_cast<uint16_t>($table_items_x)); }
           ;
 
 table_items: %empty                      { $$ = 0; }
@@ -158,9 +153,23 @@ table_items: %empty                      { $$ = 0; }
            | table_items ',' table_item  { ++$$; }
            ;
 
-table_item: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
-          | '[' exp ']' ':' exp
+table_item: properties IDENTIFIER { b.Add(PSTR, *$2); delete $2; b.Add(PN8, $1); } ':' exp
+          | properties '[' exp ']' { b.Add(PN8, $1); } ':' exp  
           ;
+
+properties: %empty          { $$ = 0; }
+          | _MUT properties { $$ = MUT | $2; }
+          | _PUB properties { $$ = PUB | $2; }
+          ;
+
+table_items_x: %empty                          { $$ = 0; }
+             | table_item_x                    { $$ = 1; }
+             | table_items_x ',' table_item_x  { ++$$; }
+             ;
+
+table_item_x: IDENTIFIER { b.Add(PSTR, *$1); delete $1; } ':' exp
+            | '[' exp ']' ':' exp  
+            ;
 
 // 
 // SET OPERATOR
@@ -202,7 +211,8 @@ int parse(Bytecode& b, string const& code)
 
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char* s)
 {
-    cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << s << "\n";
+    cerr << "error: " << s << "\n";
+    //cerr << "error in " << yylloc->first_line << ":" << yylloc->first_column << ": " << s << "\n";
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:syntax=yacc

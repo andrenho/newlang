@@ -17,7 +17,7 @@
 #define YY_HEADER_EXPORT_START_CONDITIONS
 
 // initialize locations
-#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno;
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; yylloc->first_column = yylloc->last_column = 0;
 
 #include <cstdlib>
 #include <cstring>

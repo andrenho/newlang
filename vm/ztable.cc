@@ -11,19 +11,19 @@ bool ZTable::OpEq(shared_ptr<ZValue> other) const
 
 void ZTable::OpSet(shared_ptr<ZValue> key, shared_ptr<ZValue> value, TableConfig tc)
 {
-    _items[key] = value;
+    _items.emplace(make_pair(key, ZTableValue { value, tc }));
 }
 
 
 shared_ptr<ZValue> ZTable::OpGet(shared_ptr<ZValue> key) const
 {
-    return _items.at(key);
+    return _items.at(key).value;
 }
 
 
 string ZTable::Inspect() const 
 {
-    string s = (_config == (PUB|MUT)) ? "&{" : "%" + InspectProperties(_config) + "{";
+    string s = _pubmut ? "&{" : "%{";
     bool fst = true;
     for(auto const& kv: _items) {
         if(!fst) {
@@ -36,24 +36,10 @@ string ZTable::Inspect() const
         } else {
             s.append("[" + kv.first->Inspect() + "]");
         }
-        s.append(": " + kv.second->Inspect());
+        s.append(": " + kv.second.value->Inspect());
     }
     s.append("}");
     return s;
 }
     
-
-string ZTable::InspectProperties(TableConfig tc)
-{
-    string s;
-    if(tc & PUB) {
-        s += "pub ";
-    }
-    if(tc & MUT) {
-        s += "mut ";
-    }
-    return s;
-}
-
-
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

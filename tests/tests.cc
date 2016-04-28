@@ -149,6 +149,20 @@ template<typename S> static void zequals(S const& code, nullptr_t)
 }
 
 
+static void zthrows(const char* code)
+{
+    try {               // NOLINT - bug in linter
+        ++tests_run;
+        ZoeVM Z;
+        Bytecode b(code);
+        Z.ExecuteBytecode(b.GenerateZB());
+        cout << "not ok " << tests_run << " - " << code << " (zoe exception not thrown)\n";
+    } catch(zoe_runtime_error const& e) {
+        cout << "ok " << tests_run << " - " << code << " (zoe exception thrown: " << e.what() << ")\n";
+    }
+}
+
+
 static void zinspect(const char* code, const char* expected)
 {
     ZoeVM Z;
@@ -242,18 +256,6 @@ static void bytecode_generation()
             0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
             0x13, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
             PARY, 0x24, 0x12,
-        };
-        mequals(b.GenerateZB(), expected);
-    }
-
-    {
-        Bytecode b;
-        b.Add(PTBL, 0x1234_u16, 0x56_u8);
-
-        vector<uint8_t> expected = {
-            0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
-            0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
-            PTBL, 0x34, 0x12, 0x56,
         };
         mequals(b.GenerateZB(), expected);
     }
@@ -464,14 +466,14 @@ static void vm_stack_table()
     b.Add(PSTR, "answer");
     b.Add(PSTR, "answer");
     b.Add(PN8, 42_u8);
-    b.Add(PTBL, 3_u16, PUB|MUT);
+    b.Add(PTBX, 3_u16);
 
     ZoeVM Z; Z.ExecuteBytecode(b.GenerateZB());
 
     auto const& items = Z.GetPtr<ZTable>()->Value();
-    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")))->Value(), "world");
-    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)))->Value(), "answer");
-    mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")))->Value(), 42);
+    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZString>("hello")).value)->Value(), "world");
+    mequals(dynamic_pointer_cast<ZString>(items.at(make_shared<ZNumber>(42)).value)->Value(), "answer");
+    mequals(dynamic_pointer_cast<ZNumber>(items.at(make_shared<ZString>("answer")).value)->Value(), 42);
     mthrows(items.at(make_shared<ZString>("nothing")));
 }
 
@@ -538,10 +540,7 @@ static void zoe_table_init()
     zinspect("%{b: %{a:1}}", "%{b: %{a: 1}}");
     zinspect("%{hello: []}", "%{hello: []}");
     zinspect("%{[2]: 3, abc: %{d: 3}}", "%{abc: %{d: 3}, [2]: 3}"); 
-    zinspect("\%pub {hello: 'world'}", "\%pub {hello: 'world'}");       // NOLINT
-    zinspect("\%mut {hello: 'world'}", "\%mut {hello: 'world'}");       // NOLINT
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
-    zinspect("\%pub mut {hello: 'world'}", "&{hello: 'world'}");        // NOLINT
 }
 
 static void zoe_table_get_set()
@@ -553,6 +552,15 @@ static void zoe_table_get_set()
     zequals("$ENV['hello'] = 42; $ENV['hello']", 42);
     zinspect("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a", "&{b: 42}");
     zequals("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a.b", 42);
+}
+
+static void zoe_table_pub_mut()
+{
+    zequals("$ENV.x = &{a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
+    zthrows("$ENV.x = %%{a: 42}; $ENV.x.a = 12; $ENV.x.a");
+    zthrows("$ENV.x = %%{pub a: 42}; $ENV.x.a = 12; $ENV.x.a");   // public but not mutable
+    zthrows("$ENV.x = %%{mut a: 42}; $ENV.x.a = 12; $ENV.x.a");   // mutable but not public
+    zequals("$ENV.x = %%{pub mut a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
 }
 
 // }}}
@@ -587,6 +595,7 @@ static void prepare_tests()
     run_test(zoe_array_init);
     run_test(zoe_table_init);
     run_test(zoe_table_get_set);
+    run_test(zoe_table_pub_mut);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

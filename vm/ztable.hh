@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "vm/zvalue.hh"
+#include "vm/znumber.hh"
 #include "vm/opcode.hh"  // TODO - for TableConfig
 
 struct ZTableHash {
@@ -20,15 +21,31 @@ struct ZTableHash {
 };
 
 
-typedef unordered_map<shared_ptr<ZValue>, shared_ptr<ZValue>, ZTableHash, ZTableHash> ZTableHashMap;
+struct ZTableValue {
+    shared_ptr<ZValue> value;
+    TableConfig        config;
+    ZTableValue(shared_ptr<ZValue> v, TableConfig c) : value(v), config(c) {}
+};
+
+
+typedef unordered_map<shared_ptr<ZValue>, ZTableValue, ZTableHash, ZTableHash> ZTableHashMap;
 
 class ZTable : public ZValue {
 public:
-    explicit ZTable(TableConfig tc) : ZValue(StaticType()), _config(tc) {}
-    template<typename Iter> ZTable(Iter const& _begin, Iter const& _end, TableConfig tc) : ZTable(tc) {{{
+    explicit ZTable(bool pubmut) : ZValue(StaticType()), _pubmut(pubmut) {}
+    template<typename Iter> ZTable(Iter const& _begin, Iter const& _end, bool pubmut) : ZTable(pubmut) {{{
         for(auto t = _begin; t != _end;) {   // copy iterator because it is const
             auto key = *t++;
-            _items[key] = *t++;
+
+            /* If using PTBL opcode, then pubmut = false, else if using PTBX, pubmut = true.
+             * If pubmut = false, we have 3 parameters stacked in the iterator (key, property, value), 
+             *   else we have two (key, property). Thus we advance the iterator depending on pubmut. */
+            TableConfig n = static_cast<TableConfig>(PUB|MUT);
+            if(!pubmut) {
+                n = static_cast<TableConfig>(dynamic_pointer_cast<ZNumber>(*t++)->Value());
+            }
+
+            _items.emplace(make_pair(key, ZTableValue { *t++, n }));
         }
     }}}
 
@@ -42,10 +59,8 @@ public:
     ZTableHashMap const& Value() const { return _items; }
 
 private:
-    static string InspectProperties(TableConfig tc);
-
     ZTableHashMap _items = {};
-    TableConfig _config;
+    bool _pubmut;               // fields are public and mutable by default
 };
 
 #endif

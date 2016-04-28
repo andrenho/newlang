@@ -109,22 +109,9 @@ void Bytecode::Add(Opcode op, uint8_t value)
 void Bytecode::Add(Opcode op, uint16_t value)
 {
     _code.push_back(op);
-    if(op == PARY) {
+    if(op == PARY || op == PTBL || op == PTBX) {
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+2, back_inserter(_code));
-    } else {
-        throw invalid_argument("Invalid integer parameter for this opcode");
-    }
-}
-
-
-void Bytecode::Add(Opcode op, uint16_t value, uint8_t value2)
-{
-    _code.push_back(op);
-    if(op == PTBL) {
-        uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
-        copy(bytes, bytes+2, back_inserter(_code));
-        _code.push_back(value2);
     } else {
         throw invalid_argument("Invalid integer parameter for this opcode");
     }

@@ -28,7 +28,6 @@ public:
     void Add(Opcode op, double value);
     void Add(Opcode op, uint8_t value);
     void Add(Opcode op, uint16_t value);
-    void Add(Opcode op, uint16_t value, uint8_t value2);
     void Add(Opcode op, uint32_t value);
     void Add(Opcode op, string const& s);
 
