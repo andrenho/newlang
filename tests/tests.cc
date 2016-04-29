@@ -134,7 +134,10 @@ template<typename S, typename T> static void zequals(S const& code, T const& exp
         ZoeVM Z;
         Bytecode b(code);
         Z.ExecuteBytecode(b.GenerateZB());
-        _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
+        if(Z.StackSize() != 1) {
+            cout << "not ok " << tests_run << " - " << code << " (stack size = " << Z.StackSize() << ")\n";
+            return;
+        }
         _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
     } catch(exception const& e) {
         ++tests_run;
@@ -183,7 +186,10 @@ static void zinspect(const char* code, const char* expected)
         ZoeVM Z;
         Bytecode b(code);
         Z.ExecuteBytecode(b.GenerateZB());
-        _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
+        if(Z.StackSize() != 1) {
+            cout << "not ok " << tests_run << " - " << code << " (stack size = " << Z.StackSize() << ")\n";
+            return;
+        }
         _mequals<string>(string(code), [&]() { return Z.GetPtr(-1)->Inspect(); }, expected);
     } catch(exception const& e) {
         ++tests_run;
