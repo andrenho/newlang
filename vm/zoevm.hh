@@ -68,6 +68,7 @@ private:
 
     vector<shared_ptr<ZValue>> _stack = {};
     vector<shared_ptr<ZValue>> _vars = {};
+    vector<uint32_t> _scopes = { 0 };
 };
 
 #endif

@@ -55,6 +55,8 @@ public:
     // variables
     void     CreateVariable(string const& name, bool mut);
     uint32_t GetVariableIndex(string const& name, bool* mut);
+    void     PushScope();
+    void     PopScope();
 
     // get information
     struct String {

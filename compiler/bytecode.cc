@@ -194,13 +194,14 @@ void Bytecode::AdjustLabels()
 
 void Bytecode::CreateVariable(string const& name, bool mut)
 {
-    for(ssize_t i = (_vars.size() - 1); i >= _scopes.back(); --i) {
-        if(_vars[i].name == name) {
+    for(ssize_t i = (static_cast<ssize_t>(_vars.size()) - 1); i >= _scopes.back(); --i) {
+        if(_vars[static_cast<size_t>(i)].name == name) {
             throw zoe_syntax_error("Variable '" + name + "' already exists.");
         }
     }
     _vars.push_back({ name, mut });
 }
+
 
 uint32_t Bytecode::GetVariableIndex(string const& name, bool* mut)
 {
@@ -216,6 +217,21 @@ uint32_t Bytecode::GetVariableIndex(string const& name, bool* mut)
     }
 
     throw zoe_syntax_error("Variable '" + name + "' not found.");
+}
+
+
+void Bytecode::PushScope()
+{
+    _scopes.push_back(static_cast<uint32_t>(_vars.size()));
+}
+
+
+void Bytecode::PopScope()
+{
+    uint32_t last = _scopes.back();
+    _scopes.pop_back();
+    assert(!_scopes.empty());
+    _vars.erase(begin(_vars) + last, end(_vars));
 }
 
 // }}}

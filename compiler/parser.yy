@@ -86,6 +86,12 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attri
 
 %%
 
+/* TODO - there are several points in this parser that I'm catching zoe_syntax_error exceptions,
+ *        just to call yyerror, where they are rethrown. The pourpose of this is to be able
+ *        to free the scanner object. There's gotta be a better way to do this - like a generic
+ *        catch around `yyparse`. But, right now, I tested this and I'm getting segmentation
+ *        faults. */
+
 //
 // CODE
 //
@@ -110,10 +116,10 @@ exp: literal_exp
    | table_init
    | var_init
    | var_assign
-   | IDENTIFIER          { b.Add(GVAR, b.GetVariableIndex(*$1, nullptr)); delete $1; }
+   | var_get
    | set_op
    | get_op
-   | '{' { b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); }
+   | '{' { b.PushScope(); b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); b.PopScope(); }
    | '{' '}'
    ;
 
@@ -135,8 +141,18 @@ strings: string             { $$ = new string(*$1); delete $1; }
        ;
 
 //
-// VARIABLE ASSIGNMENT
+// VARIABLE MANAGEMENT
 //
+var_get: IDENTIFIER { 
+            string id = *$1; delete $1;
+            try {
+                b.Add(GVAR, b.GetVariableIndex(id, nullptr));
+            } catch(zoe_syntax_error const& e) {
+                yyerror(&yylloc, scanner, b, e.what());
+            }
+        }
+        ;
+
 var_init: LET mut_opt IDENTIFIER {
                 string s = *$3; delete $3; 
                 try {

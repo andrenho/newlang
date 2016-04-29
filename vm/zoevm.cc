@@ -219,12 +219,16 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 break;
 
             case PSHS:
-                throw zoe_internal_error("Not implemented");
+                _scopes.push_back(static_cast<uint32_t>(_vars.size()));
                 ++p;
                 break;
 
-            case POPS:
-                throw zoe_internal_error("Not implemented");
+            case POPS: {
+                    uint32_t last = _scopes.back();
+                    _scopes.pop_back();
+                    assert(!_scopes.empty());
+                    _vars.erase(begin(_vars) + last, end(_vars));
+                }
                 ++p;
                 break;
 

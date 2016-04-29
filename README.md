@@ -565,6 +565,7 @@ Development order
 1. Scopes
 1. Complement tests
 1. Create REPL
+1. Basic debugging
 1. Some sort of basic documentation
 1. Run in Windows
 

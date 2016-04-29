@@ -585,6 +585,40 @@ static void zoe_variable_set()
     zequals("let a = &{ hello: 'world', abc: 42 }; a.abc", 42);
 }
 
+static void zoe_scopes()
+{
+    zequals("{ 4 }", 4);
+    zequals("{ 4; 5 }", 5);
+    zequals("{ 4; 5; }", 5);
+    zequals("{ 4\n 5 }", 5);
+    zequals("{ 4; { 5; } }", 5);
+    zequals("{ 4; { 5; }; }", 5);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4; { 5; { 6; 7 } } }", 7);
+    zequals("{ 4 }; 5", 5);
+    zequals("{ 4\n { 5; { 6; 7; } } }; 8", 8);
+    zequals("{ \n 4 \n }\n 5", 5);
+
+    zequals("let a = 42; { let a = 12 }; a", 42);
+    zequals("let a = 4; { 4 }; a", 4);
+    zequals("let a = 4; { let a=5; a }", 5);
+    zequals("let a = 4; { let a=5; }; a", 4);
+    zequals("let [a, b] = [4, 6]; { let a=5; }; b", 6);
+    zequals("let a = 4; { let a=5; { let a=6 }; a }", 5);
+    zequals("let a = 4; { let a=5; { let a=6 } }; a", 4);
+    zequals("let a = 4; { let a=5 } ; { let a=6 }; a", 4);
+    zequals("let a = 4; { let a=5 } ; { let a=6; a }", 6);
+    zequals("let a = 4; { let a=5 } ; { let b=6; a }", 4);
+    zthrows("{ let a=4 }; a");
+
+    zequals("let mut a = 4; { let a=5 } ; { let b=6; a }", 4);
+    zequals("let mut a = 4; { a=5 } ; { let b=6; a }", 5);
+
+    zequals("let mut a = 4; { let a = 5 }; a", 4);
+    zequals("let mut a = 4; { let a = 5; a }", 5);
+}
+
 // }}}
 
 // {{{ ARRAYS & TABLES
@@ -642,13 +676,6 @@ static void zoe_table_proto()
     zequals("let x = &{a: 42}; let b = &[x]{}; x.a = 12; x.a", 12);
 }
 
-static void zoe_scopes()
-{
-    //zequals("$ENV.a = 42; { $ENV.a = 12 }; $ENV.a", 42);
-}
-
-// }}}
-
 // }}}
 
 static void prepare_tests()
@@ -683,6 +710,7 @@ static void prepare_tests()
     run_test(zoe_variables);
     run_test(zoe_multivariables);
     run_test(zoe_variable_set);
+    run_test(zoe_scopes);
 
     // arrays & tables
     run_test(zoe_array_init);
@@ -690,9 +718,6 @@ static void prepare_tests()
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
     run_test(zoe_table_proto);
-    /*
-    run_test(zoe_scopes);
-    */
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
