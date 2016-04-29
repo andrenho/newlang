@@ -1,7 +1,7 @@
 #
 # prelude
 #
-AC_INIT([zoe], [0.3.0], [https://github.com/andrenho/zoe/issues])
+AC_INIT([zoe], [0.3.11-alpha], [https://github.com/andrenho/zoe/issues])
 AC_CONFIG_SRCDIR([exe/main.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIRS([m4])

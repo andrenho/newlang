@@ -611,44 +611,42 @@ static void zoe_table_init()
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
 }
 
-/*
 static void zoe_table_get_set()
 {
-    zinspect("$ENV", "&{}");
-    zequals("$ENV.hello = 42", 42);
-    zinspect("$ENV.hello = 42; $ENV", "&{hello: 42}");
-    zequals("$ENV.hello = 42; $ENV.hello", 42);
-    zequals("$ENV['hello'] = 42; $ENV['hello']", 42);
-    zinspect("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a", "&{b: 42}");
-    zequals("$ENV.a = &{}; $ENV.a.b = 42; $ENV.a.b", 42);
+    zinspect("let a = &{}; a", "&{}");
+    zequals("let mut a = &{}; a.hello = 42", 42);
+    zinspect("let a = &{hello: 42}; a", "&{hello: 42}");
+    zequals("let a = &{hello: 42}; a.hello", 42);
+    zequals("let mut a = &{}; a['hello'] = 42; a['hello']", 42);
+    zinspect("let mut a = &{}; a.b = 42; a", "&{b: 42}");
+    zequals("let mut a = &{}; a.b = 42; a.b", 42);
 }
 
 static void zoe_table_pub_mut()
 {
-    zequals("$ENV.x = &{a: 42}; $ENV.x.a", 42);
-    zequals("$ENV.x = &{a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
-    zthrows("$ENV.x = %{a: 42}; $ENV.x.a = 12");
-    zthrows("$ENV.x = %{pub a: 42}; $ENV.x.a = 12; $ENV.x.a");   // public but not mutable
-    zthrows("$ENV.x = %{mut a: 42}; $ENV.x.a = 12; $ENV.x.a");   // mutable but not public
-    zthrows("$ENV.x = %{a: 42}; $ENV.x.a");
-    zequals("$ENV.x = %{pub a: 42}; $ENV.x.a", 42);
-    zequals("$ENV.x = %{pub mut a: 42}; $ENV.x.a = 12; $ENV.x.a", 12);
+    zequals("let mut x = &{a: 42}; x.a", 42);
+    zequals("let mut x = &{a: 42}; x.a = 12; x.a", 12);
+    zthrows("let mut x = %{a: 42}; x.a = 12");
+    zthrows("let mut x = %{pub a: 42}; x.a = 12; x.a");   // public but not mutable
+    zthrows("let mut x = %{mut a: 42}; x.a = 12; x.a");   // mutable but not public
+    zthrows("let mut x = %{a: 42}; x.a");
+    zequals("let mut x = %{pub a: 42}; x.a", 42);
+    zequals("let mut x = %{pub mut a: 42}; x.a = 12; x.a", 12);
 }
 
 static void zoe_table_proto()
 {
-    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.b.a", 42);
-    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.a = 12; $ENV.b.a", 12);
-    zequals("$ENV.a = 42; $ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.a", 12);
-    zequals("$ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.b.a", 12);
-    zthrows("$ENV.b = &[$ENV] {}; $ENV.b.a = 12; $ENV.a");
+    zequals("let x = &{a: 42}; let b = &[x]{}; b.a", 42);
+    zequals("let x = &{a: 42}; let b = &[x]{}; b.a = 12; b.a", 12);
+    zequals("let x = &{a: 42}; let b = &[x]{}; x.a = 12; b.a", 12);
+    zequals("let x = &{a: 42}; let b = &[x]{}; x.a = 12; x.a", 12);
 }
 
 static void zoe_scopes()
 {
     //zequals("$ENV.a = 42; { $ENV.a = 12 }; $ENV.a", 42);
 }
-*/
+
 // }}}
 
 // }}}
@@ -687,12 +685,12 @@ static void prepare_tests()
     run_test(zoe_variable_set);
 
     // arrays & tables
-    /*
     run_test(zoe_array_init);
     run_test(zoe_table_init);
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
     run_test(zoe_table_proto);
+    /*
     run_test(zoe_scopes);
     */
 }

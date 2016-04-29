@@ -72,7 +72,7 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attri
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL SEP ENV _MUT _PUB _DEL LET
+%token NIL SEP _MUT _PUB _DEL LET
 
 %type <boolean> mut_opt
 %type <str> string strings
@@ -111,7 +111,6 @@ exp: literal_exp
    | var_init
    | var_assign
    | IDENTIFIER          { b.Add(GVAR, b.GetVariableIndex(*$1, nullptr)); delete $1; }
-   | ENV                 { b.Add(PENV); }
    | set_op
    | get_op
    | '{' { b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); }
@@ -138,17 +137,51 @@ strings: string             { $$ = new string(*$1); delete $1; }
 //
 // VARIABLE ASSIGNMENT
 //
-var_init: LET mut_opt IDENTIFIER               { b.CreateVariable(*$3, $mut_opt); b.Add(PNIL); b.Add(CVAR); delete $3; }
-        | LET mut_opt IDENTIFIER '=' exp       { b.CreateVariable(*$3, $mut_opt); b.Add(CVAR); delete $3; }
-        | LET mut_opt '[' varnames ']' '=' exp { add_variables(b, *$varnames, $mut_opt); delete $varnames; }
+var_init: LET mut_opt IDENTIFIER {
+                string s = *$3; delete $3; 
+                try {
+                    b.CreateVariable(s, $mut_opt);
+                } catch(zoe_syntax_error const& e) {
+                    yyerror(&yylloc, scanner, b, e.what());
+                }
+                b.Add(PNIL); 
+                b.Add(CVAR); 
+            }
+        | LET mut_opt IDENTIFIER '=' exp { 
+                string s = *$3; delete $3; 
+                try {
+                    b.CreateVariable(s, $mut_opt);
+                } catch(zoe_syntax_error const& e) {
+                    yyerror(&yylloc, scanner, b, e.what());
+                }
+                b.Add(CVAR); 
+            }
+        | LET mut_opt '[' varnames ']' '=' exp { 
+                for(auto it = rbegin(*$varnames); it != rend(*$varnames); ++it) {
+                    try {
+                        b.CreateVariable(*it, $mut_opt);
+                    } catch(zoe_syntax_error const& e) {
+                        delete $varnames;
+                        yyerror(&yylloc, scanner, b, e.what());
+                    }
+                }
+                b.Add(CMVAR, static_cast<uint16_t>($varnames->size()));
+                delete $varnames;
+            }
         ;
 
 var_assign: IDENTIFIER '=' exp  { 
                 bool mut;
                 string s = *$1; delete $1;
-                uint32_t n = b.GetVariableIndex(s, &mut);
+                uint32_t n;
+                try {
+                    n = b.GetVariableIndex(s, &mut);
+                } catch(zoe_syntax_error const& e) {
+                    yyerror(&yylloc, scanner, b, e.what());
+                }
                 if(!mut) {
-                    throw zoe_syntax_error("Variable '" + s + "' is not mutable.");
+                    yyerror(&yylloc, scanner, b, ("Variable '" + s + "' is not mutable.").c_str());
+                    return 1;
                 }
                 b.Add(SVAR, n);
             }
@@ -242,15 +275,6 @@ static void add_number(Bytecode& b, double num)
     } else {
         b.Add(PNUM, num);
     }
-}
-
-
-static void add_variables(Bytecode& b, vector<string> const& names, bool mut)
-{
-    for(auto it = rbegin(names); it != rend(names); ++it) {
-        b.CreateVariable(*it, mut);
-    }
-    b.Add(CMVAR, static_cast<uint16_t>(names.size()));
 }
 
 

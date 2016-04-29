@@ -550,83 +550,83 @@ Development order
 
 ## Version 0.3.0
 
-a. ~~Create build and test environment~~
-a. ~~Create ZValue~~
-a. ~~Create bytecode generator~~
-a. ~~Create VM, stack, and basic execution~~
-a. ~~Create basic arrays/tables~~
-a. ~~Basic parsing~~
-a. ~~Expression inside strings~~
-a. ~~Getting/setting table key/values~~
-a. ~~Table initialization: mut and pub~~
-a. ~~Table prototypes~~
-a. ~~Value assignment, local variable assignment~~
-a. ~~Multiple assignment~~
-a. Scopes
-a. Complement tests
-a. Create REPL
-a. Some sort of basic documentation
-a. Run in Windows
+1. ~~Create build and test environment~~
+1. ~~Create ZValue~~
+1. ~~Create bytecode generator~~
+1. ~~Create VM, stack, and basic execution~~
+1. ~~Create basic arrays/tables~~
+1. ~~Basic parsing~~
+1. ~~Expression inside strings~~
+1. ~~Getting/setting table key/values~~
+1. ~~Table initialization: mut and pub~~
+1. ~~Table prototypes~~
+1. ~~Value assignment, local variable assignment~~
+1. ~~Multiple assignment~~
+1. Scopes
+1. Complement tests
+1. Create REPL
+1. Some sort of basic documentation
+1. Run in Windows
 
-## Version 0.3.1
+## Version 0.4.0
 
-a. Basic function calls
-a. Function calls with arguments
-a. Function calls with optional and named arguments
-a. Syntax for running function calls without ()
-a. Function calls with type checking
-a. Functions as arguments
-a. Function parameters passed as contants/mutable
-a. Nested functions
-a. Recursion + self
-a. Function as a table key
-a. this (@)
-a. Full constness
-a. Pure/impure functions
-a. Closures, upvalues
-a. Iterators
+1. Basic function calls
+1. Function calls with arguments
+1. Function calls with optional and named arguments
+1. Syntax for running function calls without ()
+1. Function calls with type checking
+1. Functions as arguments
+1. Function parameters passed as contants/mutable
+1. Nested functions
+1. Recursion + self
+1. Function as a table key
+1. this (@)
+1. Full constness
+1. Pure/impure functions
+1. Closures, upvalues
+1. Iterators
 
-## Version 0.3.2
+## Version 0.5.0
 
-a. Getting/setting array
-a. Metadata & operator syntax
-a. Table and array equality
-a. Delete from table
-a. Constructor/destructor
-a. Operator assignment
-a. Privacy
-a. Constness
-a. Abstract functions
+1. Getting/setting array
+1. Metadata & operator syntax
+1. Table and array equality
+1. Delete from table
+1. Constructor/destructor
+1. Operator assignment
+1. Privacy
+1. Constness
+1. Abstract functions
 
-## Version 0.3.3
+## Version 0.6.0
 
-a. Short circuit operators
-a. Control flow
-a. Matches
-a. Error management
-a. Parser locations
-a. Modules
-a. Partial interpretation (for REPL)
+1. Short circuit operators
+1. Control flow
+1. Matches
+1. Error management
+1. Parser locations
+1. Modules
+1. Partial interpretation (for REPL)
 
-## Version 0.3.4
+## Version 0.7.0
 
-a. Define standard library
-a. Write standard library
+1. Define standard library
+1. Write standard library
 
-## Version 0.3.5
+## Version 0.8.0
 
-a. Weak tables
-a. Tail calls
-a. Using external libraries
-a. Threads
-a. Unicode support
-a. Debugging
+1. Weak tables
+1. Tail calls
+1. Using external libraries
+1. Threads
+1. Unicode support
+1. Debugging
 
-## Version 0.3.6
+## Version 0.9.0
 
-a. Slices and negative subscripts
-a. Complete documentation
-a. ...
+1. Slices and negative subscripts
+1. Complete documentation
+1. ...
 
 
 Release checklist

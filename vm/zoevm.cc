@@ -13,19 +13,9 @@
 #include "vm/ztable.hh"
 
 ZoeVM::ZoeVM()
-    : _env(make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT)))
 {
     _stack.push_back(make_shared<ZNil>());
 }
-
-ZoeVM::~ZoeVM()
-{
-    /* At the end of execution, we clear $ENV. By doing that, we break the
-     * circular references and allow all shared_ptr<ZValue>s to be cleared
-     * as well, giving us a clean exit on valgrind. */
-    _env->Clear();
-}
-
 
 // {{{ STACK MANAGEMENT
 
@@ -179,11 +169,6 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 p += 3;
                 break;
 
-            case PENV:
-                Push(_env);
-                ++p;
-                break;
-
             case POP:
                 Pop();
                 ++p;
@@ -233,22 +218,13 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 p += 5;
                 break;
 
-            case PSHS: {
-                    auto new_env = make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT));
-                    _env->OpProto(new_env);
-                    _env = new_env;
-                }
+            case PSHS:
+                throw zoe_internal_error("Not implemented");
                 ++p;
                 break;
 
-            case POPS: {
-                    auto old_env = _env;
-                    if(!_env->Prototype()) {
-                        abort();
-                    }
-                    _env = static_pointer_cast<ZTable>(_env->Prototype());
-                    old_env->Clear();
-                }
+            case POPS:
+                throw zoe_internal_error("Not implemented");
                 ++p;
                 break;
 

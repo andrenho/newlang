@@ -87,8 +87,6 @@ SPACES       [ \t]+
 
 {FLOAT}         { yylval->number = strtod(remove_undersc(yytext), NULL); return NUMBER; }
 
-\$ENV           { return ENV; }
-
 true            { yylval->boolean = true; return BOOLEAN; }
 false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }

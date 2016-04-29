@@ -12,7 +12,6 @@ using namespace std;
 class ZoeVM {
 public:
     ZoeVM();
-    ~ZoeVM();
 
     // 
     // stack management
@@ -69,7 +68,6 @@ private:
 
     vector<shared_ptr<ZValue>> _stack = {};
     vector<shared_ptr<ZValue>> _vars = {};
-    shared_ptr<ZTable> _env;
 };
 
 #endif
