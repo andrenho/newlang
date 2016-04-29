@@ -500,10 +500,13 @@ The opcodes are:
 | `ptbx`   | `u16`      | -(n\*2)-1 +1 | Push a table with _n_ stacked pair of key/values, public and mutable |
 | `penv`   |            | +1           | Push $ENV into the stack                               |
 | `pop`    |            | -1           | Pop one item from the stack                            |
-| `jmp`    | `u32`      |              | Unconditionally branch (jump) to address               |
-| `bt`     | `u32`      | -1           | Branch to address if value in stack is true            |
 | `pshs`   |            |              | Push a new scope                                       |
 | `pops`   |            |              | Pop scope                                              |
+| `cvar`   | `u16`      |              | Create a new variable in the variable stack ($1 > 1 for multiple assignment ) |
+| `svar`   | `u32`      |              | Set variable $1                                        |
+| `gvar`   | `u32`      | +1           | Get variable $1 and put it in the stack                |
+| `jmp`    | `u64`      |              | Unconditionally branch (jump) to address               |
+| `bt`     | `u64`      | -1           | Branch to address if value in stack is true            |
 | `call`   | `u8`       | -n           | Call function at the top of the stack with _n_ parameters |
 | `umn`    |            | -1 +1        | Operator unary minus                                   |
 | `add`    |            | -2 +1        | Operator addition                                      |
@@ -555,14 +558,15 @@ Development order
 1. ~~Create basic arrays/tables~~
 1. ~~Basic parsing~~
 1. ~~Expression inside strings~~
-1. ~~$ENV and local variables~~
 1. ~~Getting/setting table key/values~~
 1. ~~Table initialization: mut and pub~~
 1. ~~Table prototypes~~
+1. ~~Value assignment, local variable assignment~~
+1. ~~Multiple assignment~~
 1. Scopes
-1. Some sort of basic documentation
+1. Complement tests
 1. Create REPL
-1. Parser locations
+1. Some sort of basic documentation
 1. Run in Windows
 
 ## Version 0.3.1
@@ -584,7 +588,6 @@ Development order
 
 ## Version 0.3.2
 
-1. Value assignment, local variable assignment
 1. Getting/setting array
 1. Metadata & operator syntax
 1. Table and array equality
@@ -601,6 +604,7 @@ Development order
 1. Control flow
 1. Matches
 1. Error management
+1. Parser locations
 1. Modules
 1. Partial interpretation (for REPL)
 

@@ -6,6 +6,8 @@
 #include <stdexcept>
 using namespace std;
 
+#include "vm/exceptions.hh"
+
 #define NO_ADDRESS (0xFFFFFFFF)
 
 // {{{ READ/GENERATE BYTECODE
@@ -75,7 +77,8 @@ Bytecode::Bytecode(string const& code)
 void Bytecode::Add(Opcode op)
 {
     if(op != PN8 && op != PNUM && op != PSTR && op != PARY && op != PTBL
-            && op != JMP && op != BT && op != CALL && op != SET) {
+            && op != JMP && op != BT && op != CALL && op != SET && op != CMVAR
+            && op != GVAR && op != SVAR) {
         _code.push_back(op);
     } else {
         throw invalid_argument("Parameter missing");
@@ -109,7 +112,7 @@ void Bytecode::Add(Opcode op, uint8_t value)
 void Bytecode::Add(Opcode op, uint16_t value)
 {
     _code.push_back(op);
-    if(op == PARY || op == PTBL || op == PTBX) {
+    if(op == PARY || op == PTBL || op == PTBX || op == CMVAR) {
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+2, back_inserter(_code));
     } else {
@@ -121,9 +124,9 @@ void Bytecode::Add(Opcode op, uint16_t value)
 void Bytecode::Add(Opcode op, uint32_t value)
 {
     _code.push_back(op);
-    if(op == PSTR || op == JMP || op == BT) {                       // NOLINT - bug in linter
+    if(op == PSTR || op == JMP || op == BT || op == GVAR || op == SVAR) {       // NOLINT - bug in linter
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
-        copy(bytes, bytes+4, back_inserter(_code));                 // NOLINT - bug in linter
+        copy(bytes, bytes+4, back_inserter(_code));                             // NOLINT - bug in linter
     } else {
         throw invalid_argument("Invalid integer parameter for this opcode");
     }
@@ -186,5 +189,35 @@ void Bytecode::AdjustLabels()
 }
 
 /// }}}
+
+// {{{ CREATE VARIABLE
+
+void Bytecode::CreateVariable(string const& name, bool mut)
+{
+    for(ssize_t i = (_vars.size() - 1); i >= _scopes.back(); --i) {
+        if(_vars[i].name == name) {
+            throw zoe_syntax_error("Variable '" + name + "' already exists.");
+        }
+    }
+    _vars.push_back({ name, mut });
+}
+
+uint32_t Bytecode::GetVariableIndex(string const& name, bool* mut)
+{
+    uint32_t i = static_cast<uint32_t>(_vars.size());
+    for(auto it = rbegin(_vars); it != rend(_vars); ++it) {
+        --i;
+        if(it->name == name) {
+            if(mut) {
+                *mut = it->mut;
+            }
+            return i;
+        }
+    }
+
+    throw zoe_syntax_error("Variable '" + name + "' not found.");
+}
+
+// }}}
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

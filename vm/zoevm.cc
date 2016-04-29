@@ -1,6 +1,5 @@
 #include "vm/zoevm.hh"
 
-#include <cassert>
 #include <list>
 #include <iostream>   // TODO
 #include <stdexcept>
@@ -33,7 +32,9 @@ ZoeVM::~ZoeVM()
 ssize_t ZoeVM::StackAbs(ssize_t pos) const
 {
     ssize_t i = (pos >= 0) ? pos : StackSize() + pos;
-    assert(i >= 0);
+    if(i < 0) {
+        throw zoe_internal_error("Stack underflow");
+    }
     return i;
 }
 
@@ -202,6 +203,36 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 ++p;
                 break;
 
+            case CVAR: 
+                _vars.push_back(GetCopy());
+                ++p;
+                break;
+
+            case CMVAR:
+                CreateVariables(b.GetCode<uint16_t>(p+1));
+                p += 3;
+                break;
+
+            case GVAR: {
+                    uint32_t n = b.GetCode<uint32_t>(p+1);
+                    if(n >= _vars.size()) {
+                        throw zoe_internal_error("Variable stack overflow.");
+                    }
+                    Push(_vars[n]);
+                }
+                p += 5;
+                break;
+
+            case SVAR: {
+                    uint32_t n = b.GetCode<uint32_t>(p+1);
+                    if(n >= _vars.size()) {
+                        throw zoe_internal_error("Variable stack overflow.");
+                    }
+                    _vars[n] = GetCopy();
+                }
+                p += 5;
+                break;
+
             case PSHS: {
                     auto new_env = make_shared<ZTable>(static_cast<TableConfig>(PUB|MUT));
                     _env->OpProto(new_env);
@@ -226,6 +257,22 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
         }
     }
 #pragma GCC diagnostic pop
+}
+
+// }}}
+
+// {{{ VARIABLES
+
+void ZoeVM::CreateVariables(uint16_t n)
+{
+    ZArray const* ary = GetPtr<ZArray>();
+    if(ary->Value().size() != n) {
+        throw zoe_runtime_error("Number of declared variables (" + to_string(ary->Value().size()) +
+                ") and array elements (" + to_string(n) + ")");
+    }
+    for(auto it = rbegin(ary->Value()); it != rend(ary->Value()); ++it) {
+        _vars.push_back(*it);
+    }
 }
 
 // }}}

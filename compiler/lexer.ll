@@ -94,6 +94,7 @@ false           { yylval->boolean = false; return BOOLEAN; }
 nil             { return NIL; }
 mut             { return _MUT; }
 pub             { return _PUB; }
+let             { return LET; }
 del             { return _DEL; }
 
 '                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }

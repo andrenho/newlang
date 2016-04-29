@@ -18,6 +18,7 @@
 
 #include <limits>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 #include "compiler/bytecode.hh"
@@ -29,6 +30,7 @@ using namespace std;
  * PROTOTYPES
  */
 static void add_number(Bytecode& b, double num);
+static void add_variables(Bytecode& b, vector<string> const& names, bool mut);
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attribute__((noreturn));
 
 %}
@@ -63,15 +65,18 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attri
     size_t       integer;
     uint8_t      u8;
     std::string* str;
+    std::vector<string>* vec;
     Label        label;
 }
 
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL SEP ENV _MUT _PUB _DEL
+%token NIL SEP ENV _MUT _PUB _DEL LET
 
+%type <boolean> mut_opt
 %type <str> string strings
+%type <vec> varnames
 %type <integer> array_items table_items table_items_x     /* $$ is a counter */
 %type <u8> properties                                     /* $$ is a TableConfig instance */
 
@@ -103,7 +108,10 @@ exps: exps SEP { b.Add(POP); } exp
 exp: literal_exp
    | array_init
    | table_init
-   | ENV                { b.Add(PENV); }
+   | var_init
+   | var_assign
+   | IDENTIFIER          { b.Add(GVAR, b.GetVariableIndex(*$1, nullptr)); delete $1; }
+   | ENV                 { b.Add(PENV); }
    | set_op
    | get_op
    | '{' { b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); }
@@ -126,6 +134,33 @@ string: STRING
 strings: string             { $$ = new string(*$1); delete $1; }
        | string strings     { $$ = new string(*$1 + *$2); delete $1; delete $2; }
        ;
+
+//
+// VARIABLE ASSIGNMENT
+//
+var_init: LET mut_opt IDENTIFIER               { b.CreateVariable(*$3, $mut_opt); b.Add(PNIL); b.Add(CVAR); delete $3; }
+        | LET mut_opt IDENTIFIER '=' exp       { b.CreateVariable(*$3, $mut_opt); b.Add(CVAR); delete $3; }
+        | LET mut_opt '[' varnames ']' '=' exp { add_variables(b, *$varnames, $mut_opt); delete $varnames; }
+        ;
+
+var_assign: IDENTIFIER '=' exp  { 
+                bool mut;
+                string s = *$1; delete $1;
+                uint32_t n = b.GetVariableIndex(s, &mut);
+                if(!mut) {
+                    throw zoe_syntax_error("Variable '" + s + "' is not mutable.");
+                }
+                b.Add(SVAR, n);
+            }
+          ;
+
+mut_opt: %empty  { $$ = false; }
+       | _MUT    { $$ = true;  }
+       ;
+
+varnames: IDENTIFIER                { $$ = new vector<string>({*$1}); delete $1; }
+        | varnames ',' IDENTIFIER   { $$->push_back(*$3); delete $3; }
+        ;
 
 // 
 // ARRAY INITIALIZATION
@@ -208,6 +243,16 @@ static void add_number(Bytecode& b, double num)
         b.Add(PNUM, num);
     }
 }
+
+
+static void add_variables(Bytecode& b, vector<string> const& names, bool mut)
+{
+    for(auto it = rbegin(names); it != rend(names); ++it) {
+        b.CreateVariable(*it, mut);
+    }
+    b.Add(CMVAR, static_cast<uint16_t>(names.size()));
+}
+
 
 int parse(Bytecode& b, string const& code)
 {

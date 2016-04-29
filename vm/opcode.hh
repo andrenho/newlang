@@ -13,7 +13,9 @@ using namespace std;
 #define OPCODE_TABLE                                                                \
     /* stack management */                                                          \
     X(PNIL), X(PBF), X(PBT), X(PN8), X(PNUM), X(PSTR), X(PARY), X(PTBL), X(PTBX),   \
-    X(PENV),  X(POP),                                                               \
+    X(PENV), X(POP),                                                                \
+    /* variables */                                                                 \
+    X(CVAR), X(CMVAR), X(SVAR), X(GVAR),                                            \
     /* branches */                                                                  \
     X(JMP), X(BT), X(CALL),                                                         \
     /* scopes */                                                                    \

@@ -52,6 +52,10 @@ public:
     void  SetLabel(Label const& lbl);
     void  AddLabel(Label const& lbl);
 
+    // variables
+    void     CreateVariable(string const& name, bool mut);
+    uint32_t GetVariableIndex(string const& name, bool* mut);
+
     // get information
     struct String {
         string   str;
@@ -64,6 +68,13 @@ private:
     vector<uint8_t>  _code = {};
     vector<String>   _strings = {};
     vector<LabelRef> _labels = {};
+
+    struct Variable {
+        string name;
+        bool   mut;
+    };
+    vector<Variable> _vars = {};
+    vector<uint32_t> _scopes = { 0 };
 
     void AdjustLabels();
 

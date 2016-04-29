@@ -14,6 +14,11 @@ public:
     using runtime_error::runtime_error;
 };
 
+class zoe_internal_error : public runtime_error {
+public:
+    using runtime_error::runtime_error;
+};
+
 #endif
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

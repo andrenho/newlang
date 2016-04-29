@@ -130,11 +130,16 @@ static void minvalid_syntax(const char* code)
 
 template<typename S, typename T> static void zequals(S const& code, T const& expected)
 {
-    ZoeVM Z;
-    Bytecode b(code);
-    Z.ExecuteBytecode(b.GenerateZB());
-    _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
-    _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
+    try {
+        ZoeVM Z;
+        Bytecode b(code);
+        Z.ExecuteBytecode(b.GenerateZB());
+        _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
+        _mequals<T>(string(code), [&]() { return Z.CopyCppValue<T>(); }, expected);
+    } catch(exception const& e) {
+        ++tests_run;
+        cout << "not ok " << tests_run << " - " << code << " (exception thrown: " << e.what() << ")\n";
+    }
 }
 template<typename S> static void zequals(S const& code, const char* expected)
 {
@@ -142,10 +147,15 @@ template<typename S> static void zequals(S const& code, const char* expected)
 }
 template<typename S> static void zequals(S const& code, nullptr_t)
 {
-    ZoeVM Z;
-    Bytecode b(code);
-    Z.ExecuteBytecode(b.GenerateZB());
-    _mequals<ZType>(string(code), [&]() { return Z.GetType(-1); }, NIL);
+    try {
+        ZoeVM Z;
+        Bytecode b(code);
+        Z.ExecuteBytecode(b.GenerateZB());
+        _mequals<ZType>(string(code), [&]() { return Z.GetType(-1); }, NIL);
+    } catch(exception const& e) {
+        ++tests_run;
+        cout << "not ok " << tests_run << " - " << code << " (exception thrown: " << e.what() << ")\n";
+    }
 }
 
 
@@ -159,17 +169,26 @@ static void zthrows(const char* code)
         cout << "not ok " << tests_run << " - " << code << " (zoe exception not thrown)\n";
     } catch(zoe_runtime_error const& e) {
         cout << "ok " << tests_run << " - " << code << " (zoe exception thrown: " << e.what() << ")\n";
+    } catch(zoe_syntax_error const& e) {
+        cout << "ok " << tests_run << " - " << code << " (zoe exception thrown: " << e.what() << ")\n";
+    } catch(exception const& e) {
+        cout << "not ok " << tests_run << " - " << code << " (non-zoe exception: " << e.what() << ")\n";
     }
 }
 
 
 static void zinspect(const char* code, const char* expected)
 {
-    ZoeVM Z;
-    Bytecode b(code);
-    Z.ExecuteBytecode(b.GenerateZB());
-    _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
-    _mequals<string>(string(code), [&]() { return Z.GetPtr(-1)->Inspect(); }, expected);
+    try {
+        ZoeVM Z;
+        Bytecode b(code);
+        Z.ExecuteBytecode(b.GenerateZB());
+        _mequals<ssize_t>(string(code) + " -> StackSize() ", [&]() { return Z.StackSize(); }, 1);
+        _mequals<string>(string(code), [&]() { return Z.GetPtr(-1)->Inspect(); }, expected);
+    } catch(exception const& e) {
+        ++tests_run;
+        cout << "not ok " << tests_run << " - " << code << " (exception thrown: " << e.what() << ")\n";
+    }
 }
 
 
@@ -521,6 +540,55 @@ static void zoe_inspection()
     zinspect("'hello'", "'hello'");
 }
 
+// }}}
+
+// {{{ ZOE VARIABLES 
+
+static void zoe_variables()
+{
+    zequals("let a = 4", 4);
+    zequals("let a = 4; a", 4);
+    zequals("let a = 4; let b = 25; a", 4);
+    zequals("let a = 4; let b = 25; b", 25);
+    zequals("let a = let b = 25; a", 25);
+    zequals("let a = let b = 25; b", 25);
+    zequals("let a = 25; let b = a; b", 25);
+    zequals("let a = 25; let b = a; let c = b; c", 25);
+    zthrows("let a = 4; let a = 5; a");
+    zequals("let a; a", nullptr);
+}
+
+static void zoe_multivariables()
+{
+    zequals("let [a, b] = [3, 4]; a", 3);
+    zequals("let [a, b, c] = [3, 4, 5]; b", 4);
+    zthrows("let [a, b] = [2, 4, 5]");
+    zthrows("let [a, a] = [3, 4]");
+}
+
+static void zoe_variable_set()
+{
+    zequals("let mut a; a = 4; a", 4);
+    zthrows("let a = 4; a = 5");  // changing a constant
+    zthrows("let a; b = 4");      // invalid variable
+    zthrows("a = 4");             // invalid variable
+    
+    zequals("let mut a = 4; a = 5; a", 5);
+    zequals("let mut a = 4; let mut b = a; a = 5; b", 4);
+
+    zequals("let a = true; a", true);
+    zequals("let a = 'abc'; a", "abc");
+
+    zequals("let a = &{ hello: 'world', abc: 42 }; a['hello']", "world");
+    zequals("let a = &{ hello: 'world', abc: 42 }; a.hello", "world");
+    zequals("let a = &{ hello: &{ test: 'xxx' }, abc: 42 }; a.hello.test", "xxx");
+    zequals("let a = &{ hello: 'world', abc: 42 }; a.abc", 42);
+}
+
+// }}}
+
+// {{{ ARRAYS & TABLES
+
 static void zoe_array_init()
 {
     zinspect("[]", "[]");
@@ -543,6 +611,7 @@ static void zoe_table_init()
     zinspect("&{hello: 'world'}", "&{hello: 'world'}");
 }
 
+/*
 static void zoe_table_get_set()
 {
     zinspect("$ENV", "&{}");
@@ -577,8 +646,10 @@ static void zoe_table_proto()
 
 static void zoe_scopes()
 {
-    zequals("$ENV.a = 42; { $ENV.a = 12 }; $ENV.a", 42);
+    //zequals("$ENV.a = 42; { $ENV.a = 12 }; $ENV.a", 42);
 }
+*/
+// }}}
 
 // }}}
 
@@ -609,12 +680,21 @@ static void prepare_tests()
     run_test(zoe_invalid);
     run_test(zoe_literals);
     run_test(zoe_inspection);
+
+    // variables
+    run_test(zoe_variables);
+    run_test(zoe_multivariables);
+    run_test(zoe_variable_set);
+
+    // arrays & tables
+    /*
     run_test(zoe_array_init);
     run_test(zoe_table_init);
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
     run_test(zoe_table_proto);
     run_test(zoe_scopes);
+    */
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

@@ -26,7 +26,7 @@ public:
     void               Remove(ssize_t pos);
     ZValue const*      GetPtr(ssize_t pos=-1) const;
     shared_ptr<ZValue> GetCopy(ssize_t pos=-1) const;
-    // {{{ stack templates: Pop<T>(), GetPtr<T>(), GetCopy<T>()
+    // {{{ stack templates: Pop<T>(), GetPtr<T>(), GetCopy<T>(), T CopyCppValue()
     template<typename T> shared_ptr<T> Pop() {
         auto ptr = Pop();
         ValidateType<T>(ptr->Type());
@@ -65,7 +65,10 @@ public:
     void ExecuteBytecode(vector<uint8_t> const& bytecode);
 
 private:
+    void CreateVariables(uint16_t n);
+
     vector<shared_ptr<ZValue>> _stack = {};
+    vector<shared_ptr<ZValue>> _vars = {};
     shared_ptr<ZTable> _env;
 };
 
