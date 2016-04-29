@@ -532,12 +532,43 @@ static void zoe_literals()
     zequals("'he${'llo'}'", "hello");
 }
 
+static void zoe_strings()
+{
+    zequals("'abc'", "abc");
+    zequals("'a\\nb'", "a\nb");
+    zequals("'a\\x41b'", "aAb");
+    zequals("'a\\x41b'", "aAb");
+    zequals("'a\nf'", "a\nf");   // multiline string
+    zequals("'a' 'b' 'cd'", "abcd");
+    zequals("'ab$e'", "ab$e");
+    zequals("'ab$'", "ab$");
+    zequals("'ab${'cd'}ef'", "abcdef");
+    zequals("'ab${'cd'}ef'\n", "abcdef");
+    zequals("'ab${'cd' 'xx'}ef'", "abcdxxef");
+}
+
 static void zoe_inspection()
 {
     zinspect("3", "3");
     zinspect("3.14", "3.14");
     zinspect("true", "true");
     zinspect("'hello'", "'hello'");
+}
+
+// }}}
+
+// {{{ COMMENTS
+
+static void comments()
+{
+    zequals("'a' 'b' /* test */", "ab");
+    zequals("/* test */ 'a' 'b'", "ab");
+    zequals("'a' /* test */ 'b'", "ab");
+    zequals("'a' /* t\ne\nst */ 'b'", "ab");
+    zequals("// test\n'a' 'b'", "ab");
+    zequals("'a' 'b'//test\n", "ab");
+    zequals("'a' /* a /* b */ */ 'b'", "ab");  // nested comments
+    zequals("'a' /* /* / */ */ 'b'", "ab");  // nested comments
 }
 
 // }}}
@@ -654,6 +685,14 @@ static void zoe_table_get_set()
     zequals("let mut a = &{}; a['hello'] = 42; a['hello']", 42);
     zinspect("let mut a = &{}; a.b = 42; a", "&{b: 42}");
     zequals("let mut a = &{}; a.b = 42; a.b", 42);
+
+    zequals("&{[2]: 3}[2]", 3);
+    zequals("&{hello: 'world', a: 42}['hello']", "world");
+    zequals("&{hello: 'world', a: 42}['hello']", "world");
+    zequals("&{hello: 'world', a: 42}.hello", "world");
+    zequals("&{hello: 'world', a: 42}.a", 42);
+    zequals("&{hello: &{world: 42}}.hello.world", 42);
+    zequals("&{hello: &{world: 42}}['hello']['world']", 42);
 }
 
 static void zoe_table_pub_mut()
@@ -666,6 +705,11 @@ static void zoe_table_pub_mut()
     zthrows("let mut x = %{a: 42}; x.a");
     zequals("let mut x = %{pub a: 42}; x.a", 42);
     zequals("let mut x = %{pub mut a: 42}; x.a = 12; x.a", 12);
+
+    zequals("let mut a = &{ hello: 'world' }; a['hello'] = 42; a['hello']", 42);
+    zequals("let mut a = &{ hello: 'world' }; a.hello = 42; a.hello", 42);
+    zequals("let mut a = &{ hello: 'world' }; a.test = 42; a.hello", "world");
+    zequals("let mut a = &{ hello: 'world' }; a.test = 42; a.test", 42);
 }
 
 static void zoe_table_proto()
@@ -704,7 +748,11 @@ static void prepare_tests()
     // execution
     run_test(zoe_invalid);
     run_test(zoe_literals);
+    run_test(zoe_strings);
     run_test(zoe_inspection);
+
+    // comments
+    run_test(comments);
 
     // variables
     run_test(zoe_variables);
