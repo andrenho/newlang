@@ -78,19 +78,17 @@ Bytecode::Bytecode(string const& code)
 
 void Bytecode::Add(Opcode op)
 {
-    if(op != PN8 && op != PNUM && op != PSTR && op != PARY && op != PTBL
-            && op != JMP && op != BT && op != CALL && op != SET && op != CMVAR
-            && op != GVAR && op != SVAR) {
+    if(opcode_pars[op] == '0') {
         _code.push_back(op);
     } else {
-        throw invalid_argument("Parameter missing");
+        throw invalid_argument("Parameter missing for opcode " + opcode_names[op]);
     }
 }
 
 
 void Bytecode::Add(Opcode op, double value)
 {
-    if(op == PNUM) {
+    if(opcode_pars[op] == 'd') {
         _code.push_back(op);
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+8, back_inserter(_code));
@@ -103,7 +101,7 @@ void Bytecode::Add(Opcode op, double value)
 void Bytecode::Add(Opcode op, uint8_t value)
 {
     _code.push_back(op);
-    if(op == PN8 || op == CALL || op == SET) {
+    if(opcode_pars[op] == '1') {
         _code.push_back(value);
     } else {
         throw invalid_argument("Invalid integer parameter for this opcode");
@@ -114,7 +112,7 @@ void Bytecode::Add(Opcode op, uint8_t value)
 void Bytecode::Add(Opcode op, uint16_t value)
 {
     _code.push_back(op);
-    if(op == PARY || op == PTBL || op == PTBX || op == CMVAR) {
+    if(opcode_pars[op] == '2') {
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+2, back_inserter(_code));
     } else {
@@ -126,7 +124,7 @@ void Bytecode::Add(Opcode op, uint16_t value)
 void Bytecode::Add(Opcode op, uint32_t value)
 {
     _code.push_back(op);
-    if(op == PSTR || op == JMP || op == BT || op == GVAR || op == SVAR) {       // NOLINT - bug in linter
+    if(opcode_pars[op] == '4') {
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+4, back_inserter(_code));                             // NOLINT - bug in linter
     } else {
@@ -137,7 +135,7 @@ void Bytecode::Add(Opcode op, uint32_t value)
 
 void Bytecode::Add(Opcode op, string const& s)
 {
-    if(op == PSTR) {
+    if(opcode_pars[op] == 's') {
         size_t sz = _strings.size();
         _strings.push_back({ s, hash<string>()(s) });
         _code.push_back(op);
@@ -260,8 +258,43 @@ string Bytecode::Disassemble() const
 
 string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
 {
-    *sz = 1;
-    return "xxx";   // TODO
+    auto n = GetCode<uint8_t>(pos);
+    stringstream ss;
+    for(auto c: opcode_names[n]) {
+        ss << static_cast<char>(tolower(c));
+    }
+    ss << string(8 - opcode_names[n].size(), ' ');
+    ss << setfill('0') << hex << uppercase;
+    switch(opcode_pars[n]) {
+        case '0':
+            *sz = 1;
+            break;
+        case '1':
+            *sz = 2;
+            ss << static_cast<int>(GetCode<uint8_t>(pos+1));
+            break;
+        case '2':
+            *sz = 3;
+            ss << static_cast<int>(GetCode<uint16_t>(pos+1));
+            break;
+        case '4':
+            *sz = 5;
+            ss << static_cast<int>(GetCode<uint32_t>(pos+1));
+            break;
+        case 'd':
+            *sz = 9;
+            ss << (GetCode<double>(pos+1));
+            break;
+        case 's':
+            *sz = 5;
+            {
+                String s = _strings.at(GetCode<uint32_t>(pos+1));
+                ss << "'" << s.str << "'";
+            }
+            break;
+    }
+
+    return ss.str();
 }
 
 

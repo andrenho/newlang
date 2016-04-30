@@ -12,27 +12,35 @@ using namespace std;
 
 #define OPCODE_TABLE                                                                \
     /* stack management */                                                          \
-    X(PNIL), X(PBF), X(PBT), X(PN8), X(PNUM), X(PSTR), X(PARY), X(PTBL), X(PTBX),   \
-    X(POP),                                                                         \
+    X(PNIL, 0), X(PBF, 0), X(PBT, 0), X(PN8, 1), X(PNUM, d), X(PSTR, s), X(PARY, 2),\
+    X(PTBL, 2), X(PTBX, 2),                                                         \
+    X(POP, 0),                                                                      \
     /* variables */                                                                 \
-    X(CVAR), X(CMVAR), X(SVAR), X(GVAR),                                            \
+    X(CVAR, 0), X(CMVAR, 2), X(SVAR, 4), X(GVAR, 4),                                \
     /* branches */                                                                  \
-    X(JMP), X(BT), X(CALL),                                                         \
+    X(JMP, 4), X(BT, 4), X(CALL, 1),                                                \
     /* scopes */                                                                    \
-    X(PSHS), X(POPS),                                                               \
+    X(PSHS, 0), X(POPS, 0),                                                         \
     /* operators */                                                                 \
-    X(UNM), X(ADD), X(SUB), X(MUL), X(DIV), X(IDIV), X(MOD), X(POW), X(SHL),        \
-    X(SHR), X(BNOT), X(AND), X(OR), X(XOR), X(NOT), X(EQ), X(PART), X(LT), X(LTE),  \
-    X(LEN), X(GET), X(SET), X(DEL), X(INSP), X(PTR), X(ISNIL)
+    X(UNM, 0), X(ADD, 0), X(SUB, 0), X(MUL, 0), X(DIV, 0), X(IDIV, 0), X(MOD, 0),   \
+    X(POW, 0), X(SHL, 0), X(SHR, 0), X(BNOT, 0), X(AND, 0), X(OR, 0), X(XOR, 0),    \
+    X(NOT, 0), X(EQ, 0), X(PART, 0), X(LT, 0), X(LTE, 0), X(LEN, 0), X(GET, 0),     \
+    X(SET, 1), X(DEL, 0), X(INSP, 0), X(PTR, 0), X(ISNIL, 0)
 
-#define X(a) a
+#define X(a, b) a
 enum Opcode : uint8_t {
     OPCODE_TABLE
 };
 #undef X
 
-#define X(a) #a
+#define X(a, b) #a
 const vector<string> opcode_names = {
+    OPCODE_TABLE
+};
+#undef X
+
+#define X(a, b) ((#b)[0])
+const char opcode_pars[] = {
     OPCODE_TABLE
 };
 #undef X
