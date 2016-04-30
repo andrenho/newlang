@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 using namespace std;
 
@@ -233,6 +235,35 @@ void Bytecode::PopScope()
     assert(!_scopes.empty());
     _vars.erase(begin(_vars) + last, end(_vars));
 }
+
+// }}}
+
+// {{{ DISASSEMBLER
+
+
+string Bytecode::Disassemble() const
+{
+    stringstream ss;
+    ss << setfill('0') << hex << uppercase;
+
+    size_t pos = 0;
+    while(pos < _code.size()) {
+        uint8_t sz;
+        string op = DisassembleOpcode(pos, &sz);
+        ss << setw(8) << pos << ":   " << op << "\n";
+        pos += sz;
+    }
+
+    return ss.str();
+}
+
+
+string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
+{
+    *sz = 1;
+    return "xxx";   // TODO
+}
+
 
 // }}}
 

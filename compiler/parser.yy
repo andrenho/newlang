@@ -18,10 +18,8 @@
 
 #include <limits>
 #include <iostream>
-#include <vector>
 using namespace std;
 
-#include "compiler/bytecode.hh"
 #include "compiler/parser.hh"
 #include "compiler/lexer.hh"
 #include "vm/exceptions.hh"
@@ -38,6 +36,9 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attri
 /* make the perser reentrant */
 %define api.pure full
 %locations
+
+/* create debugging information *
+%define parse.trace true
 
 /* since we are operating reentrant, we need to pass the scanner state around */
 %param { void* scanner }
@@ -59,6 +60,13 @@ void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attri
 /*
  * DATA STRUCTURE
  */
+%code requires {
+#include <vector>
+#include <string>
+using namespace std;
+#include "compiler/bytecode.hh"
+}
+
 %union {
     double       number;
     bool         boolean;

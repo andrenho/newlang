@@ -63,6 +63,11 @@ public:
     //
     void ExecuteBytecode(vector<uint8_t> const& bytecode);
 
+    // 
+    // debugging
+    //
+    bool Tracer = false;
+
 private:
     void CreateVariables(uint16_t n);
 

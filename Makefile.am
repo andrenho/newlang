@@ -20,8 +20,11 @@ libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = zoe
-zoe_SOURCES = exe/main.cc $(libzoe_la_SOURCES)
-#zoe_CXXFLAGS = $(AM_CXXFLAGS)
+zoe_SOURCES = exe/main.cc 			\
+	      exe/options.hh exe/options.cc	\
+	      exe/repl.hh exe/repl.cc		\
+	      $(libzoe_la_SOURCES)
+#zoe_CXXFLAGS = 
 
 EXTRA_DIST = build/zoe.supp
 
@@ -45,7 +48,7 @@ endif
 if CLANG_TIDY
 lint: 
 	clang-tidy $(filter-out compiler/lexer.ll compiler/lexer.hh compiler/parser.yy, $(zoe_SOURCES)) tests/tests.cc \
-		"-checks=*,-google-build-using-namespace,-google-readability-todo" -- -I. --std=c++14
+		"-checks=*,-google-build-using-namespace,-google-readability-todo" -- -I. --std=c++14 -DVERSION=\"xxx\"
 endif
 
 if COV
@@ -59,8 +62,11 @@ VALGRIND_SUPPRESSIONS_FILES = build/zoe.supp
 check-leaks: check_zoe
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./check_zoe
 
-gen-suppressions: check_zoe
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./check_zoe
+check-leaks-zoe: zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=build/zoe.supp ./zoe
+
+gen-suppressions: zoe
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-limit=no --gen-suppressions=all --log-file=build/zoe.supp ./zoe
 	sed -i -e '/^==.*$$/d' build/zoe.supp
 
 .PHONY: cloc cpplint coverage
@@ -76,11 +82,11 @@ DISTCLEANFILES = zoe-*.tar.*
 #
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CXXFLAGS = 
+AM_CXXFLAGS = -DVERSION=\"$(VERSION)\"
 AM_LDFLAGS = -lm
 
 AM_LFLAGS = --header-file=../compiler/lexer.hh    # this hack is necessary because, by default, yylwrap build the header file in the temporary aux directory
-AM_YFLAGS = -d
+AM_YFLAGS = -d --debug
 BUILT_SOURCES = compiler/lexer.hh compiler/parser.hh
 
 compiler/lexer.hh: compiler/lexer.ll
