@@ -6,48 +6,45 @@ using namespace std;
 
 #ifdef DEBUG
 #include "compiler/parser.hh"
-#include "compiler/lexer.hh"
 #endif
 
 Options::Options(int argc, char* argv[])
 {
-    mode = OperationMode::REPL;
-    
     //
     // load options using getopt_long(3)
     //
     while(1) {
         static struct option const long_options[] = {
-#ifdef DEBUG
             // these options are only avaliable when compiled in debugging mode
-            { "trace",            no_argument, nullptr, 'T' },
-            { "debug-bison",      no_argument, nullptr, 'B' },
-            { "repl-disassemble", no_argument, nullptr, 'D' },
+            { "trace",          no_argument, nullptr, 'T' },
+#ifdef DEBUG
+            { "debug-bison",    no_argument, nullptr, 'B' },
 #endif
-            { "help",             no_argument, nullptr, 'h' },
-            { "version",          no_argument, nullptr, 'v' },
+            { "disassemble",    no_argument, nullptr, 'D' },
+            { "help",           no_argument, nullptr, 'h' },
+            { "version",        no_argument, nullptr, 'v' },
             { nullptr, 0, nullptr, 0 },
         };
 
         int opt_idx = 0;
-        static const char* opts = "hv"
+        static const char* opts = "hvTD"
 #ifdef DEBUG
-            "TBD"
+        "B"
 #endif
         ;
 
         switch(getopt_long(argc, argv, opts, long_options, &opt_idx)) {
-#ifdef DEBUG
             case 'T':
                 trace = true;
                 break;
+#ifdef DEBUG
             case 'B':
                 yydebug = 1;
                 break;
-            case 'D':
-                repl_disassemble = true;
-                break;
 #endif
+            case 'D':
+                disassemble = true;
+                break;
             case 'v':
                 cout << "zoe " VERSION " - a programming language.\n";
                 cout << "Avaliable under the LGPLv3 license. See COPYING file.\n";
@@ -70,8 +67,10 @@ Options::Options(int argc, char* argv[])
     }
 done:
     if(optind < argc) {
-        cerr << "Running scripts is still not supported.\n";
-        abort();
+        mode = OperationMode::NONINTERACTIVE;
+        while(optind < argc) {
+            scripts_filename.push_back(argv[optind++]);
+        }
     }
 }
 
@@ -81,12 +80,12 @@ void Options::PrintHelp(ostream& ss, int status) const
     ss << "Usage: zoe [OPTION]... [SCRIPT [ARGS]...]\n";
     ss << "Avaliable options are:\n";
 #ifdef DEBUG
-    ss << "   -B, --debug-bison         activate BISON debugger\n";
-    ss << "   -D, --repl-disassemble    disassemble when using REPL\n";
-    ss << "   -T, --trace               trace assembly code execution\n";
+    ss << "   -B, --debug-bison     activate BISON debugger\n";
 #endif
-    ss << "   -h, --help                display this help and exit\n";
-    ss << "   -v, --version             show version and exit\n";
+    ss << "   -D, --disassemble     disassemble when using REPL\n";
+    ss << "   -T, --trace           trace assembly code execution\n";
+    ss << "   -h, --help            display this help and exit\n";
+    ss << "   -v, --version         show version and exit\n";
     exit(status);
 }
 

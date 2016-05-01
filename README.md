@@ -566,8 +566,6 @@ Development order
 1. ~~Complement tests~~
 1. ~~Create REPL~~
 1. ~~Basic debugging~~
-1. Some sort of basic documentation
-1. Run in Windows
 
 ## Version 0.4.0
 
@@ -586,6 +584,8 @@ Development order
 1. Pure/impure functions
 1. Closures, upvalues
 1. Iterators
+1. Some sort of basic documentation
+1. Run in Windows
 
 ## Version 0.5.0
 

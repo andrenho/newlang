@@ -2,18 +2,22 @@
 #define EXE_OPTIONS_HH_
 
 #include <ostream>
+#include <string>
+#include <vector>
 using namespace std;
 
 class Options {
 public:
     Options(int argc, char* argv[]);
 
-    enum OperationMode { REPL };
+    enum OperationMode { REPL, NONINTERACTIVE };
     OperationMode mode = OperationMode::REPL;
 
-    bool repl_disassemble = false;
+    bool disassemble = false;
     bool trace = false;
     bool debug_bison = false;
+
+    vector<string> scripts_filename = {};
 
 private:
     [[noreturn]] void PrintHelp(ostream& ss, int status) const;

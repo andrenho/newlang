@@ -1,5 +1,7 @@
 #include "exe/options.hh"
-#include "exe/repl.hh"
+#include "exe/exec.hh"
+
+#include <cstdlib>
 
 int main(int argc, char* argv[])
 {
@@ -7,8 +9,13 @@ int main(int argc, char* argv[])
 
     switch(opt.mode) {
         case Options::REPL:
-            repl_execute(opt);
+            execute_repl(opt);
             break;
+        case Options::NONINTERACTIVE:
+            execute_files(opt.scripts_filename, opt);
+            break;
+        default:
+            abort();
     }
 }
 

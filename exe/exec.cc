@@ -1,11 +1,14 @@
-#include "exe/repl.hh"
+#include "exe/exec.hh"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "exe/options.hh"
 #include "compiler/bytecode.hh"
@@ -19,8 +22,8 @@
 #define NORMAL     "\033[0m"
 
 
-void repl_execute(class Options const& opt)
-{
+void execute_repl(class Options const& opt)
+{{{
     (void) opt;
 
     char* buf;
@@ -52,7 +55,7 @@ void repl_execute(class Options const& opt)
             cout << NORMAL << flush;
 
             // disassemble expression
-            if(opt.repl_disassemble) {
+            if(opt.disassemble) {
                 cout << GRAY << b.Disassemble() << NORMAL;
             }
 
@@ -60,11 +63,11 @@ void repl_execute(class Options const& opt)
             Z.ExecuteBytecode(b.GenerateZB());
 
             // display result
-            cout << GREEN << Z.GetPtr()->Inspect() << NORMAL << endl;
+            cout << GREEN << Z.GetPtr()->Inspect() << NORMAL << "\n";
 
         // catch errors
         } catch(exception const& e) {
-            cout << RED << "error: " << e.what() << NORMAL << endl;
+            cout << RED << "error: " << e.what() << NORMAL << "\n";
             exit(EXIT_FAILURE);
         }
     }
@@ -78,7 +81,42 @@ void repl_execute(class Options const& opt)
             ++i;
         }
     }
-}
+}}}
+
+
+void execute_files(vector<string> const& files, class Options const& opt)
+{{{
+    ZoeVM Z;
+    if(opt.trace) {
+        Z.Tracer = true;
+    }
+
+    for(auto const& file: files) {
+
+        // load file
+        ifstream f(file);
+        if(f.fail()) {
+            cerr << RED << "Error opening file '" << file << "': " << strerror(errno) << "\n" << NORMAL;
+            exit(EXIT_FAILURE);
+        }
+        stringstream buffer;
+        buffer << f.rdbuf();
+
+        try {
+            // parse code
+            Bytecode b(buffer.str());
+            if(opt.disassemble) {
+                cout << GRAY << b.Disassemble() << NORMAL;
+            }
+
+            // run code
+            Z.ExecuteBytecode(b.GenerateZB());
+        } catch(exception const& e) {
+            cerr << RED << "error: " << e.what() << NORMAL << "\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+}}}
 
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp
