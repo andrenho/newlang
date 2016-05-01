@@ -124,7 +124,7 @@ void Bytecode::Add(Opcode op, uint16_t value)
 void Bytecode::Add(Opcode op, uint32_t value)
 {
     _code.push_back(op);
-    if(opcode_pars[op] == '4') {
+    if(opcode_pars[op] == '4') {                                                // NOLINT - bug in linter
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+4, back_inserter(_code));                             // NOLINT - bug in linter
     } else {
@@ -246,7 +246,7 @@ string Bytecode::Disassemble() const
 
     size_t pos = 0;
     while(pos < _code.size()) {
-        uint8_t sz;
+        uint8_t sz = 1;
         string op = DisassembleOpcode(pos, &sz);
         ss << setw(8) << pos << ":   " << op << "\n";
         pos += sz;
@@ -267,26 +267,38 @@ string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
     ss << setfill('0') << hex << uppercase;
     switch(opcode_pars[n]) {
         case '0':
-            *sz = 1;
+            if(sz) { 
+                *sz = 1;
+            }
             break;
         case '1':
-            *sz = 2;
+            if(sz) {
+                *sz = 2;
+            }
             ss << static_cast<int>(GetCode<uint8_t>(pos+1));
             break;
         case '2':
-            *sz = 3;
+            if(sz) {
+                *sz = 3;
+            }
             ss << static_cast<int>(GetCode<uint16_t>(pos+1));
             break;
         case '4':
-            *sz = 5;
+            if(sz) {
+                *sz = 5;
+            }
             ss << static_cast<int>(GetCode<uint32_t>(pos+1));
             break;
         case 'd':
-            *sz = 9;
+            if(sz) {
+                *sz = 9;
+            }
             ss << (GetCode<double>(pos+1));
             break;
         case 's':
-            *sz = 5;
+            if(sz) {
+                *sz = 5;
+            }
             {
                 String s = _strings.at(GetCode<uint32_t>(pos+1));
                 ss << "'" << s.str << "'";

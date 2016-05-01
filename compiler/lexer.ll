@@ -7,6 +7,7 @@
 #else
 #  pragma clang diagnostic ignored "-Wdeprecated-register"
 #  pragma clang diagnostic ignored "-Wmissing-noreturn"
+#  pragma clang diagnostic ignored "-Wunreachable-code"
 #endif
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-Wconversion"

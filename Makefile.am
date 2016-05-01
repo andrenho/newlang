@@ -19,6 +19,8 @@ libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
 		    compiler/parser.yy
 #libzoe_la_LDFLAGS = -version-info 0:0:0
 
+exe/options.o: compiler/lexer.o
+
 bin_PROGRAMS = zoe
 zoe_SOURCES = exe/main.cc 			\
 	      exe/options.hh exe/options.cc	\

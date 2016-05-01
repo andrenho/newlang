@@ -1,7 +1,9 @@
 #include "vm/zoevm.hh"
 
 #include <list>
+#include <iomanip>
 #include <iostream>   // TODO
+#include <sstream>
 #include <stdexcept>
 
 #include "compiler/bytecode.hh"
@@ -108,6 +110,16 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
 #pragma GCC diagnostic push
     uint64_t p = 0;
     while(p < b.Code().size()) {
+
+        static stringstream debug;
+        if(Tracer) {
+            debug.str("");
+            string opc = b.DisassembleOpcode(p);
+            debug << setfill('0') << hex << uppercase;
+            debug << "* " << setw(8) << p << ":   " << opc;
+            debug << string(20 - opc.size(), ' ');
+        }
+
         switch(b.GetCode<Opcode>(p)) {
 
             case PNIL:
@@ -234,6 +246,17 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
 
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
+        }
+        if(Tracer) {
+            debug << "< ";
+            for(size_t i=0; i<_stack.size(); ++i) {
+                if(i != 0) {
+                    debug << ", ";
+                }
+                debug << _stack[i]->Inspect();
+            }
+            debug << " >\n";
+            cout << debug.str();
         }
     }
 #pragma GCC diagnostic pop

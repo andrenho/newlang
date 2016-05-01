@@ -67,6 +67,7 @@ public:
     vector<uint8_t> const& Code() const { return _code; }
     vector<String> const&  Strings() const { return _strings; }
     string Disassemble() const;
+    string DisassembleOpcode(size_t pos, uint8_t* sz = nullptr) const;
 
 private:
     vector<uint8_t>  _code = {};
@@ -81,7 +82,6 @@ private:
     vector<uint32_t> _scopes = { 0 };
 
     void AdjustLabels();
-    string DisassembleOpcode(size_t pos, uint8_t* sz) const;
 
     constexpr static uint8_t _MAGIC[] { 0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00 };
 };
