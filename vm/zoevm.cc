@@ -124,34 +124,28 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
 
             case PNIL:
                 Push(make_shared<ZNil>());
-                ++p;
                 break;
 
             case PBT:
                 Push(make_shared<ZBool>(true));
-                ++p;
                 break;
 
             case PBF:
                 Push(make_shared<ZBool>(false));
-                ++p;
                 break;
 
             case PN8:
                 Push(make_shared<ZNumber>(b.GetCode<uint8_t>(p+1)));
-                p += 2;
                 break;
 
             case PNUM: 
                 Push(make_shared<ZNumber>(b.GetCode<double>(p+1)));
-                p += 9;
                 break;
 
             case PSTR: {
                     Bytecode::String s = b.Strings().at(b.GetCode<uint32_t>(p+1));
                     Push(make_shared<ZString>(s.str, s.hash));
                 }
-                p += 5;
                 break;
 
             case PARY: {
@@ -160,7 +154,6 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     Pop(n);
                     Push(ary);
                 }
-                p += 3;
                 break;
 
             case PTBL: {
@@ -169,7 +162,6 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     Pop(static_cast<uint16_t>(n*3+1));
                     Push(tbl);
                 }
-                p += 3;
                 break;
 
             case PTBX: {
@@ -178,36 +170,30 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     Pop(static_cast<uint16_t>(n*2+1));
                     Push(tbl);
                 }
-                p += 3;
                 break;
 
             case POP:
                 Pop();
-                ++p;
                 break;
 
             case SET:
                 GetCopy(-3)->OpSet(GetCopy(-2), GetCopy(-1), b.GetCode<TableConfig>(p+1));
                 Remove(-3);
                 Remove(-2);
-                p += 2;
                 break;
 
             case GET:
                 Push(GetPtr(-2)->OpGet(GetCopy(-1)));
                 Remove(-3);
                 Remove(-2);
-                ++p;
                 break;
 
             case CVAR: 
                 _vars.push_back(GetCopy());
-                ++p;
                 break;
 
             case CMVAR:
                 CreateVariables(b.GetCode<uint16_t>(p+1));
-                p += 3;
                 break;
 
             case GVAR: {
@@ -217,7 +203,6 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     }
                     Push(_vars[n]);
                 }
-                p += 5;
                 break;
 
             case SVAR: {
@@ -227,12 +212,10 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     }
                     _vars[n] = GetCopy();
                 }
-                p += 5;
                 break;
 
             case PSHS:
                 _scopes.push_back(static_cast<uint32_t>(_vars.size()));
-                ++p;
                 break;
 
             case POPS: {
@@ -241,12 +224,14 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                     assert(!_scopes.empty());
                     _vars.erase(begin(_vars) + last, end(_vars));
                 }
-                ++p;
                 break;
 
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
         }
+
+        p += Bytecode::OpcodeSize(b.GetCode<Opcode>(p));
+
         if(Tracer) {
             debug << "< ";
             for(size_t i=0; i<_stack.size(); ++i) {

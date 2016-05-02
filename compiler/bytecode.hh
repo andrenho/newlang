@@ -31,6 +31,7 @@ public:
     void Add(Opcode op, uint16_t value);
     void Add(Opcode op, uint32_t value);
     void Add(Opcode op, string const& s);
+    void Add(Opcode op, uint8_t pars, uint8_t optpars);
 
     // read code
     // {{{ T GetCode(uint64_t pos) const;
@@ -67,7 +68,8 @@ public:
     vector<uint8_t> const& Code() const { return _code; }
     vector<String> const&  Strings() const { return _strings; }
     string Disassemble() const;
-    string DisassembleOpcode(size_t pos, uint8_t* sz = nullptr) const;
+    string DisassembleOpcode(size_t pos) const;
+    static size_t OpcodeSize(Opcode op);
 
 private:
     vector<uint8_t>  _code = {};

@@ -726,6 +726,11 @@ static void zoe_table_proto()
     zequals("let x = &{a: 42}; let b = &[x]{}; x.a = 12; x.a", 12);
 }
 
+static void zoe_functions()
+{
+    zequals("fn() { 4 }()", 4);
+}
+
 // }}}
 
 static void prepare_tests()
@@ -772,6 +777,9 @@ static void prepare_tests()
     run_test(zoe_table_get_set);
     run_test(zoe_table_pub_mut);
     run_test(zoe_table_proto);
+
+    // functions
+    run_test(zoe_functions);
 }
 
 // vim: ts=4:sw=4:sts=4:expandtab:foldmethod=marker:syntax=cpp

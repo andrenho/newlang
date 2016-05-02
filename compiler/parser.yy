@@ -80,7 +80,7 @@ using namespace std;
 %token <number>  NUMBER
 %token <boolean> BOOLEAN
 %token <str>     STRING IDENTIFIER
-%token NIL SEP _MUT _PUB _DEL LET
+%token NIL SEP _MUT _PUB _DEL LET FN
 
 %type <boolean> mut_opt
 %type <str> string strings
@@ -91,6 +91,7 @@ using namespace std;
 %nonassoc '='
 %precedence '['
 %left '.'
+%precedence '('  /* lowest? */
 
 %%
 
@@ -127,9 +128,14 @@ exp: literal_exp
    | var_get
    | set_op
    | get_op
-   | '{' { b.PushScope(); b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); b.PopScope(); }
-   | '{' '}'
+   | function_def
+   | exp function_call
+   | block
    ;
+
+block: '{' { b.PushScope(); b.Add(PSHS); b.Add(PNIL); } code '}' { b.Add(POPS); b.PopScope(); }
+     | '{' '}'
+     ;
 
 
 // 
@@ -286,8 +292,26 @@ set_op: table_exp '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
 // 
 // GET OPERATOR
 //
-get_op: table_exp { b.Add(GET); }
+get_op: table_exp { b.Add(GET, 0, 0); }
       ;
+
+// 
+// FUNCTION DEFINITION
+//
+function_def: FN '(' function_pars ')' block
+            ;
+
+function_pars: %empty
+             ;
+
+//
+// FUNCTION CALLS
+//
+function_call: '(' call_pars ')'
+             ;
+
+call_pars: %empty
+         ;
 
 %%
 

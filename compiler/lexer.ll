@@ -95,6 +95,7 @@ mut             { return _MUT; }
 pub             { return _PUB; }
 let             { return LET; }
 del             { return _DEL; }
+fn              { return FN; }
 
 '                     { yy_push_state(STR, yyscanner); yylval->str = new string(); }
 <STR>\\n              { yylval->str->append(1, '\n'); }

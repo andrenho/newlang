@@ -146,6 +146,19 @@ void Bytecode::Add(Opcode op, string const& s)
     }
 }
 
+
+void Bytecode::Add(Opcode op, uint8_t pars, uint8_t optpars)
+{
+    if(opcode_pars[op] == 'p') {
+        _code.push_back(op);
+        _code.push_back(pars);
+        _code.push_back(optpars);
+    } else {
+        throw invalid_argument("Invalid integer parameter for this opcode");
+    }
+}
+
+
 // }}}
 
 // {{{ LABELS
@@ -246,17 +259,16 @@ string Bytecode::Disassemble() const
 
     size_t pos = 0;
     while(pos < _code.size()) {
-        uint8_t sz = 1;
-        string op = DisassembleOpcode(pos, &sz);
+        string op = DisassembleOpcode(pos);
         ss << setw(8) << pos << ":   " << op << "\n";
-        pos += sz;
+        pos += OpcodeSize(GetCode<Opcode>(pos));
     }
 
     return ss.str();
 }
 
 
-string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
+string Bytecode::DisassembleOpcode(size_t pos) const
 {
     auto n = GetCode<uint8_t>(pos);
     stringstream ss;
@@ -266,40 +278,19 @@ string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
     ss << string(8 - opcode_names[n].size(), ' ');
     ss << setfill('0') << hex << uppercase;
     switch(opcode_pars[n]) {
-        case '0':
-            if(sz) { 
-                *sz = 1;
-            }
-            break;
         case '1':
-            if(sz) {
-                *sz = 2;
-            }
             ss << static_cast<int>(GetCode<uint8_t>(pos+1));
             break;
         case '2':
-            if(sz) {
-                *sz = 3;
-            }
             ss << static_cast<int>(GetCode<uint16_t>(pos+1));
             break;
         case '4':
-            if(sz) {
-                *sz = 5;
-            }
             ss << static_cast<int>(GetCode<uint32_t>(pos+1));
             break;
         case 'd':
-            if(sz) {
-                *sz = 9;
-            }
             ss << (GetCode<double>(pos+1));
             break;
-        case 's':
-            if(sz) {
-                *sz = 5;
-            }
-            {
+        case 's': {
                 String s = _strings.at(GetCode<uint32_t>(pos+1));
                 ss << "'" << s.str << "'";
             }
@@ -309,6 +300,20 @@ string Bytecode::DisassembleOpcode(size_t pos, uint8_t* sz) const
     return ss.str();
 }
 
+
+size_t Bytecode::OpcodeSize(Opcode op)
+{
+    switch(opcode_pars[op]) {
+        case '0': return 1;
+        case '1': return 2;
+        case '2': return 3;
+        case '4': return 5;
+        case 'd': return 9;
+        case 's': return 5;
+        case 'p': return 3;
+        default: abort();
+    }
+}
 
 // }}}
 
