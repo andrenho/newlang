@@ -10,6 +10,7 @@ libzoe_la_SOURCES = vm/ztype.hh vm/ztype.cc			\
 		    vm/zstring.hh vm/zstring.cc			\
 		    vm/zarray.hh vm/zarray.cc			\
 		    vm/ztable.hh vm/ztable.cc 			\
+		    vm/zfunction.hh vm/zfunction.cc		\
 		    vm/zoevm.hh vm/zoevm.cc 			\
 		    vm/exceptions.hh                            \
 		    vm/opcode.hh 				\

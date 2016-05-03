@@ -30,6 +30,8 @@ using namespace std;
 static void add_number(Bytecode& b, double num);
 static void add_variables(Bytecode& b, vector<string> const& names, bool mut);
 void yyerror(YYLTYPE* yylloc, void* scanner, Bytecode& b, const char *s) __attribute__((noreturn));
+static Label function_header(Bytecode& b);
+static void function_footer(Bytecode& b, uint8_t n_pars, Label end);
 
 %}
 
@@ -292,13 +294,13 @@ set_op: table_exp '=' exp { b.Add(SET, static_cast<uint8_t>(PUB|MUT)); }
 // 
 // GET OPERATOR
 //
-get_op: table_exp { b.Add(GET, 0, 0); }
+get_op: table_exp { b.Add(GET); }
       ;
 
 // 
 // FUNCTION DEFINITION
 //
-function_def: FN '(' function_pars ')' block
+function_def: FN '(' function_pars ')' { $<label>1 = function_header(b); } block { function_footer(b, /*TODO*/ 0, $<label>1); }
             ;
 
 function_pars: %empty
@@ -307,10 +309,12 @@ function_pars: %empty
 //
 // FUNCTION CALLS
 //
-function_call: '(' call_pars ')'
+function_call: '(' call_pars ')' { b.Add(CALL, 0, 0); }
              ;
 
 call_pars: %empty
+         | exp
+         | exp ',' call_pars
          ;
 
 %%
@@ -323,6 +327,23 @@ static void add_number(Bytecode& b, double num)
     } else {
         b.Add(PNUM, num);
     }
+}
+
+
+static Label function_header(Bytecode& b)
+{
+    Label end = b.CreateLabel();                            // label to the end of the function
+    b.Add(PNUM, static_cast<double>(b.CurrentPos() + 18));  // push function address (current + 9 (push) + 9 (jmp)
+    b.Add(JMP, b.AddLabel(end));                            // jump to the end of the function
+    return end;
+}
+
+
+static void function_footer(Bytecode& b, uint8_t n_pars, Label end)
+{
+    b.Add(RET);                             // return from function
+    b.SetLabel(end);                        // label to the end of the function
+    b.Add(PFUN, n_pars);                    // push function (function address is in the stack)
 }
 
 

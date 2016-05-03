@@ -30,6 +30,7 @@ public:
     void Add(Opcode op, uint8_t value);
     void Add(Opcode op, uint16_t value);
     void Add(Opcode op, uint32_t value);
+    void Add(Opcode op, uint64_t value);
     void Add(Opcode op, string const& s);
     void Add(Opcode op, uint8_t pars, uint8_t optpars);
 
@@ -52,7 +53,8 @@ public:
     };
     Label CreateLabel();
     void  SetLabel(Label const& lbl);
-    void  AddLabel(Label const& lbl);
+    uint64_t AddLabel(Label const& lbl);
+    uint64_t CurrentPos() const;
 
     // variables
     void     CreateVariable(string const& name, bool mut);

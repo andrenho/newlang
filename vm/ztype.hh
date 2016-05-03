@@ -5,7 +5,7 @@
 using namespace std;
 
 enum ZType {
-    NIL, BOOL, NUMBER, STRING, ARRAY, TABLE
+    NIL, BOOL, NUMBER, STRING, ARRAY, TABLE, FUNCTION
 };
 
 // This template is the basis for converting C++ types to the C++ 

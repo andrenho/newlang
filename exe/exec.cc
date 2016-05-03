@@ -22,7 +22,7 @@
 #define NORMAL     "\033[0m"
 
 
-void execute_repl(class Options const& opt)
+void execute_repl(class Options const& opt) 
 {{{
     (void) opt;
 
@@ -54,13 +54,16 @@ void execute_repl(class Options const& opt)
             Bytecode b(buf); free(buf);   // text is printed here if debug-bison is active
             cout << NORMAL << flush;
 
-            // disassemble expression
+            // generate bytecode
+            auto bytecode = b.GenerateZB();
+
+            // disassemble bytecode
             if(opt.disassemble) {
                 cout << GRAY << b.Disassemble() << NORMAL;
             }
 
-            // execute
-            Z.ExecuteBytecode(b.GenerateZB());
+            // execute bytecode
+            Z.ExecuteBytecode(bytecode);
 
             // display result
             cout << GREEN << Z.GetPtr()->Inspect() << NORMAL << "\n";

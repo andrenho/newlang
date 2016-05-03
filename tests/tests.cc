@@ -287,12 +287,12 @@ static void bytecode_generation()
 
     {
         Bytecode b;
-        b.Add(BT, 0x12345678_u32);
+        b.Add(SVAR, 0x12345678_u32);
 
         vector<uint8_t> expected = {
             0x20, 0xE2, 0x0E, 0xFF, 0x01, 0x00, 0x01, 0x00,   // magic + version
             0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   // string position
-            BT,   0x78, 0x56, 0x34, 0x12,
+            SVAR, 0x78, 0x56, 0x34, 0x12,
         };
         mequals(b.GenerateZB(), expected);
     }
@@ -370,8 +370,8 @@ static void bytecode_labels()
     }
     bc.GenerateZB();
 
-    mequals(bc.Code()[0x20], 0x10, "Label set (byte #0)");
-    mequals(bc.Code()[0x21], 0x00, "Label set (byte #1)");
+    mequals(bc.Code()[0x21], 0x10, "Label set (byte #0)");
+    mequals(bc.Code()[0x22], 0x00, "Label set (byte #1)");
 }
 
 

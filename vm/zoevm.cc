@@ -13,6 +13,7 @@
 #include "vm/zstring.hh"
 #include "vm/zarray.hh"
 #include "vm/ztable.hh"
+#include "vm/zfunction.hh"
 
 ZoeVM::ZoeVM()
 {
@@ -172,6 +173,10 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 }
                 break;
 
+            case PFUN:
+                Push(make_shared<ZFunctionPointer>(Pop<ZNumber>()->Value(), b.GetCode<uint8_t>(p+1)));
+                break;
+
             case POP:
                 Pop();
                 break;
@@ -226,11 +231,35 @@ void ZoeVM::ExecuteBytecode(vector<uint8_t> const& bytecode)
                 }
                 break;
 
+            case JMP:
+                p = b.GetCode<uint64_t>(p+1);
+                goto skip_advance_pc;
+
+            case CALL: {
+                    _call_stack.push_back(p+3);
+                    auto func = Pop<ZFunction>();
+                    if(func->FunctionType() == POINTER) {
+                        p = static_pointer_cast<ZFunctionPointer>(func)->Value();
+                    } else {
+                        abort();
+                    }
+                }
+                goto skip_advance_pc;
+
+            case RET:
+                if(_call_stack.empty()) {
+                    throw zoe_internal_error("Call stack undeflow.");
+                }
+                p = _call_stack.back();
+                _call_stack.pop_back();
+                goto skip_advance_pc;
+
             default:
                 throw domain_error("Invalid opcode " + to_string(b.GetCode<uint8_t>(p)));
         }
 
         p += Bytecode::OpcodeSize(b.GetCode<Opcode>(p));
+skip_advance_pc:
 
         if(Tracer) {
             debug << "< ";

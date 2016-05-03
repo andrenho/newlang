@@ -4,6 +4,7 @@
 #include <cstring>
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 using namespace std;
@@ -104,7 +105,7 @@ void Bytecode::Add(Opcode op, uint8_t value)
     if(opcode_pars[op] == '1') {
         _code.push_back(value);
     } else {
-        throw invalid_argument("Invalid integer parameter for this opcode");
+        throw invalid_argument("Invalid uint8_t parameter for this opcode");
     }
 }
 
@@ -116,7 +117,7 @@ void Bytecode::Add(Opcode op, uint16_t value)
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+2, back_inserter(_code));
     } else {
-        throw invalid_argument("Invalid integer parameter for this opcode");
+        throw invalid_argument("Invalid uint16_t parameter for this opcode");
     }
 }
 
@@ -128,7 +129,19 @@ void Bytecode::Add(Opcode op, uint32_t value)
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
         copy(bytes, bytes+4, back_inserter(_code));                             // NOLINT - bug in linter
     } else {
-        throw invalid_argument("Invalid integer parameter for this opcode");
+        throw invalid_argument("Invalid uint32_t parameter for this opcode");
+    }
+}
+
+
+void Bytecode::Add(Opcode op, uint64_t value)
+{
+    _code.push_back(op);
+    if(opcode_pars[op] == '8') {                                                // NOLINT - bug in linter
+        uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
+        copy(bytes, bytes+8, back_inserter(_code));                             // NOLINT - bug in linter
+    } else {
+        throw invalid_argument("Invalid uint64_t parameter for this opcode");
     }
 }
 
@@ -142,7 +155,7 @@ void Bytecode::Add(Opcode op, string const& s)
         uint8_t* bytes = reinterpret_cast<uint8_t*>(&sz);
         copy(bytes, bytes+4, back_inserter(_code));
     } else {
-        throw invalid_argument("Invalid integer parameter for this opcode");
+        throw invalid_argument("Invalid string parameter for this opcode");
     }
 }
 
@@ -176,15 +189,13 @@ void Bytecode::SetLabel(Label const& lbl)
 }
 
 
-void Bytecode::AddLabel(Label const& lbl)
+uint64_t Bytecode::AddLabel(Label const& lbl)
 {
     // add reference
-    _labels[lbl].refs.push_back(_code.size());
+    _labels[lbl].refs.push_back(_code.size() + 1);
 
     // add filler bytes
-    for(int i=0; i<8; ++i) {
-        _code.push_back(0);
-    }
+    return 0;
 }
 
 
@@ -199,6 +210,12 @@ void Bytecode::AdjustLabels()
         }
     }
     _labels.clear();
+}
+
+
+uint64_t Bytecode::CurrentPos() const
+{
+    return _code.size();
 }
 
 /// }}}
@@ -259,9 +276,16 @@ string Bytecode::Disassemble() const
 
     size_t pos = 0;
     while(pos < _code.size()) {
+        size_t sz = OpcodeSize(GetCode<Opcode>(pos));
         string op = DisassembleOpcode(pos);
-        ss << setw(8) << pos << ":   " << op << "\n";
-        pos += OpcodeSize(GetCode<Opcode>(pos));
+
+        ss << setw(8) << pos << ":   " << op;
+        ss << string(20 - op.size(), ' ');
+        for(size_t i=0; i<sz; ++i) {
+            ss << setfill('0') << hex << uppercase << setw(2) << static_cast<int>(GetCode<uint8_t>(pos+i)) << " ";
+        }
+        ss << "\n";
+        pos += sz;
     }
 
     return ss.str();
@@ -282,13 +306,16 @@ string Bytecode::DisassembleOpcode(size_t pos) const
             ss << static_cast<int>(GetCode<uint8_t>(pos+1));
             break;
         case '2':
-            ss << static_cast<int>(GetCode<uint16_t>(pos+1));
+            ss << GetCode<uint16_t>(pos+1);
             break;
         case '4':
-            ss << static_cast<int>(GetCode<uint32_t>(pos+1));
+            ss << GetCode<uint32_t>(pos+1);
+            break;
+        case '8':
+            ss << GetCode<uint64_t>(pos+1);
             break;
         case 'd':
-            ss << (GetCode<double>(pos+1));
+            ss << GetCode<double>(pos+1);
             break;
         case 's': {
                 String s = _strings.at(GetCode<uint32_t>(pos+1));
@@ -308,6 +335,7 @@ size_t Bytecode::OpcodeSize(Opcode op)
         case '1': return 2;
         case '2': return 3;
         case '4': return 5;
+        case '8': return 9;
         case 'd': return 9;
         case 's': return 5;
         case 'p': return 3;
